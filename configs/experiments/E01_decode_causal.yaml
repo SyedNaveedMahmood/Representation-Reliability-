@@ -1,0 +1,22 @@
+experiment: {id: E01, name: decode_causal_gap, mode: discovery}
+dataset:
+  type: synthetic_relations
+  n_pairs: 1000
+  require_matched_counterfactuals: true
+site_selection:
+  source_experiment: E00
+  strategy: [high_D, mid_D, low_D, every_4th_layer]
+intervention:
+  backend: nnsight
+  operator: replace
+  token_selector: target_span_last
+controls:
+  no_intervention: true
+  shuffled_source: true
+  random_direction_norm_matched: true
+  adjacent_layer: true
+metrics:
+  decodability: true
+  normalized_counterfactual_recovery: true
+  counterfactual_accuracy: true
+  gap_DC: true

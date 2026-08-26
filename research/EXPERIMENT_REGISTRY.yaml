@@ -1,0 +1,124 @@
+schema_version: 1
+experiments:
+  - id: E00
+    name: representation_cartography
+    question: Where is a target variable decodable and how stable is its layer/token profile?
+    priority: P0
+    status: planned
+    dimensions: [D, R]
+    refs: [nnsight, internal_probing]
+    max_gpu_hours: 3
+    discovery_signal: Layerwise D reproducibly exceeds random-label/text controls.
+
+  - id: E01
+    name: decode_causal_gap
+    question: Does decodable information become causally actionable at the same layers?
+    priority: P0
+    status: planned
+    depends_on: [E00]
+    dimensions: [D, C]
+    refs: [nnsight, pyvene]
+    max_gpu_hours: 6
+    discovery_signal: Stable D/C ranking mismatch beyond controls.
+
+  - id: E02
+    name: decode_steer_gap
+    question: Does decodability predict safe steering efficacy?
+    priority: P0
+    status: planned
+    depends_on: [E00]
+    dimensions: [D, S, K]
+    refs: [axbench, activation_steering]
+    max_gpu_hours: 6
+
+  - id: E03
+    name: causal_steer_gap
+    question: Can a representation be causal but resistant to simple steering?
+    priority: P0
+    status: planned
+    depends_on: [E01, E02]
+    dimensions: [C, S, K]
+    refs: [pyvene, activation_steering, selective_steering, pyreft]
+    max_gpu_hours: 4
+
+  - id: E04
+    name: internal_alarm_paradox
+    question: Can the model encode corruption while that signal weakly predicts final error?
+    priority: P1
+    status: planned
+    dimensions: [M, C, R]
+    refs: [internal_probing, icr_probe]
+    max_gpu_hours: 6
+
+  - id: E05
+    name: temporal_commitment
+    question: Do trajectory change points identify causally important reasoning moments?
+    priority: P1
+    status: planned
+    dimensions: [C, R]
+    refs: [reasoning_flow, nnsight]
+    max_gpu_hours: 8
+
+  - id: E06
+    name: observer_vs_causal_components
+    question: Do externally decodable components overlap with jointly causal components?
+    priority: P1
+    status: planned
+    depends_on: [E00]
+    dimensions: [D, C]
+    refs: [multi_component_causal_tracing]
+    max_gpu_hours: 12
+
+  - id: E07
+    name: causal_robustness
+    question: Does representational invariance imply causal invariance?
+    priority: P1
+    status: planned
+    depends_on: [E01, E02]
+    dimensions: [D, C, S, R]
+    refs: [nnsight, pyvene]
+    max_gpu_hours: 10
+
+  - id: E08
+    name: sae_causal_consistency
+    question: Do consistently activated SAE features retain consistent causal meaning?
+    priority: P2
+    status: blocked_on_E07
+    dimensions: [D, C, R]
+    refs: [saelens, sae_feature_consistency]
+
+  - id: E09
+    name: kv_cache_scars
+    question: Does revoked or corrected information remain causally active in KV cache state?
+    priority: P2
+    status: planned_later
+    dimensions: [C, R, K]
+    refs: [nnsight]
+    max_gpu_hours: 12
+
+  - id: E10
+    name: monitor_spoofing
+    question: Can internal monitor scores be manipulated while output behavior is preserved?
+    priority: P2
+    status: planned_later
+    dimensions: [M, C, R, K]
+    refs: [internal_probing, nnsight]
+    max_gpu_hours: 8
+
+  - id: E11
+    name: behavioral_rank
+    question: What minimum intervention rank is required for reliable behavioral control?
+    priority: P2
+    status: planned_later
+    dimensions: [C, S, R, K]
+    refs: [pyreft, axbench]
+    max_gpu_hours: 12
+
+  - id: E12
+    name: latent_transfer
+    question: Does representation reliability predict cross-model latent communication utility?
+    priority: P3
+    status: speculative
+    dimensions: [D, C, R]
+    refs: [statebridge]
+    max_gpu_hours: 12

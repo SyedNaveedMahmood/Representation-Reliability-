@@ -1,0 +1,5 @@
+experiment: {id: E08, name: sae_causal_consistency, mode: phase2}
+blocked_until: [E07]
+external: {use: [saelens, sae_feature_consistency]}
+questions: [activation_consistency_vs_causal_consistency, feature_rank_stability_vs_intervention_stability]
+controls: {matched_activation_frequency: true, random_feature_baseline: true}

@@ -1,0 +1,19 @@
+experiment: {id: E02, name: decode_steer_gap, mode: discovery}
+dataset: {type: synthetic_relations, n_samples: 1500}
+direction:
+  constructors: [diff_mean, probe_normal]
+  normalize: l2
+steering:
+  backend: nnsight
+  alphas: [-4, -2, -1, -0.5, 0, 0.5, 1, 2, 4]
+  sites_from: E00
+controls:
+  random_directions_per_site: 5
+  norm_match: true
+metrics:
+  target_effect: true
+  spearman_monotonicity: true
+  monotonicity_violations: true
+  saturation: true
+  side_effects: true
+  gap_DS: true

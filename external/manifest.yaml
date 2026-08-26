@@ -1,0 +1,96 @@
+schema_version: 1
+root: external/repos
+
+repositories:
+  nnsight:
+    url: https://github.com/ndif-team/nnsight.git
+    tier: core
+    install_policy: main_optional
+    purpose: activation extraction, modification, gradients, autoregressive interventions
+
+  pyvene:
+    url: https://github.com/frankaging/pyvene.git
+    tier: core
+    install_policy: test_then_main_optional
+    purpose: structured/interchange/path/trainable interventions
+
+  axbench:
+    url: https://github.com/stanfordnlp/axbench.git
+    tier: core
+    install_policy: isolated
+    purpose: concept detection and steering references
+    setup: uv_sync
+
+  internal_probing:
+    url: https://github.com/zazamrykh/internal_probing.git
+    tier: core
+    install_policy: isolated
+    purpose: correctness/hallucination probes and PEP
+
+  reasoning_flow:
+    url: https://github.com/MasterZhou1/Reasoning-Flow.git
+    tier: core
+    install_policy: isolated
+    purpose: reasoning trajectory geometry and carrier-invariant data
+
+  multi_component_causal_tracing:
+    url: https://github.com/ZiruiYan/multi-component-causal-tracing.git
+    tier: core
+    install_policy: isolated_strict
+    purpose: PGB-CT sparse joint causal component discovery
+    notes:
+      - Keep documented Transformers 4.51.x environment separate.
+
+  activation_steering:
+    url: https://github.com/IBM/activation-steering.git
+    tier: core
+    install_policy: isolated_first
+    purpose: activation steering reference
+
+  saelens:
+    url: https://github.com/decoderesearch/SAELens.git
+    tier: optional
+    install_policy: isolated
+    purpose: pretrained SAE analysis/intervention
+
+  sae_feature_consistency:
+    url: https://github.com/xiangchensong/sae-feature-consistency.git
+    tier: optional
+    install_policy: isolated
+    purpose: SAE feature consistency
+
+  icr_probe:
+    url: https://github.com/XavierZhang2002/ICR_Probe.git
+    tier: optional
+    install_policy: isolated
+    purpose: hidden-state dynamics hallucination baseline
+
+  patchscopes:
+    url: https://github.com/PAIR-code/interpretability.git
+    tier: optional
+    install_policy: isolated
+    purpose: Patchscopes/model-mediated decoding
+
+  honest_llama:
+    url: https://github.com/likenneth/honest_llama.git
+    tier: optional
+    install_policy: isolated
+    purpose: inference-time truthfulness intervention baseline
+
+  pyreft:
+    url: https://github.com/stanfordnlp/pyreft.git
+    tier: optional
+    install_policy: isolated
+    purpose: learned low-rank representation interventions
+
+  statebridge:
+    url: https://github.com/YanwenPneg/StateBridge.git
+    tier: optional
+    install_policy: isolated
+    purpose: latent communication
+
+  selective_steering:
+    url: https://github.com/knoveleng/steering.git
+    tier: optional
+    install_policy: isolated
+    purpose: rotation/alternative steering operators

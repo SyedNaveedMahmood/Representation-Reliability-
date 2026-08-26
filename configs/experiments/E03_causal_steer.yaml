@@ -1,0 +1,13 @@
+experiment: {id: E03, name: causal_steer_gap, mode: discovery}
+inputs: {causal_results: E01, steering_results: E02}
+selection:
+  criteria: [high_causal_effect, weak_or_unsafe_additive_steering]
+  max_sites: 8
+interventions:
+  operators: [replacement, diff_mean_addition, probe_normal_addition]
+  phase2_operators: [rotation, reft_rank2, reft_rank4]
+metrics:
+  gap_CS: true
+  effect_per_delta_norm: true
+  side_effects: true
+  off_manifold_distance: true

@@ -1,0 +1,10 @@
+experiment: {id: E10, name: monitor_spoofing, mode: phase2}
+depends_on: [E04]
+objective:
+  maximize_monitor_score_change: true
+  constrain_output_kl: 0.01
+  constrain_accuracy_change: 0.0
+interventions:
+  operators: [probe_direction_addition, projected_gradient]
+  sites_from: E04
+metrics: {monitor_delta: true, output_kl: true, accuracy_delta: true, intervention_norm: true}

@@ -1,0 +1,32 @@
+project:
+  name: representation_reliability
+  output_root: runs
+  cache_root: data/cache
+
+reproducibility:
+  seed: 20260827
+  deterministic: false
+  save_environment: true
+  save_git_state: true
+
+runtime:
+  device: cuda
+  dtype: bfloat16
+  batch_size: 8
+  resume: true
+  num_workers: 0
+
+budget:
+  max_gpu_hours: 12
+  max_examples: 5000
+
+storage:
+  activation_format: safetensors
+  metadata_format: parquet
+  shard_size: 256
+  save_raw_predictions: true
+  save_raw_interventions: true
+
+statistics:
+  bootstrap_samples: 2000
+  confidence_level: 0.95

@@ -1,0 +1,7 @@
+experiment: {id: E11, name: behavioral_rank, mode: phase2}
+ranks: [1, 2, 4, 8, 16]
+behaviors: [truth_state, relation_state, refusal, reasoning_strategy]
+method:
+  family: low_rank_representation_intervention
+  external_reference: pyreft
+metrics: {target_control: true, utility_drift: true, robustness: true, parameter_count: true}

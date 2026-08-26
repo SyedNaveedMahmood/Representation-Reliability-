@@ -1,0 +1,12 @@
+experiment: {id: E07, name: causal_robustness, mode: discovery}
+dataset: {type: synthetic_relations, n_base_samples: 1000}
+transforms:
+  invariant: [paraphrase, question_reframe, benign_distractor, clause_reorder]
+  controlled_change: [entity_swap, relation_inverse]
+measure: {activation_similarity: true, D: true, C: true, S: true}
+metrics:
+  metric_retention: true
+  layer_rank_stability: true
+  direction_cosine: true
+  causal_stability: true
+  steering_stability: true

@@ -1,0 +1,16 @@
+experiment: {id: E05, name: temporal_commitment, mode: discovery}
+model_override: {id: Qwen/Qwen3-0.6B}
+dataset:
+  type: reasoning
+  source: reasoning_flow_or_gsm8k_subset
+  n_samples: 1000
+trajectory:
+  pooling: step_mean
+  layers: all
+  metrics: [velocity, turn_angle, curvature, displacement]
+  changepoint_method: robust_zscore
+intervention:
+  compare_step_groups: [top_changepoint, bottom_changepoint, random]
+  patch_fraction: 0.1
+controls: {match_token_position: true, match_step_length: true}
+metrics: {answer_change_rate: true, target_logit_delta: true, causal_effect_by_step_rank: true}

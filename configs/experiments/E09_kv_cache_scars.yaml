@@ -1,0 +1,9 @@
+experiment: {id: E09, name: kv_cache_scars, mode: phase2}
+dataset: {type: false_premise_correction, n_samples: 800}
+cache_interventions:
+  operators: [zero, replace, interpolate]
+  targets: [K, V]
+  layers: coarse_to_fine
+  token_windows: [initial_claim, correction, question]
+controls: {residual_stream_patch: true, shuffled_cache_source: true, norm_matched_noise: true}
+metrics: {obsolete_answer_logit: true, corrected_answer_logit: true, localization_map: true}

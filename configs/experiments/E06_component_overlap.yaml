@@ -1,0 +1,14 @@
+experiment: {id: E06, name: observer_vs_causal_components, mode: discovery}
+model_override: {id: Qwen/Qwen3-1.7B-Base}
+dataset: {type: synthetic_relations, n_samples: 1500}
+observer_components:
+  method: probe_attribution
+  components: [attention_heads, mlp_blocks]
+causal_components:
+  method: pgb_ct_external
+  external_repo: multi_component_causal_tracing
+metrics:
+  topk_jaccard: [5, 10, 20]
+  rank_correlation: true
+  self_reproducibility: true
+  causal_effect_of_sets: true

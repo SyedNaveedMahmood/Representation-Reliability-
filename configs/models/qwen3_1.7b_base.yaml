@@ -1,0 +1,16 @@
+model:
+  id: Qwen/Qwen3-1.7B-Base
+  revision: null
+  family: qwen3
+  backend: hf
+  dtype: bfloat16
+  device_map: cuda
+  trust_remote_code: false
+  generation:
+    do_sample: false
+    max_new_tokens: 256
+
+representation:
+  sites: [resid_post]
+  layers: all
+  token_selector: last_prompt

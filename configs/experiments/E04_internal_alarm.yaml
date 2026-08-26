@@ -1,0 +1,12 @@
+experiment: {id: E04, name: internal_alarm_paradox, mode: discovery}
+dataset: {type: false_premise_correction, n_samples: 3000}
+labels:
+  corruption_state: true
+  final_answer_error: true
+representations:
+  sites: [resid_post]
+  token_selectors: [corruption_end, correction_end, question_end]
+  layers: all
+monitors: [linear_probe_static, trajectory_logreg]
+controls: {text_baseline: true, random_labels: true}
+metrics: {auroc: true, auprc: true, brier: true, ece: true, gap_monitor_output: true}

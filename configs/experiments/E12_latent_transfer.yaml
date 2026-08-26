@@ -1,0 +1,6 @@
+experiment: {id: E12, name: latent_transfer, mode: phase3_speculative}
+external_reference: statebridge
+question: {compare_reliability_to_communication_utility: true}
+models: {source: small_qwen, target: second_small_model}
+alignment: {methods: [orthogonal_procrustes]}
+metrics: {communication_task_accuracy: true, compression_ratio: true, source_D: true, source_C: true, transform_robustness: true}
