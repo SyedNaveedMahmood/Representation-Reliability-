@@ -15,8 +15,9 @@ probe:
   class_weight: balanced
 controls:
   random_labels: true
+  random_label_seeds: [0, 1, 2]
   text_baseline: tfidf_logreg
-  seeds: [0, 1, 2]
+  random_features: false
 outputs:
   save_coefficients: true
   layerwise_metrics: true
