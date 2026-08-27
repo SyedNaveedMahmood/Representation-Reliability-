@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -45,6 +46,17 @@ logger = logging.getLogger(__name__)
 
 FOLLOWUP_VERSION = "phase0a2-readout-followup-v1"
 LEARNING_SPLITS = ("train", "validation", "discovery_test")
+
+
+def label_lookup_from_mapping(
+    label_map: Mapping[str, int],
+) -> Callable[[str], int]:
+    """Adapt a protected discovery label mapping to the probe callable API."""
+
+    def label_of(sample_id: str) -> int:
+        return int(label_map[sample_id])
+
+    return label_of
 
 
 def signed_cosine(a: np.ndarray, b: np.ndarray) -> float:
@@ -265,7 +277,8 @@ def run_e00c_followup(
     )
     samples, df = _generate_dataset(cfg)
     discovery_df = discovery_view(df).reset_index(drop=True)
-    label_of = build_discovery_label_map(discovery_df)
+    label_map = build_discovery_label_map(discovery_df)
+    label_of = label_lookup_from_mapping(label_map)
     split_of = dict(
         zip(
             discovery_df["sample_id"].astype(str),
@@ -344,7 +357,7 @@ def run_e00c_followup(
             adapter,
             discovery_samples,
             split_of,
-            label_of,
+            label_map,
             candidates,
             batch_size=batch_size,
             arm_name="raw_completion",
@@ -354,7 +367,7 @@ def run_e00c_followup(
             adapter,
             chat_samples,
             split_of,
-            label_of,
+            label_map,
             candidates,
             batch_size=batch_size,
             arm_name="qwen_chat_nonthinking",
