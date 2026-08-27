@@ -49,6 +49,21 @@ def e00(
 
 
 @app.command()
+def e00b(
+    base: Path | None = None,
+    model: Path | None = None,
+    experiment: Path | None = None,
+    overrides: list[str] = typer.Option(None, "--set", help="dot-path overrides"),
+) -> None:
+    """Run E00-B behavioral forced-choice readout (same synthetic task)."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e00b import run_e00b
+
+    run_dir = run_e00b(base, model, experiment, tuple(overrides or ()))
+    typer.echo(f"E00-B run complete: {run_dir}")
+
+
+@app.command()
 def extract(
     base: Path | None = None,
     model: Path | None = None,

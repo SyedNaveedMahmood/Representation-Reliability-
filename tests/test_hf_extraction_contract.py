@@ -105,6 +105,32 @@ def test_hook_vs_hidden_states_agree(adapter):
     assert np.isfinite(fh[final_key[0]]).all()
 
 
+def test_resolved_revisions_are_recorded(adapter):
+    """Reproducibility requirement: resolved HF commit hashes when available."""
+    revs = adapter.resolved_revisions()
+    assert revs["model_sha"], "model commit hash should resolve from cached snapshot"
+    if revs["model_sha"]:
+        assert len(revs["model_sha"]) == 40
+
+
+def test_score_continuations_forced_choice_sanity(adapter):
+    """Forced-choice margin points at the obviously correct continuation."""
+    prompt = "The capital of France is"
+    scores = adapter.score_continuations([prompt], [" Paris", " London"])
+    yes = scores[0][0]
+    no = scores[0][1]
+    assert len(yes["token_ids"]) >= 1 and len(no["token_ids"]) >= 1
+    # token-level provenance must be recorded, not just totals
+    assert set(yes.keys()) == {"candidate", "token_ids", "logp_total",
+                               "logp_mean", "token_logps"}
+    margin = yes["logp_total"] - no["logp_total"]
+    assert margin > 0, (
+        f"conditional likelihood should prefer 'Paris' over 'London' "
+        f"(margin={margin:.3f})"
+    )
+
+
+
 def test_nnsight_crosscheck(adapter):
     """Optional Test D: NNsight's extraction of resid_post agrees."""
     import torch as _torch

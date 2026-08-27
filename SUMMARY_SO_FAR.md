@@ -1,5 +1,15 @@
 # Summary So Far — Representation Reliability Harness
 
+> **SUPERSEDED RESULTS NOTICE (2026-08-27, Phase 0A.1).** The probe AUROCs
+> reported below for `E00_bf9efb94222b`, `E00_18a016f37eb9` and
+> `E00_50519d0b487d` (~0.53) are **invalidated**: a multi-shard
+> activation/metadata row-ordering bug could pair hidden-state vectors with
+> incorrect labels. They must not be cited as evidence that D is marginal.
+> Run records are preserved as historical evidence; the TF-IDF surface-baseline
+> values from those runs remain valid text-only measurements. Corrected runs:
+> `E00_b137cfabe7d3`, `E00_5162f18f1901` (see §"Corrected E00 (Phase 0A.1)")
+> and `INTEGRITY_AUDIT_PHASE_0A1.md`.
+
 *Status date: 2026-08-26 · Phase 0A complete · E00 piloted through discovery scale*
 
 ---
@@ -121,6 +131,51 @@ exactly as the multiple-comparisons rule predicts.
   ```
 
 ## 7. Next steps (in order)
+
+## 8. Corrected E00 (Phase 0A.1) — schema-v2 pipeline
+
+After the integrity repairs (`INTEGRITY_AUDIT_PHASE_0A1.md`) the two original
+discovery conditions were re-run from a clean cache namespace:
+
+| Seed | Best AUROC | CI (95%) | Layer | Selector | Random-label mean±sd | TF-IDF |
+|---|---|---|---|---|---|---|
+| data_seed 20260827 | **1.000** | [1.000, 1.000] | L17 (`last_prompt`), also ≥0.99 band L14–L27 | both selectors reach ~1.0 | 0.47–0.48 ± 0.03 | 0.454 |
+| data_seed 88112255 | **1.000** | [1.000, 1.000] | L17 (`last_prompt`); span-last best L16/L27 region | same | 0.49 ± 0.03 | 0.516 |
+
+- Layer profile stability across seeds: a stable mid/late-layer band
+  (L14–L27) is near-saturated in both seeds; exact top-5 sets vary
+  (Jaccard 0.25), L17 common — the *region*, not a single layer, is stable.
+- Perfect held-out separation with a chance-level surface baseline is exactly
+  what the leakage-resistant design predicts for a genuinely composed latent;
+  flagged in-run as "verify artifact" per protocol, and the perfect score is
+  plausible given the deterministic construction.
+- Random-label controls (now randomized on train AND validation) remain at
+  chance → Gate 1 signal-vs-controls criterion is met.
+
+### E00-B behavioral floor (same task, forced choice)
+
+Qwen3-0.6B conditional-likelihood readout (" Yes" vs " No"), argmax total logp,
+n=1800 non-confirmation examples:
+
+- forced-choice accuracy **0.598** [0.576, 0.622]; balanced accuracy 0.598
+- margin-vs-truth AUROC **0.761**, AUPRC 0.817
+- mean margin when correct ≈ 1.06 nats
+- strong family spread: larger_smaller **0.833** > above_below 0.603 >
+  north_south 0.543 > east_west 0.516 > before_after 0.500
+
+### B vs D interpretation
+
+B is partial (well above chance overall but near chance on temporal/spatial
+axis families), while D is essentially saturated in mid/late layers. This is a
+**Case-3-flavored B-D dissociation**: latent relational information is far more
+linearly accessible than the model's own forced-choice behavior reflects.
+Before any E01 work: characterize the dissociation (margin quality, final-layer
+truth-probe at answer position, why LM-head readout fails to carry it), and/or
+test Qwen3-1.7B on this exact dataset to raise the behavioral floor.
+
+Old run dirs are intentionally preserved under `runs/E00/`; new runs use the
+schema-v2 cache namespace (`data/cache/activations/E00_v2_*`,
+`E00B_v2_*`).
 
 1. **Strengthen or compare latents before more scanning**: choose one task where
    the model demonstrably answers correctly at high rate (behavioral floor) and

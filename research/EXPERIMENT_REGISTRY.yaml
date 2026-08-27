@@ -4,20 +4,23 @@ experiments:
     name: representation_cartography
     question: Where is a target variable decodable and how stable is its layer/token profile?
     priority: P0
-    status: piloted_phase0a
+    status: piloted_phase0a_corrected
     dimensions: [D, R]
     refs: [nnsight, internal_probing]
     max_gpu_hours: 3
     discovery_signal: Layerwise D reproducibly exceeds random-label/text controls.
     phase_0a_note: >
-      Pipeline validated end-to-end (smoke + 500-example pilot + two n=2000
-      discovery-scale runs, Qwen3-0.6B, resid_post all layers). Anti-leakage
-      construction holds: text baseline collapses to chance at scale. Linear
-      decodability of the truth label is only marginal under this
-      counterfactual-twin design (best AUROC ~0.53-0.54, CIs include 0.5,
-      peak layer moves across data seeds). Gate 1 not yet passed; do not
-      escalate causal scans on this dataset variant without either a stronger
-      latent or relaxed-purity variants for comparison.
+      SUPERSEDED-THEN-CORRECTED. Original probe results (~AUROC 0.53) were
+      invalidated by a multi-shard activation/metadata row-ordering bug that
+      paired vectors with wrong labels (see INTEGRITY_AUDIT_PHASE_0A1.md).
+      Corrected schema-v2 runs (E00_b137cfabe7d3, E00_5162f18f1901, n=2000
+      x2 seeds, Qwen3-0.6B) show strong D: AUROC ~1.0 across a stable
+      mid/late-layer band (L14-L27), random-label and text controls at chance.
+      Gate 1 passes. E00-B behavioral floor on the same task is only partial
+      (forced-choice acc 0.598; margin AUROC 0.761): a Case-3-flavored B-D
+      dissociation candidate. Do NOT start E01 until the dissociation is
+      characterized or Qwen3-1.7B raises the behavioral floor.
+
 
 
   - id: E01

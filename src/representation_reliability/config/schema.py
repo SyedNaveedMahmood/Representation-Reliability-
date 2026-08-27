@@ -194,6 +194,13 @@ class OutputsConfig(StrictModel):
     layerwise_metrics: bool = True
 
 
+class BehaviorConfig(StrictModel):
+    """E00-B forced-choice readout configuration."""
+    candidates_primary: list[str] = [" Yes", " No"]
+    candidates_secondary: list[str] = [" yes", " no"]
+    free_generation_diagnostic_n: int = Field(default=0, ge=0)
+
+
 class AppConfig(StrictModel):
     """Fully-resolved experiment configuration."""
 
@@ -210,6 +217,7 @@ class AppConfig(StrictModel):
     probe: ProbeConfig
     controls: ControlsConfig
     outputs: OutputsConfig
+    behavior: BehaviorConfig = BehaviorConfig()
 
     @model_validator(mode="after")
     def _resolve_derived_seeds(self) -> AppConfig:
