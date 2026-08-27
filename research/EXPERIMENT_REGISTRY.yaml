@@ -18,17 +18,48 @@ experiments:
       mid/late-layer band (L14-L27), random-label and text controls at chance.
       Gate 1 passes. E00-B behavioral floor on the same task is only partial
       (forced-choice acc 0.598; margin AUROC 0.761): a Case-3-flavored B-D
-      dissociation candidate. Do NOT start E01 until the dissociation is
-      characterized or Qwen3-1.7B raises the behavioral floor.
+      dissociation candidate. E00-C has now characterized this condition and
+      run the gated Qwen3-1.7B comparison; see E00C.outcome. E01 remains a
+      proposed, not-yet-authorized causal test.
 
 
+
+  - id: E00C
+    name: origin_readout_diagnosis
+    question: >
+      Is the near-saturated truth decodability learned and family-general,
+      and why does it fail to reach the native readout / behavior?
+    priority: P0
+    status: complete_phase0a2_scale_conditioned
+    type: non-causal diagnostic
+    dimensions: [D, M]
+    refs: [random_init_control, lofo_probing, logit_lens]
+    depends_on: [E00, E00-B]
+    max_gpu_hours: 3
+    discovery_signal: >
+      Gates A-F of Phase 0A.2: pretrained-vs-random origin gain,
+      cross-family LOFO abstraction, calibration/interface insensitivity
+      of the B-D gap, error-subset accessibility, fixed-readout mismatch.
+    outcome: >
+      Qwen3-0.6B passes gates A-F: mid/late D=0.9988 versus matched
+      random-init mean=0.4932, LOFO D=0.9680, fixed-readout L=0.7166,
+      raw/calibrated/chat balanced accuracy=0.600/0.730/0.500. Verdict:
+      learned abstract readout bottleneck supported for this condition.
+      The gated Qwen3-1.7B replication preserves D=0.9994 and LOFO D=0.9917
+      while raising L=0.8889 and chat behavior=0.9267; calibration reaches
+      0.890. The bottleneck is not scale/interface invariant. No causal claim.
+    next_recommendation: investigate interface/readout calibration further
 
   - id: E01
     name: decode_causal_gap
-    question: Does decodable information become causally actionable at the same layers?
+    question: >
+      At frozen Qwen3-0.6B layer 17 resid_post/last_prompt, does a
+      nuisance-matched truth-contrast replacement shift the predeclared
+      Yes-minus-No counterfactual margin beyond magnitude-matched random and
+      shuffled-source controls across multiple magnitudes?
     priority: P0
-    status: planned
-    depends_on: [E00]
+    status: next_candidate_not_authorized
+    depends_on: [E00, E00C]
     dimensions: [D, C]
     refs: [nnsight, pyvene]
     max_gpu_hours: 6

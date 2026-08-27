@@ -2,10 +2,29 @@
 
 Scores are qualitative: 1 low, 5 high.
 
+## Phase 0A.2 update (2026-08-27)
+
+E00-C supports a learned, cross-family decodable truth signal and a fixed
+readout mismatch for Qwen3-0.6B. The gated Qwen3-1.7B replication keeps D
+nearly unchanged while calibration and the official non-thinking chat
+interface raise behavior sharply. This promotes two bounded questions:
+
+- Is the frozen 0.6B layer-17 truth contrast causally upstream of behavior
+  under nuisance-matched replacement and complete intervention controls?
+- Which scale/post-training/interface change improves native readout alignment
+  without materially changing representation strength?
+
+The first is the proposed E01 causal question; it is not yet authorized. The
+second should be diagnosed before treating the 0.6B bottleneck as general.
+
 ## Tier A — immediate
 
-### Q1. When does decodable information become causally actionable?
-Compare layerwise \(D_\ell\) and matched patching \(C_\ell\).
+### Q1. Is the frozen 0.6B truth contrast causally actionable?
+
+At the discovery-selected layer 17 `resid_post`/last-prompt site, compare
+nuisance-matched replacement with no intervention, magnitude-matched random
+directions, shuffled sources, and multiple magnitudes. Freeze selection before
+touching confirmation data.
 
 Interesting:
 - persistent \(D \gg C\);

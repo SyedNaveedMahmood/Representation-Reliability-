@@ -1,189 +1,132 @@
-# Summary So Far — Representation Reliability Harness
+# Summary So Far - Representation Reliability Harness
 
-> **SUPERSEDED RESULTS NOTICE (2026-08-27, Phase 0A.1).** The probe AUROCs
-> reported below for `E00_bf9efb94222b`, `E00_18a016f37eb9` and
-> `E00_50519d0b487d` (~0.53) are **invalidated**: a multi-shard
-> activation/metadata row-ordering bug could pair hidden-state vectors with
-> incorrect labels. They must not be cited as evidence that D is marginal.
-> Run records are preserved as historical evidence; the TF-IDF surface-baseline
-> values from those runs remain valid text-only measurements. Corrected runs:
-> `E00_b137cfabe7d3`, `E00_5162f18f1901` (see §"Corrected E00 (Phase 0A.1)")
-> and `INTEGRITY_AUDIT_PHASE_0A1.md`.
+Status date: 2026-08-27. Phase 0A.2 is complete. E01 has not started.
 
-*Status date: 2026-08-26 · Phase 0A complete · E00 piloted through discovery scale*
+## Mission and claim boundary
 
----
+The repository is a modular harness for measuring gaps among decodability (D),
+causal use (C), steerability (S), monitoring (M), robustness (R), and collateral
+safety (K). Current results establish held-out linear decodability and
+readout/behavior associations only. They do not establish that a probe
+direction is causally used by the model.
 
-## 1. Mission
+## What is implemented
 
-Build a **modular causal-representation experimentation harness** to discover
-open phenomena in representation reliability — the empirical gaps between:
+Phase 0A now includes strict layered configuration, full run manifests, a
+stable Hugging Face adapter, explicit canonical activation sites and token
+selectors, sharded atomic safetensors/parquet caching, group-isolated synthetic
+data splits, linear probes, mandatory baselines, behavior evaluation, and CLI
+runners.
 
-- **D** — decodability (a held-out decoder separates a latent variable from hidden states);
-- **C** — causal use (intervening on those states changes behavior toward a pre-declared counterfactual);
-- **S** — steerability, **M** — monitorability, **R** — robustness, **K** — collateral safety.
+Phase 0A.2 adds:
 
-The charter (`docs/RESEARCH_CHARTER.md`) defines these as logically distinct;
-every claim in this document respects that ladder. Probe results establish
-**decodability only**, never "the model uses X".
+- exact-architecture deterministic random-initialization controls;
+- leave-one-relation-family-out probing;
+- validation-only threshold and one-dimensional calibration;
+- paired raw-completion and Qwen chat-nonthinking interfaces;
+- token-embedding and fixed native-readout rungs;
+- raw probe/native-readout geometry;
+- frozen-probe analysis on native behavior errors;
+- paired bootstrap comparisons, five required figures, and per-example raw
+  evidence for every arm.
 
-## 2. What exists now (Phase 0A delivered)
+The full suite passes: **94 tests**, including GPU checks that the final fixed
+readout matches native logits and that extraction/cache contracts remain exact.
 
-```
-dataset generation → tokenization → model loading → activation extraction
-→ activation caching (sharded/atomic/resumable) → linear probing → controls
-→ layerwise metrics (+ bootstrap CIs) → reproducible run artifacts + figures + summary
-```
+## Integrity history
 
-Implemented under `src/representation_reliability/`:
+The original Phase 0A runs `E00_bf9efb94222b`, `E00_18a016f37eb9`, and
+`E00_50519d0b487d` reported D near 0.53. Those probe results are invalidated by
+a multi-shard activation/metadata row-ordering bug and must not be cited.
+`INTEGRITY_AUDIT_PHASE_0A1.md` records the failure and repair. Corrected
+schema-v2 runs `E00_b137cfabe7d3` and `E00_5162f18f1901` show a stable
+near-saturated mid/late D band under chance random-label and TF-IDF controls.
 
-| Area | Key guarantees |
-|---|---|
-| `config/` | Strict Pydantic v2 schema (`extra="forbid"` everywhere); merge base→model→experiment→CLI dot-path overrides; deterministic SHA-256 config hash; invalid sites/layers/dtypes/missing IDs rejected |
-| `runtime/` | Deterministic run ID = hash(exp ID, config hash, seed, model revision, split hash); atomic `status.json` lifecycle; full manifest incl. git state, external repo SHAs, package versions, GPU info, per-stage seeds, wall time, peak VRAM |
-| `adapters/hf.py` | Stable local API over HF; canonical sites `resid_pre/attn_out/mlp_out/resid_post` mapped to verified native module paths; load-time convention calibration |
-| `data/` | Deterministic 5-family synthetic relational generator with **matched counterfactual twins** (twins share premise, question word, entities; only queried-entity order flips the label); group splits 60/15/15/10 with hard confirmation-isolation guards; invariant paraphrase and controlled-change query-swap transforms |
-| `extraction/` | Explicit token selectors (`last_prompt`, `target_span_last`, `explicit`) storing strategy/resolved index/token id/text/char spans/seq length/chat-template flag; safetensors+parquet shard cache with sha256 integrity markers, atomic writes, work-unit-space boundaries, contiguous-prefix resume |
-| `probes/` / `metrics/` | Logistic regression with train-only standardization and validation-only C selection; AUROC/AUPRC/balanced accuracy/majority/class balance; percentile bootstrap CIs |
-| `runners/`, `reporting/`, CLI | Sharded resumable extraction; E00 orchestration incl. mandatory controls (majority, random-label ×3 seeds, TF-IDF surface baseline, optional random features); layer figures; descriptive-only `DISCOVERY_SUMMARY.md`; CLI `validate-config / e00 / summarize` |
+During the full E00-C run, a PC shutdown killed the first process at the
+random-init stage. Shard-safe resume produced the completed 0.6B run
+`E00C_5754f1ceaaba-r2`; the stale predecessor is not treated as complete. A
+paired-bootstrap indexing error affected only initially derived origin CIs,
+not point estimates or raw rows. It was repaired, regression-tested, and the
+CIs were deterministically rebuilt from aligned per-example evidence.
 
-Test suite: **53 tests passing**, including on-GPU contract tests: hook vs
-`output_hidden_states` agreement (interior layers), cache round-trip exactness
-(max abs dev 0.0), sample-ID alignment, corrupt-shard detection, and an NNsight
-cross-check agreeing to **rel-dev 0.000000** at matched dtype/tokenization.
+## Current evidence
 
-## 3. Runs executed
+Primary condition: Qwen3-0.6B, n=2,000 matched counterfactual-twin semantic
+examples, discovery-test n=300.
 
-All runs use Qwen/Qwen3-0.6B, site resid_post. Every run carries
-`config.resolved.yaml`, `manifest.json`, `status.json`, `samples.parquet`,
-`activation_index.parquet`, `probe_metrics.{parquet,json}`,
-`controls/random_label_metrics.parquet`, `controls/text_baseline_metrics.json`,
-per-probe `.npz` coefficients, three D-vs-layer figures, and a descriptive-only
-`DISCOVERY_SUMMARY.md`. Confirmation splits were never extracted, probed, or read.
+| Diagnostic | Result |
+|---|---:|
+| peak held-out D | 1.0000 AUROC |
+| mid/late D, layers 14-27 | 0.9988 |
+| mid/late random-init D, seeds 0/1/2 | 0.4846 / 0.4897 / 0.5053 |
+| mid/late learned origin gain | 0.5056 |
+| mid/late LOFO D | 0.9680 |
+| mid/late random-init LOFO D | 0.4995 |
+| raw behavior accuracy / margin AUROC | 0.600 / 0.7632 |
+| calibrated behavior accuracy | 0.730 |
+| chat-nonthinking behavior accuracy | 0.500 |
+| mid/late fixed-readout L | 0.7166 |
+| mid/late G_DL | 0.2822 |
+| mid/late absolute probe/native cosine | 0.0380 |
+| D on raw native-error subset, layer 17 | 1.0000 AUROC (n=120) |
 
-| Run dir | Scale | Config | Wall | Peak VRAM alloc | Status |
-|---|---|---|---|---|---|
-| `runs/E00/E00_c554233556d2*` | smoke n=50 | layers {0,7,14,21,27}, last_prompt | 7.6 s | 1.31 GB | complete (+ resume re-test) |
-| `runs/E00/E00_bf9efb94222b(-r2)` | pilot n=500 | all 28 layers, both selectors | 83 s | 1.32 GB | complete |
-| `runs/E00/E00_18a016f37eb9` | discovery n=2000 (seed 20260827) | all layers, both selectors | 266 s | 1.32 GB | complete |
-| `runs/E00/E00_50519d0b487d` | discovery n=2000 (data_seed 88112255) | same | 264 s | ~1.3 GB | complete |
+All five LOFO families exceed 0.928 mean mid/late AUROC and beat matched
+random initialization by at least 0.417. Validation-only calibration improves
+0.6B accuracy by 0.130 but closes only 32.5% of the reference D-minus-B gap;
+chat makes accuracy worse. All predeclared 0.6B gates pass.
 
-### Headline numbers (diagnostic only)
+The supported 0.6B diagnosis is: **learned abstract readout bottleneck
+supported**. "Abstract" here means cross-family linear generalization, not a
+causally established feature.
 
-| Run | Best probe AUROC (selector/layer) | Random-label control | Text baseline |
-|---|---|---|---|
-| Pilot (n=500) | 0.546 (target_span_last L16) | 0.52 ± 0.07 | 0.609 |
-| Discovery #1 (n=2000) | 0.534 (last_prompt L1) | 0.503 ± 0.029 | **0.454** |
-| Discovery #2 (n=2000, new seed) | 0.539 (target_span_last L13) | 0.498 ± 0.032 | 0.516 |
+## Gated 1.7B scale comparison
 
-Best-layer CIs include 0.5 in both discovery runs; the argmax layer moves
-across data seeds (L1/L22/L24 vs L13/L19) — exploratory peak instability,
-exactly as the multiple-comparisons rule predicts.
+Branch C justified an exact semantic-dataset replication on Qwen3-1.7B:
+`E00C_f7fa7e06c7f2`.
 
-## 4. Scientific state of E00
+| Model | mid/late D | LOFO D | fixed L | raw B | calibrated B | chat B |
+|---|---:|---:|---:|---:|---:|---:|
+| Qwen3-0.6B | 0.9988 | 0.9680 | 0.7166 | 0.600 | 0.730 | 0.500 |
+| Qwen3-1.7B | 0.9994 | 0.9917 | 0.8889 | 0.533 | 0.890 | 0.927 |
 
-- **Anti-leakage construction works.** The counterfactual-twin design makes the
-  label's unigram distribution identical across classes by construction.
-  Empirically the TF-IDF surface baseline collapses from the small-n artifact
-  (0.61 at n=500, ≈1.6σ noise) to chance at n=2000 (0.454 / 0.516). No lexical
-  shortcut generalizes at scale.
-- **Gate 1 not yet passed.** Linear decodability of the truth label from
-  `resid_post` at either token site is at most marginal (AUROC ≈ 0.53–0.54)
-  under this maximally-pure task variant; the layer profile is near-flat.
-- This is recorded in `research/EXPERIMENT_REGISTRY.yaml`
-  (`E00.status: piloted_phase0a`) with an explicit do-not-escalate note for this
-  dataset variant: E01-style causal scans should wait for either a stronger
-  latent (tasks where the model demonstrably succeeds behaviorally) or matched
-  relaxed-purity comparison arms where D is expected to exist.
+Scaling barely changes the already saturated D, but it narrows G_DL from
+0.2822 to 0.1105. The 1.7B raw margin has AUROC 0.9509 despite threshold-zero
+accuracy 0.533; validation-only calibration reaches 0.890 and matched chat
+reaches 0.927. The readout bottleneck is therefore not scale/interface
+invariant. Scale changes native-readout alignment and behavioral expression
+far more than representation strength in these conditions.
 
-**No causal claims are made anywhere from probe results.**
+## What is and is not resolved
 
-## 5. Engineering problems found & fixed during bring-up
+Supported for Qwen3-0.6B:
 
-1. **Transformers ≥4.5x changed `output_hidden_states` semantics** — entries now
-   hold *entering*-layer residual states and the final element is
-   post-final-norm; nothing equals any raw decoder-layer output. Fix:
-   hook-based extraction as production path + load-time calibration;
-   hidden-states path restricted to interior-layer cross-validation only.
-2. **BPE merges `?` into trailing whitespace** (`?\n`): end-in-span selection
-   silently skipped the question-final token. Fix: start-in-span rule with the
-   resolved char span kept in provenance.
-3. **Resume bug**: shard accounting was row-based while work units were
-   sample-based, causing silent skips of partial work. Fix: deterministic
-   work-unit-space shard boundaries and longest-complete-prefix resume with
-   stale-shard pruning (verified: recomputed exactly the missing units).
-4. **`tensor_file` mis-stamping** when batches crossed flush boundaries; fixed
-   by stamping at flush time.
-5. Small-n metric instability quantified via random-label spreads, which
-   correctly flagged the pilot-scale "text baseline 0.61" as noise.
+- D is learned rather than explained by random-network separability.
+- D generalizes across held-out relation families.
+- simple calibration and the official chat interface do not explain most of
+  the 0.6B gap.
+- the frozen truth decoder remains accurate on native errors.
+- the fixed native readout is weaker and geometrically poorly aligned with the
+  external decoder.
 
-## 6. Repository state & reproduction
+Not established:
 
-- Core external repos cloned to `external/repos/` (SHAs logged per run):
-  nnsight, pyvene, axbench, internal_probing, Reasoning-Flow,
-  multi-component-causal-tracing, activation-steering. Only nnsight is imported
-  in the main environment; it stays dependency-clean.
-- Activation cache: `data/cache/activations/<exp>_<config-hash8>/shard_*/`.
-- Reproduce a discovery-scale run:
-  ```
-  .venv\Scripts\python.exe -m representation_reliability.cli e00 ^
-      --set dataset.n_samples=2000 --set statistics.bootstrap_samples=1000
-  ```
+- that the decoded axis is causally upstream of behavior;
+- that this is universal across model families, tasks, or scales;
+- that visible output behavior faithfully reports internal reasoning;
+- that one selected layer would confirm without untouched confirmation data.
 
-## 7. Next steps (in order)
+## Exact next question
 
-## 8. Corrected E00 (Phase 0A.1) — schema-v2 pipeline
+The next authorized phase should ask whether a nuisance-matched intervention
+at Qwen3-0.6B layer 17, `resid_post`, last-prompt token shifts the predeclared
+Yes-minus-No counterfactual margin beyond magnitude-matched random-direction
+and shuffled-source controls across multiple magnitudes. Peak/site selection
+must remain frozen before confirmation evaluation.
 
-After the integrity repairs (`INTEGRITY_AUDIT_PHASE_0A1.md`) the two original
-discovery conditions were re-run from a clean cache namespace:
+Because 1.7B is strongly interface/calibration sensitive, the immediate
+recommendation is **investigate interface/readout calibration further** before
+claiming the 0.6B diagnosis generalizes. Do not execute E01 without explicit
+instruction.
 
-| Seed | Best AUROC | CI (95%) | Layer | Selector | Random-label mean±sd | TF-IDF |
-|---|---|---|---|---|---|---|
-| data_seed 20260827 | **1.000** | [1.000, 1.000] | L17 (`last_prompt`), also ≥0.99 band L14–L27 | both selectors reach ~1.0 | 0.47–0.48 ± 0.03 | 0.454 |
-| data_seed 88112255 | **1.000** | [1.000, 1.000] | L17 (`last_prompt`); span-last best L16/L27 region | same | 0.49 ± 0.03 | 0.516 |
-
-- Layer profile stability across seeds: a stable mid/late-layer band
-  (L14–L27) is near-saturated in both seeds; exact top-5 sets vary
-  (Jaccard 0.25), L17 common — the *region*, not a single layer, is stable.
-- Perfect held-out separation with a chance-level surface baseline is exactly
-  what the leakage-resistant design predicts for a genuinely composed latent;
-  flagged in-run as "verify artifact" per protocol, and the perfect score is
-  plausible given the deterministic construction.
-- Random-label controls (now randomized on train AND validation) remain at
-  chance → Gate 1 signal-vs-controls criterion is met.
-
-### E00-B behavioral floor (same task, forced choice)
-
-Qwen3-0.6B conditional-likelihood readout (" Yes" vs " No"), argmax total logp,
-n=1800 non-confirmation examples:
-
-- forced-choice accuracy **0.598** [0.576, 0.622]; balanced accuracy 0.598
-- margin-vs-truth AUROC **0.761**, AUPRC 0.817
-- mean margin when correct ≈ 1.06 nats
-- strong family spread: larger_smaller **0.833** > above_below 0.603 >
-  north_south 0.543 > east_west 0.516 > before_after 0.500
-
-### B vs D interpretation
-
-B is partial (well above chance overall but near chance on temporal/spatial
-axis families), while D is essentially saturated in mid/late layers. This is a
-**Case-3-flavored B-D dissociation**: latent relational information is far more
-linearly accessible than the model's own forced-choice behavior reflects.
-Before any E01 work: characterize the dissociation (margin quality, final-layer
-truth-probe at answer position, why LM-head readout fails to carry it), and/or
-test Qwen3-1.7B on this exact dataset to raise the behavioral floor.
-
-Old run dirs are intentionally preserved under `runs/E00/`; new runs use the
-schema-v2 cache namespace (`data/cache/activations/E00_v2_*`,
-`E00B_v2_*`).
-
-1. **Strengthen or compare latents before more scanning**: choose one task where
-   the model demonstrably answers correctly at high rate (behavioral floor) and
-   measure D there — the E00 null may reflect dataset purity rather than absent
-   representation. Candidate variants: fact-recall probes at the answer
-   position; a relaxed twin structure as an ablation arm.
-2. If D clears Gate 1 there, proceed to **E01 Decode→Causal Gap**
-   (pyvene/NNsight replacements, norm-matched random controls, α-sweeps).
-3. Formal multi-seed comparisons (≥3 seeds, paired bootstrap) before any
-   escalated finding, per docs/METRICS.md.
-
+See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
+`docs/LITERATURE_POSITIONING_PHASE0A2.md` for novelty boundaries.
