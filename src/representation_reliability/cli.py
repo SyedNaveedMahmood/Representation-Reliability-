@@ -101,6 +101,46 @@ def e00c_followup(
 
 
 @app.command()
+def e01a(
+    base: Path | None = None,
+    model: Path | None = None,
+    experiment: Path | None = None,
+    layer: int = typer.Option(17, "--layer", help="0-indexed resid_post intervention layer"),
+    profile: str = typer.Option(
+        "full", "--profile", help="alpha profile: smoke, pilot, or full"
+    ),
+    max_pairs: int | None = typer.Option(
+        None, "--max-pairs", help="optional deterministic cap on discovery-test pairs"
+    ),
+    random_directions: int = typer.Option(
+        10, "--random-directions", min=1, help="number of random control directions"
+    ),
+    trace_layers: str = typer.Option(
+        "17,20,23,26,27",
+        "--trace-layers",
+        help="comma-separated resid_post layers captured after intervention",
+    ),
+    overrides: list[str] = typer.Option(None, "--set", help="dot-path overrides"),
+) -> None:
+    """Run E01A truth-coordinate causal-conversion discovery."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e01a import run_e01a
+
+    run_dir = run_e01a(
+        base,
+        model,
+        experiment,
+        tuple(overrides or ()),
+        layer=layer,
+        profile=profile,
+        max_pairs=max_pairs,
+        random_directions=random_directions,
+        trace_layers=trace_layers,
+    )
+    typer.echo(f"E01A run complete: {run_dir}")
+
+
+@app.command()
 def extract(
     base: Path | None = None,
     model: Path | None = None,
@@ -123,8 +163,10 @@ def probe() -> None:
 
 @app.command()
 def intervene() -> None:
-    """Interventions are Phase 0B+; not implemented by design yet."""
-    raise typer.Exit("interventions belong to Phase 0B (E01/E02); not implemented yet")
+    """Legacy placeholder; E01A now provides the first bounded causal runner."""
+    raise typer.Exit(
+        "use `rr e01a` for the bounded E01A truth-coordinate intervention"
+    )
 
 
 @app.command()
@@ -137,8 +179,19 @@ def summarize(run_dir: Path) -> None:
         raise typer.Exit(f"no probe_metrics.json under {run_dir}")
     rows = json.loads(probe_json.read_text(encoding="utf-8"))
     df = pd.DataFrame(rows)
-    cols = [c for c in ("token_selector", "layer", "auroc", "auprc",
-                        "balanced_accuracy", "ci_low", "ci_high") if c in df]
+    cols = [
+        c
+        for c in (
+            "token_selector",
+            "layer",
+            "auroc",
+            "auprc",
+            "balanced_accuracy",
+            "ci_low",
+            "ci_high",
+        )
+        if c in df
+    ]
     df = df.sort_values(["token_selector", "auroc"], ascending=[True, False])
     with pd.option_context("display.max_rows", None):
         typer.echo(df[cols].to_string(index=False))
