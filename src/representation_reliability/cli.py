@@ -78,6 +78,28 @@ def e00c(
     typer.echo(f"E00-C run complete: {run_dir}")
 
 
+@app.command("e00c-followup")
+def e00c_followup(
+    base: Path | None = None,
+    model: Path | None = None,
+    experiment: Path | None = None,
+    layer: int = typer.Option(17, "--layer", help="Residual-stream layer to audit"),
+    overrides: list[str] = typer.Option(None, "--set", help="dot-path overrides"),
+) -> None:
+    """Run the narrow Phase 0A.2 chat-calibration/readout-geometry follow-up."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e00c_followup import run_e00c_followup
+
+    run_dir = run_e00c_followup(
+        base,
+        model,
+        experiment,
+        tuple(overrides or ()),
+        layer=layer,
+    )
+    typer.echo(f"E00-C follow-up complete: {run_dir}")
+
+
 @app.command()
 def extract(
     base: Path | None = None,
@@ -128,4 +150,3 @@ def summarize(run_dir: Path) -> None:
 
 if __name__ == "__main__":
     app()
-
