@@ -108,31 +108,57 @@ def require_confirmation_access(requested_by: str) -> None:
         )
 
 
+def build_discovery_label_map(df: pd.DataFrame, split_col: str = "split") -> dict[str, int]:
+    """Label map over NON-confirmation rows only.
+
+    Requesting a confirmation-split sample id raises
+    :class:`ConfirmationSplitAccessError` — during discovery, confirmation
+    labels must never be constructed, even incidentally. Deterministic
+    regeneration recovers them later for explicit confirmatory evaluation.
+    """
+    mapping: dict[str, int] = {}
+    for sid, split, label in zip(
+        df["sample_id"], df[split_col], df["target_label"].astype(int)
+    ):
+        if split == "confirmation":
+            raise ConfirmationSplitAccessError(
+                f"attempted to read a confirmation label for {sid!r} during "
+                "discovery; confirmation labels stay unobservable until an "
+                "explicit confirmatory evaluation"
+            )
+        mapping[str(sid)] = int(label)
+    return mapping
+
+
 def validate_splits(df: pd.DataFrame, split_col: str = "split") -> dict[str, dict]:
-    """Sanity-check every non-confirmation split: non-empty, both classes present."""
+    """Sanity-check splits WITHOUT inspecting confirmation labels."""
     problems: list[str] = []
     summary: dict[str, dict] = {}
     for name in SPLIT_NAMES:
         sub = df[df[split_col] == name]
-        labels = sorted(sub["target_label"].unique().tolist())
-        info = {
-            "n_rows": len(sub),
-            "n_groups": int(sub["pair_id"].nunique()),
-            "labels_present": [int(x) for x in labels],
-        }
         if name == "confirmation":
-            # We only verify existence; content stays untouched either way.
-            info["touched"] = False
-        elif len(sub) == 0:
+            # Holdout: verify existence/size only — labels stay unobserved.
+            summary[name] = {
+                "n_rows": len(sub),
+                "n_groups": int(sub["pair_id"].nunique()),
+                "labels_present": None,
+                "labels_observed": False,
+            }
+            continue
+        labels = sorted(int(x) for x in sub["target_label"].unique().tolist())
+        if len(sub) == 0:
             problems.append(f"split '{name}' is empty")
         elif len(labels) < 2:
             problems.append(f"split '{name}' has degenerate classes: {labels}")
-        # no group may straddle splits
-        cross = df.groupby("pair_id")[split_col].nunique()
-        n_crossed = int((cross > 1).sum())
-        if n_crossed:
-            problems.append(f"{n_crossed} pair group(s) straddle multiple splits")
-        summary[name] = info
+        summary[name] = {
+            "n_rows": len(sub),
+            "n_groups": int(sub["pair_id"].nunique()),
+            "labels_present": labels,
+        }
+    cross = df.groupby("pair_id")[split_col].nunique()
+    n_crossed = int((cross > 1).sum())
+    if n_crossed:
+        problems.append(f"{n_crossed} pair group(s) straddle multiple splits")
     if problems:
         raise ValueError("split validation failed: " + "; ".join(problems))
     return summary

@@ -4,7 +4,6 @@ from representation_reliability.config import (
     CONFIG_ROOT,
     ConfigError,
     apply_override,
-    build_merged_doc,
     config_hash,
     deep_merge,
     parse_override,

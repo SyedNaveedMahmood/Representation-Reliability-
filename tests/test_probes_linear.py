@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from representation_reliability.metrics.bootstrap import bootstrap_ci
 from representation_reliability.metrics.decoding import (

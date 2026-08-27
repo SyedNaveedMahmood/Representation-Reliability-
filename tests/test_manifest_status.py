@@ -1,6 +1,5 @@
 import json
 
-import numpy as np
 import pytest
 
 from representation_reliability.runtime.manifest import (

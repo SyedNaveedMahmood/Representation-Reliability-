@@ -1,5 +1,6 @@
 from representation_reliability.contracts import RepresentationSite, Sample, TokenSelection
 
+
 def test_sample_counterfactual_fields_optional() -> None:
     s = Sample(sample_id="s1", prompt="A", target_label=1, task_name="unit")
     assert s.counterfactual_id is None

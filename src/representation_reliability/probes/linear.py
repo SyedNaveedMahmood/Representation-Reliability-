@@ -162,3 +162,24 @@ def shuffle_labels(y: np.ndarray, seed: int) -> np.ndarray:
     rng = np.random.default_rng(seed)
     perm = rng.permutation(len(y))
     return np.asarray(y)[perm]
+
+
+def randomized_control_labels(
+    y_train: np.ndarray,
+    y_val: np.ndarray,
+    seed: int,
+) -> tuple[np.ndarray, np.ndarray, tuple[int, int]]:
+    """Clean random-label null: independent permutations of train AND val.
+
+    Returns ``(y_train_shuffled, y_val_shuffled, (train_seed, val_seed))``.
+    The validation permutation is derived independently from the train
+    permutation so hyperparameter selection happens fully under the null;
+    evaluation still uses the real, untouched discovery-test labels.
+    """
+    train_seed = int(seed) * 1_000_003 + 17
+    val_seed = int(seed) * 1_000_033 + 91
+    return (
+        shuffle_labels(y_train, seed=train_seed),
+        shuffle_labels(y_val, seed=val_seed),
+        (train_seed, val_seed),
+    )

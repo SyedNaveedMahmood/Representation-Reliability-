@@ -43,29 +43,27 @@ def run_extraction_stage(
     samples,                      # sequence[Sample]
     cache_dir: str | Path,
     split_of,                     # Callable[[sample_id], str]
+    identity: dict | None = None,
     resume: bool | None = None,
 ):
     resume = bool(cfg.runtime.resume if resume is None else resume)
     layers = expand_layer_plan(cfg, adapter.num_layers)
     token_selectors = list(cfg.representation.token_selectors)
 
-    info = {}
-    try:
-        index_df, info = extract_dataset_activations(
-            adapter,
-            samples,
-            cache_dir,
-            sites=list(cfg.representation.sites),
-            layers=layers,
-            token_selectors=token_selectors,
-            shard_size=int(cfg.storage.shard_size),
-            batch_size=int(cfg.runtime.batch_size),
-            model_id=cfg.model.id,
-            model_revision=None,
-            tokenizer_revision=None,
-            split_of=split_of,
-            resume=resume,
-        )
-    finally:
-        pass
+    if identity is None:
+        raise ValueError("schema-v2 extraction requires an explicit cache identity")
+
+    index_df, info = extract_dataset_activations(
+        adapter,
+        samples,
+        cache_dir,
+        sites=list(cfg.representation.sites),
+        layers=layers,
+        token_selectors=token_selectors,
+        shard_size=int(cfg.storage.shard_size),
+        batch_size=int(cfg.runtime.batch_size),
+        split_of=split_of,
+        identity=identity,
+        resume=resume,
+    )
     return index_df, {**info, "layers": layers, "token_selectors": token_selectors}

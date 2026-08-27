@@ -1,4 +1,15 @@
-"""Probe runner: builds design matrices from the cache, fits probes + controls."""
+"""Probe runner: builds design matrices from the cache, fits probes + controls.
+
+Integrity contracts enforced here:
+
+- Design-matrix identity is the full triple ``site × layer × token_selector``.
+- Given cache metadata rows in order R, activation row ``i`` corresponds
+  exactly to metadata row ``i`` (delegated to ActivationCacheReader).
+- Exact sample-identity assertions: duplicates, missing samples, unexpected
+  samples, and X/metadata length mismatches all raise loudly.
+- Every shard touched by the probe path is SHA-256 verified (once per
+  process) via the shared reader.
+"""
 
 from __future__ import annotations
 
@@ -8,73 +19,93 @@ from collections.abc import Callable
 import numpy as np
 import pandas as pd
 
-from ..extraction.cache import ActivationCacheReader, shard_dir
+from ..extraction.cache import ActivationCacheReader
 
 logger = logging.getLogger(__name__)
 
 
 class ShardedMatrixLoader:
-    """Loads shard tensors once and serves arbitrary metadata-row subsets."""
+    """Serves arbitrary metadata-row subsets with verified, ordered tensors."""
 
     def __init__(self, cache_dir, index_df: pd.DataFrame) -> None:
         self.reader = ActivationCacheReader(cache_dir)
         self.index_df = index_df.reset_index(drop=True)
-        self._shards: dict[int, np.ndarray] = {}
-
-    def _load_shard(self, sid: int) -> np.ndarray:
-        if sid not in self._shards:
-            import json
-
-            from safetensors.numpy import load_file
-
-            d = shard_dir(self.reader.root, int(sid))
-            with (d / "_complete.json").open(encoding="utf-8") as fh:
-                marker = json.load(fh)
-            arr = load_file(str(d / "activations.safetensors"))["activations"]
-            assert arr.shape[0] == marker["n_rows"], "marker/tensor mismatch"
-            self._shards[sid] = np.asarray(arr, dtype=np.float32)
-        return self._shards[sid]
 
     def rows_for(self, mask: pd.Series) -> tuple[np.ndarray, pd.DataFrame]:
-        """Return stacked activations and their metadata rows for ``mask``."""
-        meta = self.index_df[mask].sort_values(["tensor_key"]).reset_index(drop=True)
-        pieces = []
-        for sid, group in meta.groupby("shard", sort=True):
-            arr = self._load_shard(int(sid))
-            keys = group["tensor_key"].to_numpy().astype(int)
-            pieces.append(arr[keys])
-        X = np.concatenate(pieces, axis=0) if pieces else np.zeros((0, 0), dtype=np.float32)
+        """Return ``(X, meta)`` where X row i is exactly meta row i."""
+        meta = self.index_df[mask].reset_index(drop=True)
+        X = self.reader.load_rows(meta)
         return np.asarray(X, dtype=np.float64), meta
 
 
 def design_matrices_for(
     loader: ShardedMatrixLoader,
     index_df: pd.DataFrame,
-    sample_meta: pd.DataFrame,
     selector: str,
     layer: int,
+    site: str,
     label_of: Callable[[str], int],
+    expected_ids_by_split: dict[str, list[str]] | None = None,
+    split_of: Callable[[str], str] | None = None,
 ) -> dict[str, dict]:
-    """Assemble ``{split: {'X', 'y', 'sample_ids'}}`` for one (selector, layer).
+    """Assemble ``{split: {'X','y','sample_ids'}}`` for one design cell.
 
-    Excludes confirmation-split rows unless explicit allow flag flows in from
-    callers (E00 never passes it).
+    The design identity is ``(site, layer, token_selector)``.  When
+    ``expected_ids_by_split`` is provided, the cached content is validated
+    against it exactly: no missing samples, no unexpected samples, no
+    duplicates; otherwise raises :class:`RuntimeError` loudly.
     """
-    sub = index_df[
-        (index_df["token_selector"] == selector) & (index_df["layer"] == layer)
-    ]
+    base_mask = (
+        (index_df["token_selector"] == selector)
+        & (index_df["layer"] == layer)
+        & (index_df["site"] == site)
+    )
+    sub = index_df[base_mask]
+
+    split_names = set(sub["split"].unique().tolist())
+    if expected_ids_by_split is not None:
+        missing_splits = sorted(set(expected_ids_by_split) - split_names)
+        if missing_splits:
+            raise RuntimeError(
+                f"design {site}/{layer}/{selector}: cached splits missing: "
+                f"{missing_splits}"
+            )
+        extra_splits = sorted(split_names - set(expected_ids_by_split))
+        if extra_splits:
+            raise RuntimeError(
+                f"design {site}/{layer}/{selector}: unexpected cached splits: "
+                f"{extra_splits}"
+            )
+
     out: dict[str, dict] = {}
-    for split_name, sub_split in sub.groupby("split"):
-        ids = sub_split["sample_id"].tolist()
-        X, meta = loader.rows_for(
-            (index_df["token_selector"] == selector)
-            & (index_df["layer"] == layer)
-            & (index_df["split"] == split_name)
-        )
-        if len(meta) != len(ids):
-            raise RuntimeError("row alignment failure between index and metadata")
-        y = np.asarray([label_of(sid) for sid in meta["sample_id"]], dtype=int)
-        out[split_name] = {"X": X, "y": y, "sample_ids": meta["sample_id"].tolist()}
+    for split_name in sorted(split_names):
+        split_mask = base_mask & (index_df["split"] == split_name)
+        X, meta = loader.rows_for(split_mask)
+        ids = meta["sample_id"].tolist()
+
+        dupes = {s for s in ids if ids.count(s) > 1}
+        if dupes:
+            raise RuntimeError(
+                f"design {site}/{layer}/{selector} split {split_name}: "
+                f"duplicate sample rows {sorted(dupes)[:5]}"
+            )
+        if len(meta) != X.shape[0]:
+            raise RuntimeError(   # defensive; reader contract guarantees this
+                "X/metadata length mismatch"
+            )
+        if expected_ids_by_split is not None:
+            expected = list(expected_ids_by_split[split_name])
+            if set(ids) != set(expected):
+                missing = sorted(set(expected) - set(ids))
+                unexpected = sorted(set(ids) - set(expected))
+                raise RuntimeError(
+                    f"design {site}/{layer}/{selector} split {split_name} "
+                    f"sample mismatch: missing={missing[:5]} "
+                    f"unexpected={unexpected[:5]}"
+                )
+
+        y = np.asarray([label_of(sid) for sid in ids], dtype=int)
+        out[split_name] = {"X": X, "y": y, "sample_ids": ids}
     return out
 
 
@@ -90,7 +121,6 @@ def text_baseline_metrics(
     from sklearn.linear_model import LogisticRegression
     from sklearn.metrics import roc_auc_score
 
-    pipe_base = TfidfVectorizer(ngram_range=(1, 2), min_df=1, sublinear_tf=True)
     Xtr_txt = texts_by_split["train"]
     Xval_txt = texts_by_split["validation"]
     Xte_txt = texts_by_split["discovery_test"]

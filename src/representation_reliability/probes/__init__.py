@@ -5,6 +5,7 @@ from .linear import (
     fit_probe,
     load_probe,
     random_feature_baseline,
+    randomized_control_labels,
     save_probe,
     shuffle_labels,
 )
@@ -14,6 +15,7 @@ __all__ = [
     "fit_probe",
     "load_probe",
     "random_feature_baseline",
+    "randomized_control_labels",
     "save_probe",
     "shuffle_labels",
 ]

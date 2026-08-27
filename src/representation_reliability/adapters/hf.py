@@ -44,6 +44,7 @@ class SiteResolution:
 
 class HFAdapter:
     def __init__(self, model_cfg: Any, runtime_cfg: Any | None = None) -> None:
+        self.model_cfg = model_cfg
         self.model_id: str = model_cfg.id
         self.revision = (
             None if model_cfg.revision in (None, "", "null") else str(model_cfg.revision)
@@ -51,6 +52,8 @@ class HFAdapter:
         self.torch_dtype = TORCH_DTYPES[model_cfg.dtype]
         self.device_map = model_cfg.device_map
         self.trust_remote_code = bool(model_cfg.trust_remote_code)
+        # Generation settings live under model config (NOT runtime config).
+        self.generation_cfg = getattr(model_cfg, "generation", None)
         self.runtime_cfg = runtime_cfg
         self.model: Any | None = None
         self.tokenizer: Any | None = None
@@ -73,6 +76,9 @@ class HFAdapter:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, **tok_kwargs)
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
+        # Explicit decoder-only padding policy: right padding keeps token
+        # positions absolute so per-position gathering stays well-defined.
+        self.tokenizer.padding_side = "right"
 
         model_kwargs: dict[str, Any] = {
             "torch_dtype": self.torch_dtype,
@@ -233,10 +239,49 @@ class HFAdapter:
         return self.tokenizer.decode(list(token_ids), skip_special_tokens=False)
 
     def default_generation_kwargs(self) -> dict[str, Any]:
-        gen = getattr(self.runtime_cfg, "generation", None) if self.runtime_cfg else None
-        max_new = getattr(gen, "max_new_tokens", 256)
+        """Generation kwargs from ``model.generation`` config (plumbed path)."""
+        gen = self.generation_cfg
+        max_new = int(getattr(gen, "max_new_tokens", 256))
         do_sample = bool(getattr(gen, "do_sample", False))
-        return {"max_new_tokens": int(max_new), "do_sample": do_sample}
+        return {"max_new_tokens": max_new, "do_sample": do_sample}
+
+    def resolved_revisions(self) -> dict[str, Any]:
+        """Resolve actual HF commit hashes after load; null + note if not.
+
+        Never pretends an unpinned ``main`` is a stable revision.
+        """
+        info: dict[str, Any] = {
+            "model_sha": None,
+            "tokenizer_sha": None,
+            "resolution_note": None,
+        }
+        cfg = getattr(self.model, "config", None)
+        info["model_sha"] = getattr(cfg, "_commit_hash", None)
+        tok = getattr(self.tokenizer, "_commit_hash", None)
+        if tok is None:
+            tok = (getattr(self.tokenizer, "init_kwargs", {}) or {}).get(
+                "_commit_hash"
+            )
+        info["tokenizer_sha"] = tok
+        if info["model_sha"] is None:
+            try:
+                from huggingface_hub import HfApi
+
+                mi = HfApi().model_info(self.model_id, revision=self.revision)
+                info["model_sha"] = mi.sha
+            except Exception as exc:  # offline / hub unreachable is acceptable
+                info["resolution_note"] = (
+                    f"revision could not be resolved ({type(exc).__name__}); "
+                    "cache identities stay formally unpinned"
+                )
+        # Same-repo tokenizer snapshot shares the model commit.
+        same_repo = str(getattr(self.tokenizer, "name_or_path", "")).endswith(
+            self.model_id.split("/")[-1]
+        )
+        if info["tokenizer_sha"] is None and info["model_sha"] and same_repo:
+            info["tokenizer_sha"] = info["model_sha"]
+            info.setdefault("resolution_note", None)
+        return info
 
     def generate(self, prompts: Sequence[str], **gen_kwargs: Any) -> list[dict[str, Any]]:
         assert self.model is not None and self.tokenizer is not None
@@ -390,6 +435,85 @@ class HFAdapter:
         if missing:
             raise RuntimeError(f"extraction failed to produce: {missing}")
         return results
+
+    # ---------------------------------------------------- continuation scoring
+    def score_continuations(
+        self,
+        prompts: Sequence[str],
+        candidates: Sequence[str] | Sequence[Sequence[str]],
+        batch_size: int = 16,
+    ) -> list[list[dict[str, Any]]]:
+        """Conditional log-likelihood of candidate continuations per prompt.
+
+        Returns ``out[p][c] = {candidate, token_ids, logp_total, logp_mean}``
+        where logp is over the FULL candidate token sequence given the prompt.
+
+        Tokenization policy (deliberate): the prompt is encoded with special
+        tokens; a continuation that does not already start with whitespace gets
+        a single leading space attached before encoding without special tokens,
+        so 'Yes'/'No' style answers are scored as they would continue the text.
+        Decoder-only padding uses right-padding; candidate positions are
+        computed from each row's own prompt length.
+        """
+        assert self.model is not None and self.tokenizer is not None
+        if candidates and isinstance(candidates[0], str):
+            cand_lists: list[list[str]] = [list(candidates) for _ in prompts]
+        else:
+            cand_lists = [list(c) for c in candidates]  # type: ignore[arg-type]
+        if len(cand_lists) != len(prompts):
+            raise ValueError("candidates/prompts length mismatch")
+
+        tasks: list[tuple[int, int, str, list[int], list[int]]] = []
+        for pi, (prompt, cands) in enumerate(zip(prompts, cand_lists)):
+            p_ids = self.tokenizer(prompt, add_special_tokens=True)["input_ids"]
+            if not p_ids:
+                raise ValueError(f"empty prompt tokenization at index {pi}")
+            for ci, cand in enumerate(cands):
+                cont = cand if (
+                    cand.startswith((" ", "\n")) or prompt.endswith((" ", "\n"))
+                ) else " " + cand
+                c_ids = self.tokenizer(cont, add_special_tokens=False)["input_ids"]
+                if not c_ids:
+                    raise ValueError(f"empty candidate tokenization: {cand!r}")
+                tasks.append((pi, ci, cont, list(p_ids), list(c_ids)))
+
+        pad_id = self.tokenizer.pad_token_id or self.tokenizer.eos_token_id
+        out: list[list[dict[str, Any] | None]] = [
+            [None] * len(cl) for cl in cand_lists
+        ]
+        stride = max(1, int(batch_size))
+        for start in range(0, len(tasks), stride):
+            chunk = tasks[start : start + stride]
+            max_len = max(len(p) + len(c) for _, _, _, p, c in chunk)
+            input_ids = torch.full((len(chunk), max_len), pad_id, dtype=torch.long)
+            attention = torch.zeros((len(chunk), max_len), dtype=torch.long)
+            for row, (_pi, _ci, _s, p_ids, c_ids) in enumerate(chunk):
+                seq = p_ids + c_ids
+                input_ids[row, : len(seq)] = torch.tensor(seq, dtype=torch.long)
+                attention[row, : len(seq)] = 1
+            with torch.inference_mode():
+                logits = self.model(
+                    input_ids=input_ids.to(self.device),
+                    attention_mask=attention.to(self.device),
+                ).logits.float()
+            logprobs = torch.log_softmax(logits, dim=-1)
+            for row, (pi, ci, cont, p_ids, c_ids) in enumerate(chunk):
+                plen = len(p_ids)
+                total_logp = 0.0
+                token_logps: list[float] = []
+                for k, tok in enumerate(c_ids):
+                    pos = plen + k                     # predicting absolute pos
+                    lp = float(logprobs[row, pos - 1, tok])
+                    token_logps.append(lp)
+                    total_logp += lp
+                out[pi][ci] = {
+                    "candidate": cont,
+                    "token_ids": c_ids,
+                    "logp_total": total_logp,
+                    "logp_mean": total_logp / len(c_ids),
+                    "token_logps": token_logps,
+                }
+        return out  # type: ignore[return-value]
 
 
 # --- PART4 ---

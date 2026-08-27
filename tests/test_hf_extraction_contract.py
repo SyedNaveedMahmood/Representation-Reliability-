@@ -23,12 +23,11 @@ pytestmark = pytest.mark.skipif(
 
 @pytest.fixture(scope="module")
 def adapter():
-    from representation_reliability.config.loader import CONFIG_ROOT
+    from representation_reliability.adapters.hf import HFAdapter
     from representation_reliability.config.schema import (
         ModelConfig,
         RuntimeConfig,
     )
-    from representation_reliability.adapters.hf import HFAdapter
 
     mcfg = ModelConfig(id=MODEL_ID, family="qwen3", dtype="float32",
                        device_map="cuda")
@@ -136,9 +135,6 @@ def test_nnsight_crosscheck(adapter):
 
 
 def test_cache_roundtrip_with_real_adapter(adapter, tmp_path):
-    from representation_reliability.extraction.activations import (
-        build_token_selections,
-    )
     from representation_reliability.extraction.cache import (
         ActivationCacheReader,
         ActivationShardWriter,
@@ -152,13 +148,13 @@ def test_cache_roundtrip_with_real_adapter(adapter, tmp_path):
 
     w = ActivationShardWriter(tmp_path, shard_size=1)
     w.add(vec, {"sample_id": "x", "site": "resid_post", "layer": layer})
-    w.flush()
+    w.close_shard(unit_start=0, unit_end_exclusive=1)
     reader = ActivationCacheReader(tmp_path)
     df = reader.index()
     loaded = reader.load_rows(df)[0]
     scale = max(float(np.max(np.abs(vec))), 1e-9)
     assert float(np.max(np.abs(loaded - vec))) / scale < 1e-5
-    diag = reader.verify_alignment()
+    diag = reader.verify_reload_consistency()
     assert all(d["aligned"] for d in diag.values())
 
 
