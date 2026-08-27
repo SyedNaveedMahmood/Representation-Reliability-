@@ -64,6 +64,21 @@ def e00b(
 
 
 @app.command()
+def e00c(
+    base: Path | None = None,
+    model: Path | None = None,
+    experiment: Path | None = None,
+    overrides: list[str] = typer.Option(None, "--set", help="dot-path overrides"),
+) -> None:
+    """Run E00-C representation-origin and fixed-readout diagnostics."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e00c import run_e00c
+
+    run_dir = run_e00c(base, model, experiment, tuple(overrides or ()))
+    typer.echo(f"E00-C run complete: {run_dir}")
+
+
+@app.command()
 def extract(
     base: Path | None = None,
     model: Path | None = None,

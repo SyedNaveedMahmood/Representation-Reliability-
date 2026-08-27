@@ -38,8 +38,8 @@ def adapter():
 PROMPTS = [
     ("Premise: Luma is north of Reko.\nQuestion: Is Reko south of Luma?\nAnswer:",
      "Is Reko south of Luma?", True),
-    ("Premise: Vanta happens before event Sidra.\nQuestion: Does event Sidra "
-     "happen after event Vanta?\nAnswer:", "Does event Sidra happen after event Vanta?",
+    (("Premise: Vanta happens before event Sidra.\nQuestion: Does event Sidra "
+      "happen after event Vanta?\nAnswer:"), "Does event Sidra happen after event Vanta?",
      True),
 ]
 
@@ -75,7 +75,7 @@ def test_token_selection_lands_on_expected_text(adapter):
     # token may merge into trailing whitespace, e.g. '?\n')
     span_start = prompt.index(target)
     tsel = _resolve_token(adapter, "target_span_last", prompt, target)
-    s, e = enc["offset_mapping"][tsel.index]
+    s, _e = enc["offset_mapping"][tsel.index]
     assert s >= span_start and s < span_start + len(target)
     # decode the selected token neighborhood -> must contain the '?' glyph
     q_tail = adapter.decode(enc["input_ids"][max(0, tsel.index - 1): tsel.index + 1])
@@ -103,6 +103,27 @@ def test_hook_vs_hidden_states_agree(adapter):
     final_key = [("resid_post", adapter.num_layers - 1)]
     fh = adapter.extract(prompts, final_key, idxs, use_hooks_for_resid=True)
     assert np.isfinite(fh[final_key[0]]).all()
+
+
+def test_final_layer_fixed_readout_matches_native_logits(adapter):
+    """final_norm(resid_post_final) -> lm_head reproduces native logits."""
+    prompts = [p for p, _, _ in PROMPTS]
+    idxs = [_resolve_token(adapter, "last_prompt", p, None).index for p in prompts]
+    final_layer = adapter.num_layers - 1
+    hidden = adapter.extract(
+        prompts, [("resid_post", final_layer)], idxs,
+        use_hooks_for_resid=True)[("resid_post", final_layer)]
+    candidate_ids = [
+        adapter.tokenizer(" Yes", add_special_tokens=False)["input_ids"][0],
+        adapter.tokenizer(" No", add_special_tokens=False)["input_ids"][0],
+    ]
+    lens = adapter.final_readout_token_logits(hidden, candidate_ids)
+    native_all = adapter.forward_logits(prompts=prompts)
+    native = np.stack([
+        native_all[row, token_index, candidate_ids]
+        for row, token_index in enumerate(idxs)
+    ])
+    np.testing.assert_allclose(lens, native, rtol=2e-4, atol=2e-4)
 
 
 def test_resolved_revisions_are_recorded(adapter):

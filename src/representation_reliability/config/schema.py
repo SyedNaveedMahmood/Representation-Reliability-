@@ -179,7 +179,7 @@ class ProbeConfig(StrictModel):
             raise ValueError("C_grid may not be empty")
         if any(c <= 0 for c in v):
             raise ValueError("all C values must be positive")
-        return sorted(set(float(c) for c in v))
+        return sorted({float(c) for c in v})
 
 
 class ControlsConfig(StrictModel):
@@ -201,6 +201,17 @@ class BehaviorConfig(StrictModel):
     free_generation_diagnostic_n: int = Field(default=0, ge=0)
 
 
+class DiagnosticsConfig(StrictModel):
+    """E00-C non-causal origin/readout diagnostic configuration."""
+    random_init_seeds: list[int] = Field(default_factory=list)
+    embed_control: bool = True
+    lofo: bool = True
+    calibration: bool = True
+    chat_arm: bool = True
+    fixed_readout: bool = True
+    error_subset_analysis: bool = True
+
+
 class AppConfig(StrictModel):
     """Fully-resolved experiment configuration."""
 
@@ -218,6 +229,7 @@ class AppConfig(StrictModel):
     controls: ControlsConfig
     outputs: OutputsConfig
     behavior: BehaviorConfig = BehaviorConfig()
+    diagnostics: DiagnosticsConfig = DiagnosticsConfig()
 
     @model_validator(mode="after")
     def _resolve_derived_seeds(self) -> AppConfig:

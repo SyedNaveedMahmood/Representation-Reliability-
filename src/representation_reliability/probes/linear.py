@@ -101,6 +101,15 @@ def transform_features(fit_result: dict[str, Any], X: np.ndarray) -> np.ndarray:
     return X
 
 
+def raw_probe_direction(fit_result: dict[str, Any]) -> np.ndarray:
+    """Recover the classifier direction in unstandardized hidden coordinates."""
+    coef = np.asarray(fit_result["classifier"].coef_[0], dtype=np.float64)
+    scale = fit_result.get("scaler_scale")
+    if fit_result.get("standardized") and scale is not None:
+        return coef / np.asarray(scale, dtype=np.float64)
+    return coef.copy()
+
+
 def evaluate_probe(
     fit_result: dict[str, Any],
     X_eval: np.ndarray,

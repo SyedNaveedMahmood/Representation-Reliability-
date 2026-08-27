@@ -34,6 +34,30 @@ TORCH_DTYPES = {
 SITE_NAMES = ("resid_pre", "attn_out", "mlp_out", "resid_post")
 
 
+def instantiate_random_model_from_config(
+    auto_model_cls: Any,
+    config: Any,
+    *,
+    seed: int,
+    trust_remote_code: bool = False,
+):
+    """Instantiate architecture-only weights reproducibly without RNG leakage."""
+    import random as _random
+
+    py_state = _random.getstate()
+    np_state = np.random.get_state()
+    try:
+        with torch.random.fork_rng(devices=[]):
+            _random.seed(seed)
+            np.random.seed(seed)
+            torch.manual_seed(seed)
+            return auto_model_cls.from_config(
+                config, trust_remote_code=trust_remote_code)
+    finally:
+        _random.setstate(py_state)
+        np.random.set_state(np_state)
+
+
 @dataclass(frozen=True)
 class SiteResolution:
     site: str
@@ -55,6 +79,8 @@ class HFAdapter:
         # Generation settings live under model config (NOT runtime config).
         self.generation_cfg = getattr(model_cfg, "generation", None)
         self.runtime_cfg = runtime_cfg
+        self.random_weights_seed: int | None = None
+        self._display_suffix: str = ""
         self.model: Any | None = None
         self.tokenizer: Any | None = None
         self._num_layers: int | None = None
@@ -66,9 +92,26 @@ class HFAdapter:
         # the final element is post-final-norm (never a raw resid_post).
         self.hs_enters_layer_convention: bool | None = None
 
+    @property
+    def display_model_id(self) -> str:
+        """Hub id plus any provenance suffix (e.g. random-init arm)."""
+        return f"{self.model_id}{self._display_suffix}"
+
+    def configure_random_init(self, seed: int) -> HFAdapter:
+        """Arm this adapter to build architecture-only weights at load().
+
+        The pretrained checkpoint is NOT downloaded or loaded; weights come
+        from ``AutoModelForCausalLM.from_config`` under the given seed.
+        """
+        if seed < 0:
+            raise ValueError("random-init seed must be non-negative")
+        self.random_weights_seed = int(seed)
+        self._display_suffix = f"-random-init-seed{int(seed)}"
+        return self
+
     # ------------------------------------------------------------------ load
     def load(self) -> HFAdapter:
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
         tok_kwargs: dict[str, Any] = {}
         if self.revision:
@@ -79,17 +122,29 @@ class HFAdapter:
         # Explicit decoder-only padding policy: right padding keeps token
         # positions absolute so per-position gathering stays well-defined.
         self.tokenizer.padding_side = "right"
-
-        model_kwargs: dict[str, Any] = {
-            "torch_dtype": self.torch_dtype,
-            "device_map": self.device_map,
-            "trust_remote_code": self.trust_remote_code,
-        }
-        if self.revision:
-            model_kwargs["revision"] = self.revision
-        self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_id, **model_kwargs
-        )
+        if self.random_weights_seed is not None:
+            cfg_kwargs = {"torch_dtype": self.torch_dtype}
+            if self.revision:
+                cfg_kwargs["revision"] = self.revision
+            cfg_obj = AutoConfig.from_pretrained(self.model_id, **cfg_kwargs)
+            self.model = instantiate_random_model_from_config(
+                AutoModelForCausalLM, cfg_obj, seed=self.random_weights_seed,
+                trust_remote_code=self.trust_remote_code)
+            target_device = self.device_map
+            if target_device in {"auto", "balanced", "balanced_low_0", "sequential"}:
+                target_device = getattr(self.runtime_cfg, "device", "cuda")
+            self.model = self.model.to(device=target_device, dtype=self.torch_dtype)
+        else:
+            model_kwargs = {
+                "torch_dtype": self.torch_dtype,
+                "device_map": self.device_map,
+                "trust_remote_code": self.trust_remote_code,
+            }
+            if self.revision:
+                model_kwargs["revision"] = self.revision
+            self.model = AutoModelForCausalLM.from_pretrained(
+                self.model_id, **model_kwargs
+            )
         self.model.eval()
 
         self._decoder_module, self._prefix = self._find_decoder_stack()
@@ -248,13 +303,25 @@ class HFAdapter:
     def resolved_revisions(self) -> dict[str, Any]:
         """Resolve actual HF commit hashes after load; null + note if not.
 
-        Never pretends an unpinned ``main`` is a stable revision.
+        Never pretends an unpinned ``main`` is a stable revision. Random-init
+        arms have no pretrained revision by construction and say so.
         """
         info: dict[str, Any] = {
             "model_sha": None,
             "tokenizer_sha": None,
             "resolution_note": None,
         }
+        if self.random_weights_seed is not None:
+            cfg = getattr(self.model, "config", None)
+            info["config_sha"] = getattr(cfg, "_commit_hash", None)
+            info["resolution_note"] = (
+                f"random initialization seed={self.random_weights_seed}; "
+                "architecture loaded from the resolved config; no pretrained "
+                "weights or weight revision"
+            )
+            tok = getattr(self.tokenizer, "_commit_hash", None)
+            info["tokenizer_sha"] = tok
+            return info
         cfg = getattr(self.model, "config", None)
         info["model_sha"] = getattr(cfg, "_commit_hash", None)
         tok = getattr(self.tokenizer, "_commit_hash", None)
@@ -269,7 +336,7 @@ class HFAdapter:
 
                 mi = HfApi().model_info(self.model_id, revision=self.revision)
                 info["model_sha"] = mi.sha
-            except Exception as exc:  # offline / hub unreachable is acceptable
+            except Exception as exc:  # noqa: BLE001 - offline/hub failures vary
                 info["resolution_note"] = (
                     f"revision could not be resolved ({type(exc).__name__}); "
                     "cache identities stay formally unpinned"
@@ -329,6 +396,65 @@ class HFAdapter:
                 if attention_mask is not None else None,
             )
         return out.logits.float().cpu().numpy()
+
+    def token_embeddings(self, token_ids: Sequence[int]) -> np.ndarray:
+        """Return input-embedding rows through the stable adapter API."""
+        assert self.model is not None
+        ids = torch.as_tensor(list(token_ids), dtype=torch.long, device=self.device)
+        with torch.inference_mode():
+            rows = self.model.get_input_embeddings()(ids)
+        return rows.detach().float().cpu().numpy()
+
+    def final_readout_token_logits(
+        self,
+        hidden_states: np.ndarray | torch.Tensor,
+        token_ids: Sequence[int],
+    ) -> np.ndarray:
+        """Apply the model's exact final norm and LM head for selected tokens.
+
+        ``hidden_states`` are raw residual-stream rows ``[N, hidden]``. This is
+        the untuned fixed-readout operation used by logit-lens diagnostics.
+        """
+        assert self.model is not None and self._decoder_module is not None
+        head = self.model.get_output_embeddings()
+        norm = getattr(self._decoder_module, "norm", None)
+        if norm is None:
+            raise RuntimeError("decoder stack has no final normalization module")
+        param = next(norm.parameters())
+        h = torch.as_tensor(hidden_states, device=self.device, dtype=param.dtype)
+        ids = torch.as_tensor(list(token_ids), dtype=torch.long, device=self.device)
+        with torch.inference_mode():
+            normalized = norm(h)
+            if isinstance(head, torch.nn.Linear):
+                weight = head.weight.index_select(0, ids)
+                logits = normalized @ weight.transpose(0, 1)
+                if head.bias is not None:
+                    logits = logits + head.bias.index_select(0, ids)
+            else:  # generic exact fallback for non-linear/custom output heads
+                logits = head(normalized).index_select(-1, ids)
+        return logits.detach().float().cpu().numpy()
+
+    def native_first_token_direction(self, positive_id: int, negative_id: int) -> np.ndarray:
+        """Effective residual-space direction for an RMSNorm + linear LM head.
+
+        RMS normalization divides each row by a positive scalar, so ranking by
+        a two-token logit difference is governed by ``gamma * (w_pos-w_neg)``.
+        A constant output-head bias changes the threshold but not this direction.
+        """
+        assert self.model is not None and self._decoder_module is not None
+        norm = getattr(self._decoder_module, "norm", None)
+        head = self.model.get_output_embeddings()
+        if norm is None or "rmsnorm" not in type(norm).__name__.lower():
+            raise RuntimeError(
+                "closed-form native direction requires a verified RMSNorm final norm"
+            )
+        if not isinstance(head, torch.nn.Linear):
+            raise TypeError(
+                "closed-form native direction requires a linear output head"
+            )
+        gamma = norm.weight.detach().float()
+        delta = (head.weight[positive_id] - head.weight[negative_id]).detach().float()
+        return (gamma * delta).cpu().numpy()
 
     # ---------------------------------------------------------------- extract
     def extract(
