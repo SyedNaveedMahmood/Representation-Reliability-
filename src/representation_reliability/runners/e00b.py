@@ -28,8 +28,8 @@ from ..reporting.tables import save_json, save_table
 from ..runtime.manifest import RunManifest, dataset_split_hash
 from ..runtime.run_id import allocate_run_dir, make_run_id
 from ..runtime.status import StatusFile
-from .extract import load_adapter
 from .e00 import _generate_dataset, _strip_confirmation_labels  # noqa: F401
+from .extract import load_adapter
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +168,7 @@ def run_e00b(
         behavior_metrics = {
             "primary_decision_rule": "argmax total conditional log-prob",
             "candidates_primary": [yes_text, no_text],
-            "n_evaluated": int(len(pred_df)),
+            "n_evaluated": len(pred_df),
             "class_balance": class_balance(gold),
             "majority_accuracy_discovery_only":
                 majority_baseline_accuracy(gold),
@@ -184,7 +184,7 @@ def run_e00b(
                 float(pred_df["secondary_margin_total_agrees"].mean()),
             "margin_vs_gold": classification_metrics(gold, margins),
             "by_split": {
-                s: {"n": int(len(g)),
+                s: {"n": len(g),
                     "forced_choice_accuracy":
                         float(g["forced_choice_correct"].mean())}
                 for s, g in pred_df.groupby("split")
