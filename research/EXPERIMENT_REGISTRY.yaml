@@ -114,7 +114,7 @@ experiments:
     execution_policy: >
       Immediate authorization covers implementation, unit/GPU contract tests,
       and bounded smoke/pilot of E01B-1 only. Do not run E01B-1 full discovery,
-      E01B-2, confirmation, or E13 without a new explicit authorization.
+      E01B-2, confirmation, E13, E14, E15, or E16 without a new explicit authorization.
 
   - id: E02
     name: decode_steer_gap
@@ -239,19 +239,12 @@ experiments:
       The current 0.6B checkpoint already has near-ceiling D but weak causal
       conversion relative to 1.7B. This creates a controlled setting to ask
       whether distillation repairs use of an existing representation rather
-      than merely adding decodable information. Targeted 2026-08-28 literature
-      search found nearby logit/hidden-state/trajectory KD work but no direct
-      collision measuring teacher-student transfer of a probe-defined causal
-      conversion pathway.
+      than merely adding decodable information.
     proposed_design:
       diagnostic_regimes: >
         Frozen student, hard-label SFT, logit KD, one standard
         hidden-state/trajectory KD baseline, and optional combined KD; measure
         B/D/native-readout/C trajectories at fixed training checkpoints.
-      fresh_corpus: >
-        Use a new grouped synthetic discovery corpus with new seeds/surface forms
-        and a separate E13-specific confirmation holdout; never train on E01
-        confirmation.
       method_trigger: >
         Only if standard KD leaves a reproducible teacher-student conversion gap,
         test a conversion-response distillation loss that matches the teacher's
@@ -259,3 +252,83 @@ experiments:
     execution_policy: >
       Design only. Do not implement or train E13 until E01B is frozen and an
       explicit authorization is given.
+
+  - id: E14
+    name: quantization_reliability
+    question: >
+      Can post-training quantization preserve a highly decodable semantic
+      representation while disproportionately degrading its causal utilization
+      and native-readout conversion?
+    priority: P0
+    status: proposed_not_authorized
+    depends_on: [E01B]
+    dimensions: [D, C, R]
+    refs: [post_training_quantization, source_free_setpoints, causal_conversion]
+    max_gpu_hours: 6
+    discovery_signal: >
+      A precision regime preserves held-out D within a predeclared tolerance
+      while materially reducing source-free C or downstream standardized
+      native-margin response.
+    rationale: >
+      Quantization perturbs the same trained checkpoint without changing its
+      training objective, offering a low-compute test of whether functional
+      utilization is more fragile than representational availability.
+    proposed_design: >
+      Qwen3-1.7B BF16/INT8/INT4 primary ladder with frozen E01B semantic
+      measurement; optional INT3/INT2 only after stable primary results.
+    execution_policy: >
+      Design only. Do not implement E14 until E01B is frozen and explicit
+      authorization is given.
+
+  - id: E15
+    name: temporal_causal_half_life
+    question: >
+      In a long-horizon task, can a state variable remain internally decodable
+      after its causal influence on future actions has substantially decayed?
+    priority: P1
+    status: proposed_not_authorized
+    depends_on: [E01B]
+    dimensions: [D, C, R]
+    refs: [long_horizon_state, causal_intervention, temporal_persistence]
+    max_gpu_hours: 12
+    discovery_signal: >
+      The causal-utilization curve decays faster than the decodability curve,
+      yielding a task-specific causal half-life shorter than representation
+      half-life.
+    rationale: >
+      This avoids a generic static knowing-doing gap and instead measures how
+      long represented information remains functionally alive across sequential
+      computation.
+    proposed_design: >
+      Begin with one structured stateful task having explicit latent state,
+      auditable transitions, delayed decisions, matched counterfactual episodes,
+      and controlled distractor/horizon variation.
+    execution_policy: >
+      Design only. Do not implement until a task is separately frozen and an
+      explicit authorization is given.
+
+  - id: E16
+    name: utilization_emergence_during_training
+    question: >
+      Does a semantic representation become linearly accessible before the
+      model learns to use it causally and behaviorally during training?
+    priority: P0
+    status: proposed_not_authorized
+    depends_on: [E01B]
+    dimensions: [D, C, R]
+    refs: [training_checkpoints, source_free_setpoints, causal_conversion]
+    max_gpu_hours: 12
+    discovery_signal: >
+      D reaches and sustains a high-performance regime at earlier checkpoints
+      than C, with C continuing to rise after D has plateaued.
+    rationale: >
+      A within-training trajectory can turn the current static checkpoint
+      dissociation into a developmental mechanism: representation formation may
+      precede functional deployment.
+    proposed_design: >
+      Use one public training-checkpoint family with stable architecture;
+      inspect logarithmically spaced checkpoints first, then densify only around
+      a discovered transition.
+    execution_policy: >
+      Design only. Do not implement until E01B is frozen, a checkpoint family is
+      selected, and explicit authorization is given.
