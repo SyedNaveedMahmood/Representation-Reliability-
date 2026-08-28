@@ -1,0 +1,52 @@
+{
+  "Qwen3-0.6B": {
+    "alphas": [
+      -1.0,
+      -0.5,
+      0.0,
+      0.25,
+      0.5,
+      1.0,
+      1.5,
+      2.0
+    ],
+    "confirmation_accessed": false,
+    "max_clean_native_margin_disagreement": 0.0,
+    "max_clean_truth_coordinate_disagreement": 0.0,
+    "n_base_examples": 300,
+    "n_pairs": 150,
+    "run_dir": "runs/E01A/E01A_c6cd215d7bf8",
+    "status": "complete",
+    "trace_layers": [
+      17,
+      20,
+      23,
+      27
+    ]
+  },
+  "Qwen3-1.7B": {
+    "alphas": [
+      -1.0,
+      -0.5,
+      0.0,
+      0.25,
+      0.5,
+      1.0,
+      1.5,
+      2.0
+    ],
+    "confirmation_accessed": false,
+    "max_clean_native_margin_disagreement": 0.0,
+    "max_clean_truth_coordinate_disagreement": 0.0,
+    "n_base_examples": 300,
+    "n_pairs": 150,
+    "run_dir": "runs/E01A/E01A_821138e998c7",
+    "status": "complete",
+    "trace_layers": [
+      17,
+      20,
+      23,
+      27
+    ]
+  }
+}
