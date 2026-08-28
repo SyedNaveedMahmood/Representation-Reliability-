@@ -2,7 +2,6 @@ import pytest
 import torch
 
 from representation_reliability.config import resolve_config
-
 from representation_reliability.runners.e13 import (
     build_e13_open_corpus,
     distillation_loss,
