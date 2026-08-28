@@ -34,9 +34,7 @@ def forward_selected_token_logits(
     batch = adapter.tokenize(prompts)
     input_ids = batch["input_ids"].to(adapter.device)
     attention_mask = batch["attention_mask"].to(adapter.device)
-    idx = torch.as_tensor(
-        list(map(int, token_indices)), dtype=torch.long, device=adapter.device
-    )
+    idx = torch.as_tensor(list(map(int, token_indices)), dtype=torch.long, device=adapter.device)
     lengths = attention_mask.sum(dim=1).to(dtype=torch.long)
     if torch.any(idx < 0) or torch.any(idx >= lengths):
         raise ValueError("one or more token indices are outside prompt length")
@@ -105,27 +103,20 @@ def forward_resid_post_intervention(
         raise ValueError("token_indices/prompts length mismatch")
     delta_np = np.asarray(deltas)
     if delta_np.shape != (n, adapter.hidden_size):
-        raise ValueError(
-            f"deltas must have shape {(n, adapter.hidden_size)}, got {delta_np.shape}"
-        )
+        raise ValueError(f"deltas must have shape {(n, adapter.hidden_size)}, got {delta_np.shape}")
     if not (0 <= int(layer) < adapter.num_layers):
         raise ValueError(f"intervention layer {layer} out of range")
     capture = sorted({int(x) for x in capture_layers})
     bad = [x for x in capture if x < int(layer) or x >= adapter.num_layers]
     if bad:
-        raise ValueError(
-            "capture_layers must be at/after the intervention and in range: "
-            f"{bad}"
-        )
+        raise ValueError(f"capture_layers must be at/after the intervention and in range: {bad}")
     if not output_token_ids:
         raise ValueError("output_token_ids may not be empty")
 
     batch = adapter.tokenize(prompts)
     input_ids = batch["input_ids"].to(adapter.device)
     attention_mask = batch["attention_mask"].to(adapter.device)
-    idx = torch.as_tensor(
-        list(map(int, token_indices)), dtype=torch.long, device=adapter.device
-    )
+    idx = torch.as_tensor(list(map(int, token_indices)), dtype=torch.long, device=adapter.device)
     lengths = attention_mask.sum(dim=1).to(dtype=torch.long)
     if torch.any(idx < 0) or torch.any(idx >= lengths):
         raise ValueError("one or more intervention token indices are outside prompt length")
@@ -156,15 +147,14 @@ def forward_resid_post_intervention(
         def hook(_module: Any, _inputs: Any, output: Any) -> None:
             hidden = output[0] if isinstance(output, tuple) else output
             captured[layer_id] = hidden[row_ids, idx].detach()
+
         return hook
 
     hooks.append(adapter._raw_layer(int(layer)).register_forward_hook(intervention_hook))
     for layer_id in capture:
         if layer_id == int(layer):
             continue
-        hooks.append(
-            adapter._raw_layer(layer_id).register_forward_hook(capture_hook(layer_id))
-        )
+        hooks.append(adapter._raw_layer(layer_id).register_forward_hook(capture_hook(layer_id)))
 
     try:
         with torch.inference_mode():
@@ -189,9 +179,77 @@ def forward_resid_post_intervention(
     return {
         "selected_logits": selected,
         "captured": {
-            layer_id: tensor.float().cpu().numpy()
-            for layer_id, tensor in captured.items()
+            layer_id: tensor.float().cpu().numpy() for layer_id, tensor in captured.items()
         },
         "token_indices": list(map(int, token_indices)),
         "output_token_ids": list(map(int, output_token_ids)),
     }
+
+
+def differentiable_resid_post_logits(
+    adapter: HFAdapter,
+    *,
+    input_ids: torch.Tensor,
+    attention_mask: torch.Tensor,
+    layer: int,
+    token_indices: torch.Tensor,
+    deltas: torch.Tensor,
+    output_token_ids: Sequence[int],
+) -> torch.Tensor:
+    """Differentiable selected logits under a batched additive residual edit."""
+    if adapter.model is None:
+        raise RuntimeError("adapter.load() must be called before intervention")
+    batch_size = int(input_ids.shape[0])
+    if deltas.shape != (batch_size, adapter.hidden_size):
+        raise ValueError("differentiable intervention delta shape mismatch")
+    if token_indices.shape != (batch_size,):
+        raise ValueError("differentiable intervention token-index shape mismatch")
+    row_ids = torch.arange(batch_size, device=input_ids.device)
+    delta = deltas.to(device=input_ids.device, dtype=next(adapter.model.parameters()).dtype)
+
+    def hook(_module: Any, _inputs: Any, output: Any) -> Any:
+        hidden = output[0] if isinstance(output, tuple) else output
+        edited = hidden.clone()
+        edited[row_ids, token_indices] = edited[row_ids, token_indices] + delta
+        return (edited, *output[1:]) if isinstance(output, tuple) else edited
+
+    handle = adapter._raw_layer(int(layer)).register_forward_hook(hook)
+    try:
+        outputs = adapter.model(input_ids=input_ids, attention_mask=attention_mask)
+    finally:
+        handle.remove()
+    logits = outputs.logits[row_ids, token_indices]
+    ids = torch.as_tensor(output_token_ids, dtype=torch.long, device=logits.device)
+    return logits.index_select(-1, ids)
+
+
+def forward_with_resid_post_capture(
+    adapter: HFAdapter,
+    *,
+    input_ids: torch.Tensor,
+    attention_mask: torch.Tensor,
+    layer: int,
+) -> tuple[Any, torch.Tensor]:
+    """Differentiable model forward with one canonical residual site captured."""
+    if adapter.model is None:
+        raise RuntimeError("adapter.load() must be called before capture")
+    captured: list[torch.Tensor] = []
+
+    def hook(_module: Any, _inputs: Any, output: Any) -> None:
+        captured.append(output[0] if isinstance(output, tuple) else output)
+
+    handle = adapter._raw_layer(int(layer)).register_forward_hook(hook)
+    try:
+        outputs = adapter.model(input_ids=input_ids, attention_mask=attention_mask)
+    finally:
+        handle.remove()
+    if len(captured) != 1:
+        raise RuntimeError(f"expected one residual capture, observed {len(captured)}")
+    return outputs, captured[0]
+
+
+def resid_post_hook_count(adapter: HFAdapter, *, layer: int) -> int:
+    """Diagnostic count for hook-leak contract tests at a canonical site."""
+    if adapter.model is None:
+        raise RuntimeError("adapter.load() must be called before hook inspection")
+    return len(adapter._raw_layer(int(layer))._forward_hooks)

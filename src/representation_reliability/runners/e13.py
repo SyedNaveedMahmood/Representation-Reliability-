@@ -19,6 +19,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+from ..adapters.intervention import forward_with_resid_post_capture
 from ..config import config_hash, resolve_config, save_resolved_config
 from ..data.base import samples_to_dataframe
 from ..data.synthetic import RELATION_FAMILIES, generate_synthetic_relations
@@ -144,9 +145,7 @@ def build_e13_open_corpus(
             "collisions_before_quota": collisions,
         }
     frame = samples_to_dataframe(selected)
-    split_by_prefix = {
-        f"e13-{split_name}-v1": split_name for split_name, _count, _seed in specs
-    }
+    split_by_prefix = {f"e13-{split_name}-v1": split_name for split_name, _count, _seed in specs}
     frame["split"] = [
         next(value for prefix, value in split_by_prefix.items() if str(sid).startswith(prefix))
         for sid in frame["sample_id"]
@@ -365,8 +364,7 @@ def _evaluate_checkpoint(
         batch_size=batch_size,
     )
     no_op = max(
-        float(np.max(np.abs(clean[sid]["selected_logits"] - unhooked[sid])))
-        for sid in eval_ids
+        float(np.max(np.abs(clean[sid]["selected_logits"] - unhooked[sid]))) for sid in eval_ids
     )
     bases = intervention_base_activations(clean, eval_ids, layer=LAYER)
     direction = frozen_reference["direction"]
@@ -376,8 +374,7 @@ def _evaluate_checkpoint(
         for sid in eval_ids
     }
     semantic = {
-        sid: source_free_setpoint_delta(bases[sid], direction, q_targets[sid])
-        for sid in eval_ids
+        sid: source_free_setpoint_delta(bases[sid], direction, q_targets[sid]) for sid in eval_ids
     }
     y10 = run_intervention_batches(
         adapter,
@@ -496,9 +493,7 @@ def _evaluate_checkpoint(
                     "raw_text": str(sample.prompt),
                     "site": SITE,
                     "layer": LAYER,
-                    "native_module_name": adapter.resolve_site(
-                        SITE, LAYER
-                    ).native_module_name,
+                    "native_module_name": adapter.resolve_site(SITE, LAYER).native_module_name,
                     "token_selector": SELECTOR,
                     "token_index": int(token_indices[sid]),
                     "prompt_sequence_length": int(site["sequence_length"]),
@@ -575,9 +570,10 @@ def _train_regime(
     run_identity: str | None = None,
     resume_checkpoint: Path | None = None,
     projector: HiddenStateProjector | None = None,
+    response_loss_fn=None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    if regime not in {"R1", "R2", "R3"}:
-        raise ValueError("trainable E13 regime must be R1, R2, or R3")
+    if regime not in {"R1", "R2", "R3", "R4", "R5", "R6", "R2C"}:
+        raise ValueError("trainable E13 regime is outside the frozen design")
     model = student.model
     model.train()
     model.config.use_cache = False
@@ -601,9 +597,7 @@ def _train_regime(
     loss_rows: list[dict[str, Any]] = []
     metric_rows: list[dict[str, Any]] = []
     if resume_checkpoint is not None:
-        with (resume_checkpoint / "training_state.json").open(
-            "r", encoding="utf-8"
-        ) as handle:
+        with (resume_checkpoint / "training_state.json").open("r", encoding="utf-8") as handle:
             training_state = json.load(handle)
         if run_identity is None or training_state["run_identity"] != run_identity:
             raise RuntimeError("E13 training resume identity mismatch")
@@ -639,6 +633,7 @@ def _train_regime(
         micro_ce = []
         micro_kd = []
         micro_hidden = []
+        micro_response = []
         for _micro in range(GRAD_ACCUMULATION):
             if cursor + MICROBATCH > len(order):
                 order = rng.permutation(train_ids).tolist()
@@ -650,17 +645,29 @@ def _train_regime(
             input_ids = encoded["input_ids"].to(student.device)
             attention = encoded["attention_mask"].to(student.device)
             positions = _last_positions(attention)
-            student_outputs = model(
-                input_ids=input_ids,
-                attention_mask=attention,
-                output_hidden_states=regime == "R3",
-            )
+            response_hidden = None
+            if regime in {"R4", "R5", "R6", "R2C"}:
+                student_outputs, response_sequence = forward_with_resid_post_capture(
+                    student,
+                    input_ids=input_ids,
+                    attention_mask=attention,
+                    layer=LAYER,
+                )
+                response_hidden = response_sequence[
+                    torch.arange(len(batch_ids), device=student.device), positions
+                ]
+            else:
+                student_outputs = model(
+                    input_ids=input_ids,
+                    attention_mask=attention,
+                    output_hidden_states=regime == "R3",
+                )
             selected = student_outputs.logits[
                 torch.arange(len(batch_ids), device=student.device), positions
             ]
             teacher_selected = None
             hidden_loss = None
-            if regime in {"R2", "R3"}:
+            if regime in {"R2", "R3", "R4", "R5", "R6", "R2C"}:
                 with torch.inference_mode():
                     teacher_outputs = teacher.model(
                         input_ids=input_ids,
@@ -677,17 +684,37 @@ def _train_regime(
                     teacher_hidden = teacher_outputs.hidden_states[LAYER + 1][
                         torch.arange(len(batch_ids), device=student.device), positions
                     ]
-                    hidden_loss = representation_kd_loss(
-                        student_hidden, teacher_hidden, projector
-                    )
+                    hidden_loss = representation_kd_loss(student_hidden, teacher_hidden, projector)
             targets = _target_ids([labels[sid] for sid in batch_ids], token_ids, student.device)
+            base_regime = "R3" if regime == "R3" else ("R1" if regime == "R1" else "R2")
             loss, parts = distillation_loss(
                 selected,
                 targets,
                 teacher_logits=teacher_selected,
-                regime=regime,
+                regime=base_regime,
                 hidden_loss=hidden_loss,
             )
+            response_value = 0.0
+            if regime in {"R4", "R5", "R6", "R2C"}:
+                if response_loss_fn is None:
+                    raise ValueError(f"{regime} requires a response-loss callback")
+                response_loss = response_loss_fn(
+                    student=student,
+                    batch_ids=batch_ids,
+                    clean_selected_logits=selected.index_select(
+                        -1,
+                        torch.as_tensor(token_ids, dtype=torch.long, device=student.device),
+                    ),
+                    input_ids=input_ids,
+                    attention_mask=attention,
+                    positions=positions,
+                    clean_hidden=response_hidden,
+                    regime=regime,
+                )
+                if response_loss.ndim != 0 or not torch.isfinite(response_loss):
+                    raise RuntimeError(f"nonfinite E13 {regime} response loss")
+                loss = loss + response_loss
+                response_value = float(response_loss.detach())
             if not torch.isfinite(loss):
                 raise RuntimeError(f"nonfinite E13 {regime} loss")
             (loss / GRAD_ACCUMULATION).backward()
@@ -695,6 +722,7 @@ def _train_regime(
             micro_ce.append(parts["ce"])
             micro_kd.append(parts["kd"])
             micro_hidden.append(parts.get("hidden", 0.0))
+            micro_response.append(response_value)
         grad_norm = float(torch.nn.utils.clip_grad_norm_(parameters, 1.0))
         if not np.isfinite(grad_norm):
             raise RuntimeError(f"nonfinite E13 {regime} gradient")
@@ -708,6 +736,7 @@ def _train_regime(
                 "ce": float(np.mean(micro_ce)),
                 "kd": float(np.mean(micro_kd)),
                 "hidden": float(np.mean(micro_hidden)),
+                "response": float(np.mean(micro_response)),
                 "learning_rate": learning_rate_for_step(step),
                 "gradient_norm": grad_norm,
             }
@@ -795,8 +824,7 @@ def run_e13_training_smoke() -> Path:
             teacher_cfg, _ = resolve_config(
                 base_path=repo_root / "configs/base.yaml",
                 model_path=repo_root / "configs/models/qwen3_1.7b.yaml",
-                experiment_path=repo_root
-                / "configs/experiments/E13_distillation_reliability.yaml",
+                experiment_path=repo_root / "configs/experiments/E13_distillation_reliability.yaml",
                 overrides=(),
             )
             teacher = load_adapter(teacher_cfg)
@@ -857,17 +885,13 @@ def run_e13_training_smoke() -> Path:
                 attention_mask=attention,
                 output_hidden_states=regime == "R3",
             )
-            selected = outputs.logits[
-                torch.arange(len(batch), device=student.device), positions
-            ]
+            selected = outputs.logits[torch.arange(len(batch), device=student.device), positions]
             hidden_loss = None
             if regime == "R3":
                 student_hidden = outputs.hidden_states[LAYER + 1][
                     torch.arange(len(batch), device=student.device), positions
                 ]
-                hidden_loss = representation_kd_loss(
-                    student_hidden, teacher_hidden, projector
-                )
+                hidden_loss = representation_kd_loss(student_hidden, teacher_hidden, projector)
             loss, _ = distillation_loss(
                 selected,
                 targets,
@@ -887,9 +911,7 @@ def run_e13_training_smoke() -> Path:
             token_selector=SELECTOR,
             batch_size=2,
         )
-        finite_hook = bool(
-            np.isfinite(np.stack(list(activations[LAYER].values()))).all()
-        )
+        finite_hook = bool(np.isfinite(np.stack(list(activations[LAYER].values()))).all())
         results[regime] = {
             "initial_loss": losses[0],
             "final_loss": losses[-1],

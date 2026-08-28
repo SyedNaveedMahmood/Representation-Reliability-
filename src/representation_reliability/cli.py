@@ -304,9 +304,7 @@ def e14(
         None, "--max-pairs", help="optional cap within the frozen bounded profile"
     ),
     layer: int = typer.Option(17, "--layer", help="frozen resid_post layer"),
-    trace_layers: str = typer.Option(
-        "17,20,23,27", "--trace-layers", help="frozen trace layers"
-    ),
+    trace_layers: str = typer.Option("17,20,23,27", "--trace-layers", help="frozen trace layers"),
     overrides: list[str] = typer.Option(None, "--set", help="dot-path overrides"),
 ) -> None:
     """Run one precision of the authorized E14 smoke/pilot ladder."""
@@ -412,6 +410,49 @@ def e13_multiseed_analyze() -> None:
 
     report = analyze_e13_multiseed_campaign()
     typer.echo(f"E13 multi-seed analysis complete: {report}")
+
+
+@app.command("e13-method-cache")
+def e13_method_cache() -> None:
+    """Build and live-validate the frozen teacher response cache."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_methods import prepare_teacher_response_cache
+
+    cache = prepare_teacher_response_cache()
+    typer.echo(f"E13 teacher response cache complete: {cache}")
+
+
+@app.command("e13-method-smoke")
+def e13_method_smoke() -> None:
+    """Run the two-row differentiable method/control GPU contract."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_methods import run_method_training_smoke
+
+    output = run_method_training_smoke()
+    typer.echo(f"E13 method smoke complete: {output}")
+
+
+@app.command("e13-method-job")
+def e13_method_job(
+    regime: str = typer.Option(..., "--regime"),
+    seed: int = typer.Option(..., "--seed"),
+) -> None:
+    """Run one immutable E13 conversion-response method/control job."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_methods import run_method_job
+
+    run_dir = run_method_job(regime.upper(), seed)
+    typer.echo(f"E13 method job complete: {run_dir}")
+
+
+@app.command("e13-method-analyze")
+def e13_method_analyze() -> None:
+    """Analyze all method jobs under the frozen primary comparison."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_methods import analyze_method_campaign
+
+    report = analyze_method_campaign()
+    typer.echo(f"E13 method analysis complete: {report}")
 
 
 @app.command()
