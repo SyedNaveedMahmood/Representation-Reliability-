@@ -2,27 +2,27 @@
 
 Status date: 2026-08-28
 
-This document freezes the next research program after E01A full discovery and
-its trace-mechanism analysis. Confirmation remains locked.
+Master question:
+
+> **What determines whether an internal representation is merely present or functionally utilized?**
+
+See `MASTER_QUESTION_ACTIONABLE_REPRESENTATIONS.md` for the full thesis and `ACTIONABLE_REPRESENTATION_ROADMAP.md` for experiment gates.
+
+Confirmation remains locked.
 
 ## 1. Central claim to protect
 
-The project should no longer be framed around the generic statement that
-"decodability does not imply behavior." That space is crowded.
+The project should not be framed around the generic statement that "decodability does not imply behavior." That space is crowded.
 
-The current discovery-supported claim is narrower and more mechanistic:
+The current discovery-supported claim is narrower and mechanistic:
 
-> **Semantic representation formation and representation-to-behavior
-> conversion are separable. Across two Qwen3 checkpoints with nearly identical
-> near-ceiling decodability, direct manipulation of the decoded coordinate
-> produces sharply different native-readout effects. Trace analysis localizes
-> the difference primarily to readout conversion from the intervention layer
-> onward, with an additional late propagation disadvantage in the smaller
-> checkpoint.**
+> **Semantic representation formation and representation-to-behavior conversion are separable. Across two Qwen3 checkpoints with nearly identical near-ceiling decodability, direct manipulation of the decoded coordinate produces sharply different native-readout effects. Trace analysis localizes the difference primarily to readout conversion from the intervention layer onward, with an additional late propagation disadvantage in the smaller checkpoint.**
 
-This remains checkpoint-, task-, site-, and discovery-specific. It is not yet a
-scaling law, and it does not establish that the unperturbed model naturally
-uses exactly the probe-defined one-dimensional coordinate.
+This remains checkpoint-, task-, site-, and discovery-specific. It is not yet a scaling law, and it does not establish that the unperturbed model naturally uses exactly the probe-defined one-dimensional coordinate.
+
+The broader thesis to test, not assume, is:
+
+> **Functional utilization is a distinct and potentially more fragile property than representational availability.**
 
 ## 2. Current evidence chain
 
@@ -31,183 +31,163 @@ The paper spine should preserve this sequence:
 1. **Encoded:** truth is near-perfectly linearly decodable in both checkpoints.
 2. **Learned/general:** random-init controls are near chance and LOFO remains high.
 3. **Poorly expressed:** behavior/native readout can lag far behind D.
-4. **Causally actionable:** E01A coordinate interventions beat random,
-   orthogonal, and same-label controls with signed dose response.
-5. **Checkpoint-dependent conversion:** 1.7B converts a comparable early
-   standardized coordinate perturbation into much larger native-readout change.
-6. **Mixed bottleneck:** early readout conversion dominates the difference;
-   later layers add a propagation disadvantage in 0.6B.
+4. **Causally actionable:** E01A coordinate interventions beat random, orthogonal, and same-label controls with signed dose response.
+5. **Checkpoint-dependent conversion:** 1.7B converts a comparable early standardized coordinate perturbation into much larger native-readout change.
+6. **Mixed bottleneck:** early readout conversion dominates the difference; later layers add a propagation disadvantage in 0.6B.
 
-The next experiments should strengthen this exact chain rather than expand into
-unrelated reliability dimensions.
+The next experiments should strengthen this exact chain rather than expand into unrelated reliability dimensions.
 
-## 3. Novelty boundary from the targeted literature check
+## 3. Novelty boundary
 
-Targeted searches on 2026-08-28 found close work in three neighboring areas:
+Nearby work already establishes parts of the landscape:
 
 - decodable information can be weakly actionable or steerable;
-- representation geometry/readout alignment can change with checkpoint/scale;
-- knowledge distillation can align logits, hidden states, or layerwise
-  representation trajectories;
-- RAG work already studies an "integration bottleneck," internal
-  representations of retrieved evidence, knowledge conflicts, and causal
-  routing/tracing.
+- model representations can encode variables that behavior does not faithfully use;
+- representation geometry/readout alignment can differ across scale/checkpoint;
+- tool-use and agent work already studies static cognition/action or belief/action gaps;
+- RAG work already studies integration bottlenecks, retrieved-context representations, knowledge conflicts, and causal routing;
+- distillation work already studies logit, hidden-state, trajectory, and even steering-direction transfer;
+- quantization work studies accuracy, geometry, information loss, and some post-quantization decodability.
 
-Representative close work includes:
+The targeted 2026-08-28 search did not identify a direct collision that unifies:
 
-- Dasgupta & Cohn, *Improving Language Model Distillation through Hidden State
-  Matching*, ICLR 2025;
-- Koo et al., *SWITCH: Studying with Teacher for Knowledge Distillation of
-  Large Language Models*, Findings of NAACL 2025;
-- Tiapkin et al., *On Teacher Hacking in Language Model Distillation*, ICML
-  2025;
-- Chi et al., *MTA: Multi-Granular Trajectory Alignment for Large Language
-  Model Distillation*, ACL 2026;
-- Yeh & Li, *How Retrieved Context Shapes Internal Representations in RAG*,
-  Findings of ACL 2026;
-- Zhao et al., *Guaranteeing Knowledge Integration with Joint Decoding for
-  Retrieval-Augmented Generation*, ACL 2026;
-- Guo et al., *Why Retrieval-Augmented Generation Fails: A Graph Perspective*,
-  arXiv:2605.14192;
-- Ma et al., *CoRect: Context-Aware Logit Contrast for Hidden State
-  Rectification to Resolve Knowledge Conflicts*, arXiv:2602.08221.
+1. matched/high semantic decodability;
+2. direct causal manipulation of that same semantic variable;
+3. layerwise localization of representation-to-readout conversion;
+4. testing whether utilization can be independently learned, transferred, compressed, or temporally lost.
 
-The targeted search did **not** identify a direct collision that combines all
-of the following:
-
-1. near-matched semantic decodability across checkpoints;
-2. direct causal manipulation of the same decoded semantic variable;
-3. layerwise localization of a representation-to-readout conversion gap; and
-4. knowledge distillation analyzed in terms of whether representation and
-   causal utilization transfer together or separately.
-
-This is not proof that no such paper exists. Continue a narrow collision search
-in parallel, but do not delay the experimental program waiting for exhaustive
-absence proof.
+This is not proof of absence. Continue narrow collision checks around each branch before execution.
 
 ## 4. Program architecture
 
-The program has one core mechanism track and one high-upside novelty track.
-A RAG application is retained only as a later backup/application test because
-that literature is substantially more crowded.
+The program now has a common mechanistic foundation and four transformation branches.
 
-### Track A — finish the mechanism
+### Track A — establish the causal object
 
 **E01B: Source-free setpoints and orthogonal-context modulation**
 
-Goal: determine whether the causal object is approximately a scalar semantic
-set-point and whether orthogonal representational context gates its effect.
+Questions:
+
+- Is a donor-free scalar semantic set-point sufficient to reproduce E01A causal conversion?
+- At fixed scalar displacement, does structured orthogonal context change the effect?
 
 This is the immediate next experiment.
 
-### Track B — test transfer under distillation
+### Track B — compression fragility
+
+**E14: Quantization Reliability**
+
+Question:
+
+> Can quantization preserve semantic D while degrading C/readout conversion?
+
+This is the default first extension after E01B because it changes the same checkpoint without retraining, is inexpensive, has direct deployment relevance, and cleanly tests whether utilization is more fragile than representation.
+
+### Track C — transfer and learnability
 
 **E13: Distillation Reliability Transfer**
 
-Core question:
+Question:
 
-> When a smaller student already contains the semantic representation, does
-> knowledge distillation transfer the teacher's ability to *use* that
-> representation, or can representation and causal conversion remain
-> dissociated after distillation?
+> When a student already contains the representation, does distillation transfer the teacher's ability to use it?
 
-This converts the current mechanistic finding into a training/compression
-question with direct practical relevance.
+This has the highest method-development upside. If standard KD leaves a reproducible conversion gap, it may justify a conversion-response distillation objective that matches the teacher's causal response to source-free semantic setpoints.
 
-The high-value phenomenon is a **distillation utilization gap**:
+### Track D — developmental emergence
 
-```text
-teacher:  representation strong -> conversion strong
-student:  representation strong -> conversion weak
-              |
-              | distillation
-              v
-student': does D change, C change, both, or neither?
-```
+**E16: Utilization Emergence During Training**
 
-The strongest possible discovery would be that standard representation-matching
-or hidden-state KD makes the student look more teacher-like internally without
-proportionally transferring causal conversion. That would show that
-"representation transfer" and "functional deployment transfer" are distinct
-objectives.
+Question:
 
-### Track C — later application branch: RAG
+> Does D become high before C during training?
 
-RAG is scientifically relevant because it contains a natural version of the
-same problem: retrieved evidence can be available internally yet fail to govern
-output. However, 2026 literature already directly studies retrieved-context
-representations, integration bottlenecks, knowledge conflicts, and causal
-routing.
+A positive result would convert the current static checkpoint dissociation into a developmental mechanism: a model may learn a semantic variable before learning to deploy it.
 
-Therefore RAG is **not** the immediate novelty bet. If used later, the question
-should be specifically whether the project's D/C conversion metrics predict or
-explain evidence-integration failures beyond existing RAG diagnostics.
+### Track E — temporal persistence
 
-Do not add a RAG experiment merely to claim application breadth.
+**E15: Temporal Causal Half-Life**
+
+Question:
+
+> Can a state remain decodable over a long trajectory after its causal influence on future decisions has decayed?
+
+This is the highest-complexity branch. It should use one structured stateful task, not a generic open-ended agent benchmark.
+
+### RAG as a later application, not the novelty spine
+
+RAG remains relevant because retrieved information can be internally available yet fail to govern output, but the 2026 literature already directly studies this integration problem. Use RAG later only if the project's D/C machinery adds a new predictive or causal diagnostic beyond existing RAG analyses.
 
 ## 5. Track A decision tree
 
 ### E01B-1 source-free setpoints
 
-If source-free targets reproduce a monotonic causal response, the donor sample
-is unnecessary and the semantic coordinate itself becomes the cleaner causal
-object.
+If source-free targets reproduce a monotonic causal response, donor identity is unnecessary for the measured effect and the semantic coordinate becomes the cleaner causal object.
 
 ### E01B-2 orthogonal-context modulation
 
-At a fixed scalar coordinate target, add controlled orthogonal context.
+At fixed scalar coordinate target, vary orthogonal context.
 
 Possible outcomes:
 
 - **context-insensitive:** coordinate-only and context-added effects are close;
-  the measured causal effect is approximately one-dimensional;
-- **context-gated:** matched or structured orthogonal context changes the effect;
-  the scalar coordinate is actionable but not sufficient;
-- **random-context-sensitive:** arbitrary orthogonal additions have comparable
-  effects; the intervention is not semantically specific enough.
+- **context-gated:** structured orthogonal context changes conversion;
+- **random-context-sensitive:** arbitrary orthogonal additions have comparable effects, weakening semantic specificity.
 
-Only after E01B-1 and E01B-2 are frozen should the project spend the untouched
-confirmation split.
+Only after E01B is frozen should the existing E01 confirmation split be spent.
 
-## 6. Track B decision tree: distillation
+## 6. Track B decision tree: quantization
 
-E13 begins as a diagnostic study, **not** as a new distillation method.
+Primary ladder:
 
-Compare a fixed 1.7B teacher and 0.6B student under:
+```text
+Qwen3-1.7B BF16 -> INT8 -> INT4
+```
 
-1. no additional training;
-2. hard-label supervised fine-tuning;
+Measure the frozen source-free semantic protocol at every precision.
+
+High-value outcome:
+
+```text
+D remains high
+while
+C / standardized native-readout response drops
+```
+
+This would directly support:
+
+> **Representational integrity is not functional integrity under compression.**
+
+If D and C degrade together or both remain stable, do not force a fragility story.
+
+## 7. Track C decision tree: distillation
+
+E13 begins as a diagnostic study, not as a method.
+
+Compare:
+
+1. frozen student;
+2. hard-label SFT;
 3. standard logit KD;
-4. hidden-state/trajectory KD;
-5. optional combined logit + representation KD.
+4. one standard hidden-state/trajectory KD baseline;
+5. optional combined KD.
 
-Measure throughout training:
+Track throughout training:
 
-- behavioral performance B;
-- decodability D;
-- native readout alignment/readout AUROC;
-- source-free causal conversion C using the frozen E01B protocol;
-- layerwise propagation and standardized native-margin response.
+- B;
+- D;
+- native-readout alignment;
+- source-free C;
+- propagation/readout conversion.
 
-Primary diagnostic questions:
+High-value outcomes include:
 
-1. Does D remain near ceiling while C improves under KD?
-2. Does hidden-state KD improve representational similarity more than causal
-   conversion?
-3. Does logit KD improve behavior/readout without materially changing D?
-4. Do different KD objectives move different links in the
-   `encoding -> propagation -> readout conversion -> behavior` chain?
+- D already saturated while C increases;
+- hidden-state similarity improves without proportional C transfer;
+- behavior improves while causal organization remains student-like.
 
-### Method trigger, not precommitted method
+### Method trigger
 
-Only if standard KD leaves a reproducible teacher-student conversion gap should
-we implement a **causal-response / conversion-response distillation objective**.
-
-The provisional idea is to cache the teacher's normalized native-margin
-response to source-free coordinate perturbations and train the student to match
-that response function, rather than only matching logits or hidden states.
-
-For standardized setpoint perturbation `delta z`:
+Only if standard KD leaves a robust conversion gap should the project test **conversion-response distillation**:
 
 ```text
 L_conversion = mean_delta_z (
@@ -215,82 +195,116 @@ L_conversion = mean_delta_z (
 )^2
 ```
 
-This deliberately avoids cross-model hidden-dimension alignment. It distills a
-causal response curve.
+The purpose is to distill how a model uses a representation, not merely its logits or hidden vector.
 
-Do **not** implement this objective unless E13 diagnostic gates show that
-standard objectives leave a meaningful conversion gap.
+## 8. Track D: training emergence
 
-## 7. Why distillation is the preferred novelty extension
+For a public checkpoint family with fixed architecture, track:
 
-The current student-like 0.6B checkpoint already provides the unusual setup we
-need: semantic D is near ceiling while causal conversion is weak. Therefore a
-teacher can potentially transfer *use* of an already-present representation.
+```text
+D(t), C(t), B(t), propagation(t), readout conversion(t)
+```
 
-That lets the project ask a question standard KD evaluation usually cannot:
+The key signature is:
 
-> Is the student missing knowledge, or is it missing the machinery that turns
-> already-present knowledge into behavior?
+```text
+D(t) plateaus before C(t)
+```
 
-This is tightly connected to the central paper claim rather than being a bolt-on
-application.
+Do not densify checkpoint sampling until a coarse early/mid/late pilot shows a plausible transition.
 
-## 8. Falsification gates
+## 9. Track E: long-horizon causal half-life
 
-### E01B falsification
+Choose one explicit latent/state variable in a structured sequential task.
 
-The scalar-coordinate story weakens if:
+For future horizon `k`, measure:
 
-- source-free setpoints do not reproduce E01A directional effects;
-- random/orthogonal controls are comparable to semantic setpoints;
-- effects are unstable to modest target grids;
-- orthogonal random context dominates structured context.
+```text
+D(k): decodability of the original relevant state
+C(k): causal influence of that represented state on the future decision
+```
 
-### E13 falsification
+The high-value signature is:
 
-The distillation-utilization story weakens if:
+```text
+H_C < H_D
+```
 
-- student D and C always move together across all KD regimes;
-- standard hidden-state KD transfers C as fully as teacher behavior with no
-  dissociation;
-- the apparent KD effect is explained solely by general task fine-tuning;
-- conversion metrics do not predict any teacher-student difference beyond
-  ordinary accuracy/logit loss.
+Do not reduce this to a generic agent success or knowing-doing study.
 
-A negative E13 is still informative but should not become the paper headline.
+## 10. Falsification philosophy
 
-## 9. Compute strategy
+The overall thesis weakens if every controlled transformation shows D and C moving together.
 
-Immediate E01B should remain cheap and use the existing intervention harness.
+Each branch has its own null that must be accepted if observed:
 
-E13 should cache frozen-teacher quantities whenever possible. Teacher gradients
-are never needed. A 0.6B student can be fully fine-tuned with BF16,
-gradient-checkpointing, and small microbatches on a high-memory single GPU; the
-teacher can be evaluated offline or in inference-only passes. Do not begin with
-multi-model/multi-task scaling.
+- E01B: source-free setpoints may fail or context may dominate;
+- E14: quantization may preserve both D and C or degrade both together;
+- E13: standard KD may transfer D and C together;
+- E16: D and C may emerge together;
+- E15: C may decay only when D decays.
 
-Use staged gates:
+Negative branches should not be turned into headlines by adding more knobs.
 
-1. smoke on a tiny subset;
-2. one-seed pilot;
-3. multi-seed synthetic discovery;
-4. only then one second task/domain;
-5. only then consider a conversion-aware distillation method.
+## 11. Compute and execution priority
 
-## 10. Publication narrative if the program succeeds
+Use this order:
 
-The strongest final narrative would be:
+```text
+1. E01B-1
+2. E01B-2
+3. E14 quantization
+4. E13 distillation
+5. E16 training emergence
+6. E15 temporal causal half-life
+```
 
-> LLMs can learn a semantic representation before they learn to deploy it
-> reliably. We show near-identical semantic decodability across checkpoints but
-> sharply different causal conversion into native readout. The difference is
-> localized primarily to readout coupling, with additional late propagation
-> loss. Source-free setpoints establish that the decoded semantic coordinate can
-> act as a causal control variable, while orthogonal-context tests determine
-> whether that control is approximately one-dimensional. Finally, knowledge
-> distillation reveals whether functional deployment transfers together with
-> representation, exposing a distinction between distilling *what a model
-> represents* and distilling *how it uses that representation*.
+This is an ordering of expected information gain per engineering cost, not a requirement that every experiment belong in one paper.
 
-This is the research program to optimize for. Do not dilute it with unrelated
-experiments unless the core gates fail.
+## 12. Publication paths
+
+The project can split cleanly if one branch becomes strong:
+
+### Core mechanism paper
+
+```text
+near-matched D
+checkpoint-dependent C
+source-free causal setpoints
+context sufficiency/gating
+trace localization
+```
+
+### Compression paper
+
+```text
+D robust under PTQ
+C fragile under PTQ
+```
+
+### Distillation/method paper
+
+```text
+representation-transfer != utilization-transfer
+possibly conversion-response distillation
+```
+
+### Training dynamics paper
+
+```text
+representation formation precedes utilization
+```
+
+### Long-horizon paper
+
+```text
+causal half-life shorter than representation half-life
+```
+
+## 13. Narrative to optimize for
+
+The deepest coherent narrative is:
+
+> **Representation availability is not functional availability. Internal variables can be learned, preserved, or transferred without an equally reliable pathway that converts them into behavior. We measure this missing pathway causally and ask when it emerges, how it depends on context, whether compression destroys it, whether distillation transfers it, and how long it remains functionally alive.**
+
+Do not dilute this with unrelated experiments unless the central gates fail.
