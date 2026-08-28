@@ -81,8 +81,8 @@ equivalence claim.
 
 ### B1. E14 quantization reliability — default first extension
 
-Status: **bounded Stage 0/1 complete; full discovery not authorized** under the
-frozen `docs/E14_QUANTIZATION_RELIABILITY_DESIGN.md` protocol.
+Status: **full discovery authorized; E14-specific confirmation preregistered
+and locked** under `docs/E14_FULL_DISCOVERY_AND_CONFIRMATION_PROTOCOL.md`.
 
 Goal: test whether representational availability survives compression better than causal utilization.
 
@@ -101,8 +101,7 @@ q-by-context interaction G drops?
 
 The bounded Qwen3-1.7B ladder uses one weight-only backend (Optimum-Quanto
 0.2.7) across BF16/INT8/INT4. It measures precision-native and frozen-BF16-axis
-D, behavior B, source-free Q0, matched/random A and G, and depth tracing. Full
-discovery and any additional precision/model/backend remain unauthorized.
+D, behavior B, source-free Q0, matched/random A and G, and depth tracing.
 
 Why first:
 
@@ -120,8 +119,11 @@ structured-minus-random A by 14.9%, and reduced structured-minus-random G by
 49.3%; Q increased. Native relation-margin discrimination also declined, while
 prompt perplexity did not catastrophically worsen. The pilot therefore supports
 higher-order compression fragility but does not yet isolate semantic-specific
-damage from all task-level degradation. Full discovery is scientifically
-justified but requires separate authorization. See `E14_BOUNDED_PILOT_SUMMARY.md`.
+damage from all task-level degradation. Full discovery is now authorized with
+300 directed examples, ten random seeds, both frozen lambdas, and preregistered
+WikiText/HellaSwag controls. A new E14-specific holdout may be accessed once only
+if native INT4 D remains at least 0.99 and the paired G-reduction CI excludes
+zero. See `E14_BOUNDED_PILOT_SUMMARY.md`.
 
 ## Phase C — test transfer and learnability
 

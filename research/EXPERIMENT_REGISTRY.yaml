@@ -379,7 +379,7 @@ experiments:
       representation while disproportionately degrading its causal utilization
       and native-readout conversion?
     priority: P0
-    status: bounded_stage0_stage1_complete_full_discovery_not_authorized
+    status: full_discovery_authorized_confirmation_preregistered_locked
     depends_on: [E01B]
     dimensions: [D, B, Q, A, G, R]
     refs:
@@ -398,9 +398,31 @@ experiments:
       precision-native and frozen-BF16-axis D; frozen source-free Q and matched
       versus random orthogonal A/G; L17/L20/L23/L27 tracing; no calibration.
     execution_policy: >
-      Stage 0/1 authorization is consumed and complete. Do not run full
-      discovery, another model/backend, INT3/INT2, activation quantization, or
-      confirmation without a new preregistration and authorization.
+      Stage 0/1 is complete. Full discovery is authorized under the frozen
+      E14 full protocol. A single new E14-specific confirmation campaign is
+      authorized only if the full-discovery D/G/integrity gate passes. Do not
+      reuse E01 confirmation or run another model/backend or bit width.
+    full_preregistration:
+      protocol: docs/E14_FULL_DISCOVERY_AND_CONFIRMATION_PROTOCOL.md
+      protocol_sha256: 54e5d6865ea91f41936948271b3bfcf357240017e82ba853733bef67bd5dbbef
+      model_revision: 70d244cc86ccca08cf5af4e1e306ecf908b1ad5e
+      precisions: [bf16, int8, int4]
+      full_discovery_pairs: 150
+      random_seeds: [1729, 1730, 1731, 1732, 1733, 1734, 1735, 1736, 1737, 1738]
+      lambdas: [0.5, 1.0]
+      bootstrap_unit: pair_id
+      bootstrap_draws: 2000
+      trace_layers: [17, 20, 23, 27]
+      wikitext_revision: b08601e04326c79dfdd32d625aee71d232d685c3
+      hellaswag_revision: 218ec52e09a7e7462a5400043bb9a69a41d06b76
+      confirmation_namespace: e14_confirmation_v1
+      confirmation_spec_sha256: 2c166f298b9800a6061b854963fb17791c8265c7b9c801aab9ffb1cd276eba50
+      confirmation_pairs: 100
+      confirmation_accessed_at_preregistration: false
+      confirmation_campaigns_authorized: 1
+      primary_family: [H14.1_D_native_floor, H14.2_G_degradation, H14.3_A_degradation]
+      family_wise_alpha: 0.05
+      multiplicity: Holm
     bounded_result:
       runs:
         bf16: E14_ffbf9491977c

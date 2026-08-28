@@ -1,9 +1,9 @@
 # E14 — Quantization Reliability of Distributed Actionability
 
-Status: **authorized_stage0_stage1_only**. This document freezes the bounded
-engineering smoke and discovery pilot before any E14 model execution. Full E14
-discovery, confirmation reuse, lower-bit extensions, and other models are not
-authorized.
+Status: bounded Stage 0/1 complete. Full discovery is authorized and the new
+E14-specific confirmation is preregistered but locked under
+`docs/E14_FULL_DISCOVERY_AND_CONFIRMATION_PROTOCOL.md`. The consumed E01
+confirmation remains prohibited.
 
 ## 1. Question and frozen mechanism
 
@@ -248,6 +248,7 @@ tested Qwen3-1.7B checkpoint, relation task, layer/site, and Quanto weight-only
 scheme. It would not establish a universal quantization threshold or authorize
 full E14 discovery.
 
-Stage 2 full discovery, Qwen3-0.6B, other models, other quantizers, activation
-quantization, confirmation access, and any lower-bit stress ladder require new
-authorization and preregistration.
+Stage 2 full discovery is separately authorized only under the frozen full
+protocol. Qwen3-0.6B, other models/quantizers, activation quantization, and any
+lower-bit stress ladder remain unauthorized. E14 confirmation may be accessed
+once only after the preregistered full-discovery gate passes.
