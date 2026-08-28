@@ -1,8 +1,10 @@
 # E13 — Distillation Reliability Transfer
 
-Status: one-seed R0/R1/R2 bounded diagnostic authorized under
+Status: one-seed R0/R1/R2 bounded diagnostic complete under
 `docs/E13_DISTILLATION_FULL_PROTOCOL.md`; multi-seed discovery, hidden-state KD,
-conversion-response KD, and E13 confirmation remain unauthorized.
+conversion-response KD, and E13 confirmation remain unauthorized. The method
+trigger fired, so conversion-response KD is documented as a proposed next step
+without implementation.
 
 The E01 mechanism and E14 quantization branch are now confirmed and frozen.
 The bounded E13 protocol retains the resolved D/Q/A/G decomposition rather than

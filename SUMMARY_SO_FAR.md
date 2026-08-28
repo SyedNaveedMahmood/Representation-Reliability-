@@ -338,3 +338,12 @@ the additive-versus-gating factorial decomposition. See
 `E14_BOUNDED_PILOT_SUMMARY.md` for the bounded quantization result and
 `E14_FULL_DISCOVERY_SUMMARY.md` for the frozen full study and confirmation gate.
 See `E14_CONFIRMATION_SUMMARY.md` for the final quantization claim.
+
+The preregistered one-seed E13 R0/R1/R2 bounded pilot is also complete on a
+fresh pair-deduplicated corpus. Student D was already 1.0. Both SFT and logit KD
+reached B=1.0, yet their causal trajectories diverged: SFT ended at
+Q/A/G=`0.109/28.30/0.487`, while KD ended at `-0.002/9.19/0.192`, against teacher
+`0.518/3.62/0.163`. Thus behavior improvement did not reproduce the full teacher
+causal organization. This is pilot-only, justifies multi-seed replication, and
+triggers—but does not authorize—a conversion-response distillation design. See
+`E13_BOUNDED_PILOT_SUMMARY.md`.

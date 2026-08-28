@@ -146,9 +146,15 @@ branch; it does not authorize reopening E14 or testing a new quantizer.
 
 ### C1. E13 distillation reliability — gated on E01B
 
-Status: **one-seed R0/R1/R2 bounded diagnostic preregistered and authorized**
-under `docs/E13_DISTILLATION_FULL_PROTOCOL.md`. E13 confirmation remains locked
-and unmaterialized.
+Status: **one-seed R0/R1/R2 bounded diagnostic complete; multi-seed discovery
+not yet authorized**. E13 confirmation remains locked and unmaterialized.
+
+Pilot result: D was saturated throughout and both SFT/KD reached B=1.0, but Q
+remained weak—especially under KD—while A/G changed strongly and differently by
+objective. SFT substantially overshot teacher A/G; KD ended near teacher G but
+far above teacher A and near baseline Q. This justifies multi-seed replication
+and triggers a proposed conversion-response objective, but neither is authorized
+by the one-seed pilot. See `E13_BOUNDED_PILOT_SUMMARY.md`.
 
 Goal: determine whether distillation transfers representation and utilization together or separately.
 

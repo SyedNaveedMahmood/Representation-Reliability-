@@ -344,7 +344,7 @@ experiments:
       does knowledge distillation transfer the teacher's ability to use it, or
       can representation and causal conversion remain dissociated after distillation?
     priority: P0
-    status: bounded_r0_r1_r2_preregistered_authorized
+    status: bounded_r0_r1_r2_complete_multiseed_not_authorized
     depends_on: [E01B]
     dimensions: [D, C, R]
     refs: [logit_kd, hidden_state_kd, trajectory_kd, source_free_setpoints]
@@ -396,6 +396,25 @@ experiments:
       intervention_layer: 17
       random_context_seeds: [2130, 2131, 2132]
       bootstrap_draws: 500
+    bounded_result:
+      run: E13_432643013985-r2
+      seed: 20261305
+      teacher: {B: 0.9649333333, D: 1.0, Q: 0.5179166667, A: 3.6248611111, G: 0.1631944444}
+      R0: {B: 0.747, D: 1.0, Q: -0.0002083333, A: 1.1138194444, G: -0.0004861111}
+      R1_step100: {B: 1.0, D: 1.0, Q: 0.10875, A: 28.3009722222, G: 0.4870138889}
+      R2_step100: {B: 1.0, D: 1.0, Q: -0.0020833333, A: 9.1861111111, G: 0.1919444444}
+      interpretation: >
+        D was already saturated. Both SFT and logit KD reached perfect
+        task-margin ranking while producing very different causal trajectories.
+        R2 changed A/G but left Q near baseline; R1 drove A/G far above teacher
+        magnitudes. Behavior transfer therefore did not imply equivalent transfer
+        of the full causal organization.
+      full_multiseed_discovery_justified: true
+      full_multiseed_discovery_authorized: false
+      conversion_response_triggered: true
+      confirmation_accessed: false
+      report: E13_BOUNDED_PILOT_SUMMARY.md
+      proposed_method: docs/E13_CONVERSION_RESPONSE_PROPOSED_DESIGN.md
 
   - id: E14
     name: quantization_reliability

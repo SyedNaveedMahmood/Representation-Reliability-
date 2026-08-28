@@ -214,7 +214,12 @@ E14 is complete for the frozen primary ladder. It confirms that native-axis
 decodability can outlive higher-order actionability under INT4, with the explicit
 boundary that generic quality also degrades. E13 is now the active bounded branch.
 
-E13 has the highest method-development upside because a reproducible transfer gap could justify conversion-response distillation.
+The one-seed E13 pilot now shows a candidate transfer dissociation: D was
+already saturated and B became perfect under both SFT and logit KD, while Q/A/G
+followed objective-specific, non-teacher-matching trajectories. This justifies
+multi-seed replication. It also fires the preregistered method trigger for a
+conversion-response objective, which remains proposed and unauthorized until
+the standard baselines replicate.
 
 E15 has high conceptual upside but much higher task/evaluation complexity and should not be used merely as an agent benchmark.
 
