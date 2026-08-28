@@ -87,7 +87,7 @@ experiments:
       identity or nuisance matching matter when orthogonal source context is
       given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
-    status: e01b3_authorized_implementation_smoke_pilot_only
+    status: e01b3_bounded_pilot_complete_full_discovery_not_authorized
     depends_on: [E01A]
     dimensions: [C, R]
     refs: [internal_intervention_adapter, source_free_setpoints, orthogonal_context_controls]
@@ -165,16 +165,31 @@ experiments:
       bootstrap_unit: pair_id
       trace_layers: [17, 20, 23, 27]
       execution_limit: smoke_and_pilot_only
+    e01b3_bounded_runs:
+      qwen3_0_6b_smoke: E01B3_079ba20e610a
+      qwen3_1_7b_smoke: E01B3_908b50f0b82b
+      qwen3_0_6b_pilot: E01B3_735b49dda22e
+      qwen3_1_7b_pilot: E01B3_097e8fb1390c
+    e01b3_pilot_outcome: >
+      Pilot-only factorial evidence separates the E01B-2 increment. In 0.6B,
+      lambda-1 matched/same-family/different-family additive effects were
+      1.101/0.905/0.587 while the corresponding interactions were
+      0.008/0.004/0.003 with all interaction CIs spanning zero. In 1.7B,
+      additive effects were 3.548/2.996/2.275 and interactions were
+      0.112/0.161/0.175; all three structured-minus-random interaction CIs
+      excluded zero. L17 q was preserved and additive readout effects appeared
+      immediately; structured downstream q and readout interaction emerged in
+      1.7B. This supports mostly additive multidimensional signal in 0.6B and
+      mixed additive plus structured gating in 1.7B, pending full discovery.
     next_recommendation: >
-      Execute the frozen E01B-3 additive-versus-gating factorial decomposition
-      through bounded smoke and pilot only. Do not authorize confirmation until
-      the mechanism and a prospective full-discovery decision are separately
-      frozen.
+      Review the frozen E01B-3 bounded result and exact full-discovery handoff.
+      Full discovery requires separate authorization. Do not authorize
+      confirmation until the full mechanism is prospectively frozen.
     execution_policy: >
-      E01B-1 and E01B-2 full discovery are complete. Only E01B-3 implementation,
-      tests, smoke, and pilot are currently authorized. E01B-3 full discovery
-      and confirmation remain locked. Do not access confirmation or run E13,
-      E14, E15, E16, or E02 without a new explicit authorization.
+      E01B-1 and E01B-2 full discovery and E01B-3 bounded pilot are complete.
+      E01B-3 full discovery and confirmation remain locked. Do not access
+      confirmation or run E13, E14, E15, E16, or E02 without a new explicit
+      authorization.
 
   - id: E02
     name: decode_steer_gap

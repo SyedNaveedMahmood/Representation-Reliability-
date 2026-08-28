@@ -46,7 +46,7 @@ changes downstream q propagation. This supports operational context-gated
 utilization, while leaving additive orthogonal signal versus multiplicative
 gating unresolved. Confirmation remains untouched.
 
-### A3. E01B-3 additive-vs-gating factorial decomposition — authorized bounded validation
+### A3. E01B-3 additive-vs-gating factorial decomposition — bounded pilot complete
 
 Goal: separate the E01B-2 context increment into an independent context-only
 effect and a true interaction with the frozen scalar intervention.
@@ -63,8 +63,13 @@ Y11 semantic setpoint plus context
 It estimates additive context signal `A = Y01-Y00` and factorial interaction
 `G = (Y11-Y10)-(Y01-Y00)`. Site, targets, source plans, context norms, lambdas,
 controls, traces, and pair-cluster inference are frozen from E01B-1/E01B-2.
-Only implementation, smoke, and pilot are authorized. Full discovery and
-confirmation remain locked.
+Bounded smoke and pilot are complete. In 0.6B, structured context increments are
+almost entirely additive: structured A is positive, while G and all
+structured-minus-random G contrasts include zero. In 1.7B, structured A is much
+larger and a smaller positive structured G also exceeds random, supporting a
+mixed additive-plus-gating pilot pattern. L17 q remains fixed; additive readout
+effects appear immediately and 1.7B develops downstream q/readout interaction.
+Full discovery and confirmation remain locked.
 
 The A2/A3 mechanism must be frozen before any separately authorized confirmation
 run.
@@ -184,7 +189,7 @@ Current recommended ordering:
 |---:|---|---|
 | 1 | E01B-1 | complete: establishes donor-free causal object |
 | 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
-| 3 | E01B-3 | authorized bounded factorial decomposition; full discovery locked |
+| 3 | E01B-3 | bounded pilot complete; full discovery requires authorization |
 | 4 | E14 | cheapest strong test of utilization fragility; not authorized |
 | 5 | E13 | highest transfer/method upside; not authorized |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
