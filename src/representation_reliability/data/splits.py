@@ -55,7 +55,7 @@ def assign_group_splits(
     rng.shuffle(shuffled)
 
     n = len(shuffled)
-    counts = {name: int(round(fr[name] * n)) for name in SPLIT_NAMES}
+    counts = {name: round(fr[name] * n) for name in SPLIT_NAMES}
     # Fix rounding drift so all groups are assigned exactly once.
     while sum(counts.values()) > n:
         counts["train"] -= 1
@@ -106,6 +106,17 @@ def require_confirmation_access(requested_by: str) -> None:
             "evaluation only; pass requested_by='confirmatory_evaluation' and "
             "record the access in the run manifest"
         )
+
+
+def confirmation_view(
+    df: pd.DataFrame,
+    *,
+    requested_by: str,
+    split_col: str = "split",
+) -> pd.DataFrame:
+    """Return only confirmation rows after the explicit confirmatory gate."""
+    require_confirmation_access(requested_by)
+    return df[df[split_col].astype(str) == "confirmation"].copy()
 
 
 def build_discovery_label_map(df: pd.DataFrame, split_col: str = "split") -> dict[str, int]:

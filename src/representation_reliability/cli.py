@@ -277,6 +277,22 @@ def e01b3(
     typer.echo(f"E01B-3 run complete: {run_dir}")
 
 
+@app.command("confirm-actionability")
+def confirm_actionability(
+    protocol_commit: str = typer.Option(
+        ...,
+        "--protocol-commit",
+        help="exact remotely pushed confirmation preregistration commit",
+    ),
+) -> None:
+    """Execute the single locked two-checkpoint actionability confirmation."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.confirmation import run_confirmation
+
+    run_dir = run_confirmation(protocol_commit=protocol_commit)
+    typer.echo(f"Actionability confirmation complete: {run_dir}")
+
+
 @app.command()
 def extract(
     base: Path | None = None,
