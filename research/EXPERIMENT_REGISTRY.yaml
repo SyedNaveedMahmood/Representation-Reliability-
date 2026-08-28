@@ -379,7 +379,7 @@ experiments:
       representation while disproportionately degrading its causal utilization
       and native-readout conversion?
     priority: P0
-    status: full_discovery_authorized_confirmation_preregistered_locked
+    status: full_discovery_complete_confirmation_authorized_once_locked
     depends_on: [E01B]
     dimensions: [D, B, Q, A, G, R]
     refs:
@@ -440,6 +440,41 @@ experiments:
         not authorize, full E14.
       confirmation_accessed: false
       report: E14_BOUNDED_PILOT_SUMMARY.md
+    full_discovery_result:
+      runs:
+        bf16: E14_98b8d199abbc
+        int8: E14_31ff5aa1a9a2
+        int4: E14_5cb70b93e672
+      n_directed_examples: 300
+      n_pairs: 150
+      D_native_int4_auroc: 0.9999111111
+      D_frozen_int4_auroc: 0.9454666667
+      paired_int4_minus_bf16:
+        Q: {estimate: 0.1177083333, ci: [0.059375, 0.1731354167]}
+        A: {estimate: -0.8734583333, ci: [-1.1586463542, -0.5755098958]}
+        G: {estimate: -0.0931875, ci: [-0.1183963542, -0.0698255208]}
+        B_auroc: {estimate: -0.1019333333, ci: [-0.1422716667, -0.0664194444]}
+      actionability_retention: {Q: 1.1767281827, A: 0.7403754001, G: 0.4614736698}
+      general_quality:
+        bf16_wikitext_ppl: 23.3797575701
+        int4_wikitext_ppl: 38.6124188656
+        wikitext_relative_increase: 0.6515320465
+        bf16_hellaswag_accuracy: 0.58
+        int4_hellaswag_accuracy: 0.51
+        catastrophic_generic_damage_flag: true
+      gate:
+        D_native_int4_at_least_0_99: true
+        paired_G_decrease_ci_excludes_zero: true
+        integrity: true
+        passed: true
+      interpretation: >
+        Full discovery replicated preservation of precision-native D alongside
+        large reductions in frozen-axis D, additive A, and especially interaction
+        G; scalar Q increased. The preregistered confirmation gate passed. The
+        WikiText PPL flag fired, so the claim boundary is mixed actionability and
+        general degradation rather than selective semantic damage.
+      confirmation_accessed: false
+      report: E14_FULL_DISCOVERY_SUMMARY.md
 
   - id: E15
     name: temporal_causal_half_life

@@ -1,7 +1,7 @@
 # E14 — Quantization Reliability of Distributed Actionability
 
-Status: bounded Stage 0/1 complete. Full discovery is authorized and the new
-E14-specific confirmation is preregistered but locked under
+Status: bounded Stage 0/1 and frozen full discovery complete. The new
+E14-specific confirmation passed its discovery entry gate, is preregistered, and remains locked under
 `docs/E14_FULL_DISCOVERY_AND_CONFIRMATION_PROTOCOL.md`. The consumed E01
 confirmation remains prohibited.
 

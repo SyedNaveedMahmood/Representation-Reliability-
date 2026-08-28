@@ -81,7 +81,7 @@ equivalence claim.
 
 ### B1. E14 quantization reliability — default first extension
 
-Status: **full discovery authorized; E14-specific confirmation preregistered
+Status: **full discovery complete; E14-specific confirmation authorized once
 and locked** under `docs/E14_FULL_DISCOVERY_AND_CONFIRMATION_PROTOCOL.md`.
 
 Goal: test whether representational availability survives compression better than causal utilization.
@@ -124,6 +124,15 @@ damage from all task-level degradation. Full discovery is now authorized with
 WikiText/HellaSwag controls. A new E14-specific holdout may be accessed once only
 if native INT4 D remains at least 0.99 and the paired G-reduction CI excludes
 zero. See `E14_BOUNDED_PILOT_SUMMARY.md`.
+
+Full discovery passed that gate. Across 300 directed examples, INT4 retained
+precision-native D at 0.99991 AUROC but reduced structured-minus-random A by
+26.0% and G by 53.9%; both paired CIs excluded zero, while Q increased by 17.7%.
+WikiText-2 perplexity increased 65.2%, crossing the frozen generic-damage flag,
+while HellaSwag accuracy fell by 0.07. Consequently, confirmation is authorized
+but any positive result must be described as mixed actionability and general
+degradation rather than selective semantic damage. See
+`E14_FULL_DISCOVERY_SUMMARY.md`.
 
 ## Phase C — test transfer and learnability
 
@@ -215,7 +224,7 @@ Current recommended ordering:
 | 1 | E01B-1 | complete: establishes donor-free causal object |
 | 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
 | 3 | E01B-3 | strong confirmation complete; mechanism frozen |
-| 4 | E14 | conditional gate passed; stage 0/1 requires its own frozen preregistration |
+| 4 | E14 | full discovery gate passed; single locked confirmation authorized |
 | 5 | E13 | highest transfer/method upside; not authorized |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
 | 7 | E15 | highest long-horizon conceptual upside; not authorized |

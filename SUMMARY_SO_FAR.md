@@ -3,8 +3,9 @@
 Status date: 2026-08-28. Phase 0A.2, E01A/E01B discovery, the exploratory
 E01A trace-mechanism analysis, and the single preregistered E01 confirmation
 are complete. All four primary confirmation hypotheses passed Holm correction;
-the core E01 mechanism is frozen. The separately preregistered E14 bounded
-BF16/INT8/INT4 pilot on Qwen3-1.7B is also complete.
+the core E01 mechanism is frozen. The separately preregistered E14 bounded pilot
+and full BF16/INT8/INT4 discovery on Qwen3-1.7B are also complete; the single new
+E14 confirmation is authorized but has not yet been accessed.
 
 ## Mission and claim boundary
 
@@ -310,19 +311,18 @@ Not established:
 ## Exact next boundary
 
 E01 discovery and its single untouched confirmation are complete; the core
-mechanism is frozen against further tuning. E14 Stage 0/1 is complete on 150
-directed discovery examples. INT8 preserved D/Q/A/G. INT4 preserved
-precision-native D but reduced frozen-axis D and especially the structured
-interaction G; it also reduced additive A while scalar Q increased. The paired
-INT4-versus-BF16 changes were `-14.9%` for A and `-49.3%` for G, with both
-pair-cluster CIs excluding zero. Native task-margin discrimination declined but
-prompt perplexity did not catastrophically worsen, so semantic-specific damage
-is not yet isolated from all task-level degradation.
+mechanism is frozen against further tuning. E14 full discovery is complete on
+300 directed examples. INT8 preserved D/Q/A/G. INT4 preserved precision-native
+D (0.99991 AUROC), reduced frozen-axis D (0.94547), reduced additive A by 26.0%,
+and reduced structured interaction G by 53.9%, while scalar Q increased 17.7%.
+The paired A/G CIs excluded zero and the frozen E14 confirmation gate passed.
 
-Full E14 discovery is scientifically justified but remains unauthorized. Any
-full study should retain the frozen Q/A/G measurements and add a stronger,
-predeclared general-quality corpus. The consumed E01 confirmation split must
-not be reused as an E14 holdout.
+The claim boundary is important: INT4 also raised frozen WikiText-2 perplexity
+by 65.2%, crossing the preregistered generic-damage flag, while HellaSwag
+accuracy fell by 0.07. Thus discovery supports mixed actionability and general
+degradation, not selective semantic damage. The new E14-specific holdout may now
+be accessed once under the locked protocol. The consumed E01 confirmation split
+must not be reused.
 
 See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
 `E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-discovery results, and
@@ -331,4 +331,5 @@ See `E01B1_FULL_DISCOVERY_SUMMARY.md` for donor-free setpoint causality.
 See `E01B2_FULL_DISCOVERY_SUMMARY.md` for fixed-setpoint orthogonal-context
 causality and its claim boundaries. See `E01B3_FULL_DISCOVERY_SUMMARY.md` for
 the additive-versus-gating factorial decomposition. See
-`E14_BOUNDED_PILOT_SUMMARY.md` for the bounded quantization result.
+`E14_BOUNDED_PILOT_SUMMARY.md` for the bounded quantization result and
+`E14_FULL_DISCOVERY_SUMMARY.md` for the frozen full study and confirmation gate.
