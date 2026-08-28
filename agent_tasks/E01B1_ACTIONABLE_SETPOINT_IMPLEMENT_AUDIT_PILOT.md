@@ -1,8 +1,8 @@
 # Coding-Agent Task — E01B-1 Source-Free Actionable Setpoints
 
-Expected starting `main` HEAD:
+Required repository state:
 
-`288701bd1b16d466c3ebf58ef6d10a1e1a726823`
+`main` must contain commit `a62992ae2dad9494bfab119e87737c9aa7125816` or a later descendant. Do not require an exact HEAD because documentation/prompt commits may advance `main` without changing the frozen E01B-1 design.
 
 ## Mission
 
@@ -27,7 +27,10 @@ git pull origin main
 git status
 git rev-parse HEAD
 git rev-parse origin/main
+git merge-base --is-ancestor a62992ae2dad9494bfab119e87737c9aa7125816 HEAD
 ```
+
+The last command must succeed.
 
 Read completely:
 
