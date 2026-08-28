@@ -141,6 +141,53 @@ def e01a(
 
 
 @app.command()
+def e01b(
+    base: Path | None = None,
+    model: Path | None = None,
+    experiment: Path | None = None,
+    layer: int = typer.Option(17, "--layer", help="0-indexed resid_post intervention layer"),
+    profile: str = typer.Option(
+        "full", "--profile", help="bounded profile: smoke, pilot, or full"
+    ),
+    max_pairs: int | None = typer.Option(
+        None, "--max-pairs", help="optional deterministic discovery-test pair cap"
+    ),
+    random_directions: int = typer.Option(
+        10, "--random-directions", min=1, help="norm-matched random controls"
+    ),
+    orthogonal_directions: int = typer.Option(
+        10,
+        "--orthogonal-directions",
+        min=1,
+        help="norm-matched probe-orthogonal random controls",
+    ),
+    trace_layers: str = typer.Option(
+        "17,20,23,27",
+        "--trace-layers",
+        help="comma-separated intervened-forward resid_post capture layers",
+    ),
+    overrides: list[str] = typer.Option(None, "--set", help="dot-path overrides"),
+) -> None:
+    """Run E01B-1 source-free setpoint causality discovery."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e01b import run_e01b
+
+    run_dir = run_e01b(
+        base,
+        model,
+        experiment,
+        tuple(overrides or ()),
+        layer=layer,
+        profile=profile,
+        max_pairs=max_pairs,
+        random_directions=random_directions,
+        orthogonal_directions=orthogonal_directions,
+        trace_layers=trace_layers,
+    )
+    typer.echo(f"E01B-1 run complete: {run_dir}")
+
+
+@app.command()
 def extract(
     base: Path | None = None,
     model: Path | None = None,
