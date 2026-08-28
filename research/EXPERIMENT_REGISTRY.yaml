@@ -379,7 +379,7 @@ experiments:
       representation while disproportionately degrading its causal utilization
       and native-readout conversion?
     priority: P0
-    status: authorized_stage0_stage1_only
+    status: bounded_stage0_stage1_complete_full_discovery_not_authorized
     depends_on: [E01B]
     dimensions: [D, B, Q, A, G, R]
     refs:
@@ -398,9 +398,26 @@ experiments:
       precision-native and frozen-BF16-axis D; frozen source-free Q and matched
       versus random orthogonal A/G; L17/L20/L23/L27 tracing; no calibration.
     execution_policy: >
-      Authorized only for <=50-example Stage 0 engineering smoke and
-      <=150-example Stage 1 discovery pilot. Do not run full discovery, another
-      model/backend, INT3/INT2, activation quantization, or confirmation.
+      Stage 0/1 authorization is consumed and complete. Do not run full
+      discovery, another model/backend, INT3/INT2, activation quantization, or
+      confirmation without a new preregistration and authorization.
+    bounded_result:
+      runs:
+        bf16: E14_ffbf9491977c
+        int8: E14_bb53a2c07035
+        int4: E14_5f683bd893de
+      n_directed_examples: 150
+      n_pairs: 75
+      result: >
+        INT8 preserved both D views and Q/A/G. INT4 preserved precision-native
+        D (AUROC 1.000) but reduced frozen-BF16-axis D (0.947), native behavior
+        margin AUROC, matched-minus-random A by 14.9%, and matched-minus-random
+        G by 49.3%; Q increased rather than degraded. Prompt perplexity did not
+        catastrophically worsen. Pair-cluster CIs excluded zero for the INT4
+        A and G reductions. This bounded discovery result motivates, but does
+        not authorize, full E14.
+      confirmation_accessed: false
+      report: E14_BOUNDED_PILOT_SUMMARY.md
 
   - id: E15
     name: temporal_causal_half_life

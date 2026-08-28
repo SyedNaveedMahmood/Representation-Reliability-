@@ -81,8 +81,8 @@ equivalence claim.
 
 ### B1. E14 quantization reliability — default first extension
 
-Status: **authorized_stage0_stage1_only** under the frozen
-`docs/E14_QUANTIZATION_RELIABILITY_DESIGN.md` protocol.
+Status: **bounded Stage 0/1 complete; full discovery not authorized** under the
+frozen `docs/E14_QUANTIZATION_RELIABILITY_DESIGN.md` protocol.
 
 Goal: test whether representational availability survives compression better than causal utilization.
 
@@ -113,6 +113,15 @@ Why first:
 - high novelty-to-effort ratio.
 
 Do not add INT3/INT2 until BF16/INT8/INT4 are stable.
+
+Bounded result: INT8 preserved both decodability views and Q/A/G. INT4 kept
+precision-native D at ceiling but reduced frozen-BF16-axis D, reduced
+structured-minus-random A by 14.9%, and reduced structured-minus-random G by
+49.3%; Q increased. Native relation-margin discrimination also declined, while
+prompt perplexity did not catastrophically worsen. The pilot therefore supports
+higher-order compression fragility but does not yet isolate semantic-specific
+damage from all task-level degradation. Full discovery is scientifically
+justified but requires separate authorization. See `E14_BOUNDED_PILOT_SUMMARY.md`.
 
 ## Phase C — test transfer and learnability
 

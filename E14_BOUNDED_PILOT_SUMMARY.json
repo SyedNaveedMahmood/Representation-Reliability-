@@ -1,0 +1,3719 @@
+{
+  "confirmation_accessed": false,
+  "metrics": {
+    "BF16": {
+      "B": {
+        "auprc": 0.9604589642571024,
+        "auroc": 0.9535111111111112,
+        "balanced_accuracy": 0.5533333333333333,
+        "n_eval": 150
+      },
+      "D_frozen_bf16_axis": {
+        "auprc": 0.999098769858539,
+        "auroc": 0.9991111111111112,
+        "balanced_accuracy": 0.9866666666666667,
+        "n_eval": 150
+      },
+      "D_native": {
+        "auprc": 0.999098769858539,
+        "auroc": 0.9991111111111112,
+        "balanced_accuracy": 0.9866666666666667,
+        "n_eval": 150
+      },
+      "Q0": 0.6825,
+      "bf16_reference_source": "runs\\E14\\E14_ffbf9491977c",
+      "confirmation_accessed": false,
+      "factorial_contrasts": {
+        "A_matched_minus_random": {
+          "ci_high": 3.6633854166666664,
+          "ci_low": 2.8661909722222223,
+          "mean": 3.2840277777777773,
+          "n_clusters": 75,
+          "n_rows": 150
+        },
+        "G_matched_minus_random": {
+          "ci_high": 0.2442534722222222,
+          "ci_low": 0.1777048611111111,
+          "mean": 0.20916666666666667,
+          "n_clusters": 75,
+          "n_rows": 150
+        }
+      },
+      "factorial_metrics": [
+        {
+          "A_ci_high": 3.9698020833333336,
+          "A_ci_low": 3.12378125,
+          "G_ci_high": 0.14541666666666667,
+          "G_ci_low": 0.06914583333333334,
+          "Q0_ci_high": 0.71771875,
+          "Q0_ci_low": 0.6462291666666666,
+          "context": "matched",
+          "mean_A": 3.5479166666666666,
+          "mean_G": 0.11208333333333333,
+          "mean_Q0": 0.6825,
+          "n_examples": 150,
+          "n_pairs": 75
+        },
+        {
+          "A_ci_high": 0.30189930555555555,
+          "A_ci_low": 0.22824652777777776,
+          "G_ci_high": -0.07416666666666667,
+          "G_ci_low": -0.11896180555555556,
+          "Q0_ci_high": 0.7166666666666667,
+          "Q0_ci_low": 0.6478958333333333,
+          "context": "random",
+          "mean_A": 0.26388888888888884,
+          "mean_G": -0.09708333333333333,
+          "mean_Q0": 0.6825,
+          "n_examples": 150,
+          "n_pairs": 75
+        }
+      ],
+      "general_quality": {
+        "mean_prompt_nll": 5.497787965138754,
+        "prompt_perplexity": 244.15126338944802
+      },
+      "integrity": {
+        "combined_target_q_max_abs_deviation": 0.12308543262279148,
+        "confirmation_accessed": false,
+        "context_only_q_max_abs_deviation": 0.031942007406126294,
+        "finite": true,
+        "max_context_dot_u": 1.6653345369377348e-15,
+        "max_context_norm_relative_error": 2.687709177204387e-16,
+        "no_op_max_abs_logit_deviation": 0.0,
+        "runtime_residual_dtype": "bfloat16",
+        "trace_rows": 2400
+      },
+      "n_examples": 150,
+      "n_pairs": 75,
+      "precision": "bf16",
+      "profile": "pilot",
+      "quantization": {
+        "activation_qtype": null,
+        "backend": "none",
+        "backend_version": null,
+        "calibration": null,
+        "excluded_module_classes": [
+          "Embedding",
+          "RMSNorm"
+        ],
+        "precision": "bf16",
+        "quantized_modules": [],
+        "weight_qtype": null
+      },
+      "run_id": "E14_ffbf9491977c",
+      "status": "complete",
+      "validation_references": {
+        "17": {
+          "sigma_margin": 1.682439923286438,
+          "sigma_q": 9.709164114642144
+        },
+        "20": {
+          "sigma_margin": 2.4178597927093506,
+          "sigma_q": 20.205434813647628
+        },
+        "23": {
+          "sigma_margin": 7.197603702545166,
+          "sigma_q": 40.791443323937855
+        },
+        "27": {
+          "sigma_margin": 3.1220786571502686,
+          "sigma_q": 85.52869901675493
+        }
+      },
+      "version": "e14-bounded-dqag-v1",
+      "wall_time_s": 25.140999999995984
+    },
+    "INT4": {
+      "B": {
+        "auprc": 0.8852594523673931,
+        "auroc": 0.8606222222222222,
+        "balanced_accuracy": 0.58,
+        "n_eval": 150
+      },
+      "D_frozen_bf16_axis": {
+        "auprc": 0.959104718941566,
+        "auroc": 0.9473777777777778,
+        "balanced_accuracy": 0.7533333333333334,
+        "n_eval": 150
+      },
+      "D_native": {
+        "auprc": 0.9999999999999998,
+        "auroc": 1.0,
+        "balanced_accuracy": 0.9933333333333334,
+        "n_eval": 150
+      },
+      "Q0": 0.8283333333333334,
+      "bf16_reference_source": "runs\\E14\\E14_ffbf9491977c",
+      "confirmation_accessed": false,
+      "factorial_contrasts": {
+        "A_matched_minus_random": {
+          "ci_high": 3.3647083333333327,
+          "ci_low": 2.227125,
+          "mean": 2.7938888888888886,
+          "n_clusters": 75,
+          "n_rows": 150
+        },
+        "G_matched_minus_random": {
+          "ci_high": 0.13666666666666666,
+          "ci_low": 0.07583333333333334,
+          "mean": 0.10611111111111111,
+          "n_clusters": 75,
+          "n_rows": 150
+        }
+      },
+      "factorial_metrics": [
+        {
+          "A_ci_high": 3.6288958333333334,
+          "A_ci_low": 2.354229166666667,
+          "G_ci_high": 0.054208333333333296,
+          "G_ci_low": 0.0012291666666666753,
+          "Q0_ci_high": 0.9004375,
+          "Q0_ci_low": 0.765,
+          "context": "matched",
+          "mean_A": 2.9875,
+          "mean_G": 0.0275,
+          "mean_Q0": 0.8283333333333334,
+          "n_examples": 150,
+          "n_pairs": 75
+        },
+        {
+          "A_ci_high": 0.26086111111111115,
+          "A_ci_low": 0.13220833333333334,
+          "G_ci_high": -0.056375000000000015,
+          "G_ci_low": -0.10403472222222224,
+          "Q0_ci_high": 0.8941666666666667,
+          "Q0_ci_low": 0.7670625,
+          "context": "random",
+          "mean_A": 0.1936111111111111,
+          "mean_G": -0.07861111111111112,
+          "mean_Q0": 0.8283333333333334,
+          "n_examples": 150,
+          "n_pairs": 75
+        }
+      ],
+      "general_quality": {
+        "mean_prompt_nll": 5.4276934353510535,
+        "prompt_perplexity": 227.62361087789816
+      },
+      "integrity": {
+        "combined_target_q_max_abs_deviation": 0.12017362481213922,
+        "confirmation_accessed": false,
+        "context_only_q_max_abs_deviation": 0.09558556028976639,
+        "finite": true,
+        "max_context_dot_u": 1.9984014443252818e-15,
+        "max_context_norm_relative_error": 2.637020384967818e-16,
+        "no_op_max_abs_logit_deviation": 0.0,
+        "runtime_residual_dtype": "bfloat16",
+        "trace_rows": 2400
+      },
+      "n_examples": 150,
+      "n_pairs": 75,
+      "precision": "int4",
+      "profile": "pilot",
+      "quantization": {
+        "activation_qtype": null,
+        "backend": "optimum-quanto",
+        "backend_version": "0.2.7",
+        "calibration": null,
+        "compute_dtype": "bfloat16",
+        "excluded_module_classes": [
+          "Embedding",
+          "RMSNorm"
+        ],
+        "precision": "int4",
+        "quantized_modules": [
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.self_attn.q_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.self_attn.k_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.self_attn.v_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.self_attn.o_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.mlp.gate_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.mlp.up_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.mlp.down_proj",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "lm_head",
+            "weight_group_size": 128,
+            "weight_qtype": "quanto.qint4",
+            "weight_tensor_class": "TinyGemmWeightQBitsTensor"
+          }
+        ],
+        "weight_qtype": "quanto.qint4",
+        "zero_point": false
+      },
+      "run_id": "E14_5f683bd893de",
+      "status": "complete",
+      "validation_references": {
+        "17": {
+          "sigma_margin": 2.472144603729248,
+          "sigma_q": 8.970277599486458
+        },
+        "20": {
+          "sigma_margin": 1.750104308128357,
+          "sigma_q": 13.762315073178625
+        },
+        "23": {
+          "sigma_margin": 4.888103485107422,
+          "sigma_q": 17.814262130117243
+        },
+        "27": {
+          "sigma_margin": 3.365292549133301,
+          "sigma_q": 42.90547492616653
+        }
+      },
+      "version": "e14-bounded-dqag-v1",
+      "wall_time_s": 31.375
+    },
+    "INT8": {
+      "B": {
+        "auprc": 0.9694524429242721,
+        "auroc": 0.9649777777777779,
+        "balanced_accuracy": 0.6333333333333333,
+        "n_eval": 150
+      },
+      "D_frozen_bf16_axis": {
+        "auprc": 0.9998245614035086,
+        "auroc": 0.9998222222222223,
+        "balanced_accuracy": 0.9933333333333334,
+        "n_eval": 150
+      },
+      "D_native": {
+        "auprc": 0.9998245614035086,
+        "auroc": 0.9998222222222223,
+        "balanced_accuracy": 0.9933333333333334,
+        "n_eval": 150
+      },
+      "Q0": 0.7308333333333333,
+      "bf16_reference_source": "runs\\E14\\E14_ffbf9491977c",
+      "confirmation_accessed": false,
+      "factorial_contrasts": {
+        "A_matched_minus_random": {
+          "ci_high": 3.8973888888888886,
+          "ci_low": 3.053722222222222,
+          "mean": 3.494305555555555,
+          "n_clusters": 75,
+          "n_rows": 150
+        },
+        "G_matched_minus_random": {
+          "ci_high": 0.2605694444444444,
+          "ci_low": 0.19346527777777778,
+          "mean": 0.22597222222222219,
+          "n_clusters": 75,
+          "n_rows": 150
+        }
+      },
+      "factorial_metrics": [
+        {
+          "A_ci_high": 4.188354166666667,
+          "A_ci_low": 3.29740625,
+          "G_ci_high": 0.16337499999999996,
+          "G_ci_low": 0.10208333333333333,
+          "Q0_ci_high": 0.76521875,
+          "Q0_ci_low": 0.6949375,
+          "context": "matched",
+          "mean_A": 3.732083333333333,
+          "mean_G": 0.13458333333333333,
+          "mean_Q0": 0.7308333333333333,
+          "n_examples": 150,
+          "n_pairs": 75
+        },
+        {
+          "A_ci_high": 0.2804583333333333,
+          "A_ci_low": 0.20094444444444443,
+          "G_ci_high": -0.07152777777777777,
+          "G_ci_low": -0.11368402777777778,
+          "Q0_ci_high": 0.7679374999999999,
+          "Q0_ci_low": 0.695,
+          "context": "random",
+          "mean_A": 0.2377777777777778,
+          "mean_G": -0.09138888888888888,
+          "mean_Q0": 0.7308333333333333,
+          "n_examples": 150,
+          "n_pairs": 75
+        }
+      ],
+      "general_quality": {
+        "mean_prompt_nll": 5.513851222991943,
+        "prompt_perplexity": 248.1047963885504
+      },
+      "integrity": {
+        "combined_target_q_max_abs_deviation": 0.12055789363898795,
+        "confirmation_accessed": false,
+        "context_only_q_max_abs_deviation": 0.03501731374846173,
+        "finite": true,
+        "max_context_dot_u": 1.3877787807814457e-15,
+        "max_context_norm_relative_error": 2.932777655723888e-16,
+        "no_op_max_abs_logit_deviation": 0.0,
+        "runtime_residual_dtype": "bfloat16",
+        "trace_rows": 2400
+      },
+      "n_examples": 150,
+      "n_pairs": 75,
+      "precision": "int8",
+      "profile": "pilot",
+      "quantization": {
+        "activation_qtype": null,
+        "backend": "optimum-quanto",
+        "backend_version": "0.2.7",
+        "calibration": null,
+        "compute_dtype": "bfloat16",
+        "excluded_module_classes": [
+          "Embedding",
+          "RMSNorm"
+        ],
+        "precision": "int8",
+        "quantized_modules": [
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.0.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.1.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.2.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.3.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.4.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.5.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.6.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.7.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.8.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.9.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.10.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.11.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.12.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.13.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.14.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.15.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.16.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.17.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.18.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.19.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.20.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.21.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.22.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.23.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.24.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.25.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.26.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.self_attn.q_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.self_attn.k_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.self_attn.v_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.self_attn.o_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.mlp.gate_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.mlp.up_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "model.layers.27.mlp.down_proj",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          },
+          {
+            "activation_qtype": null,
+            "module_class": "QLinear",
+            "name": "lm_head",
+            "weight_group_size": null,
+            "weight_qtype": "quanto.qint8",
+            "weight_tensor_class": "WeightQBytesTensor"
+          }
+        ],
+        "weight_qtype": "quanto.qint8",
+        "zero_point": false
+      },
+      "run_id": "E14_bb53a2c07035",
+      "status": "complete",
+      "validation_references": {
+        "17": {
+          "sigma_margin": 1.7266161441802979,
+          "sigma_q": 10.425115447957166
+        },
+        "20": {
+          "sigma_margin": 2.6145076751708984,
+          "sigma_q": 21.37566491314047
+        },
+        "23": {
+          "sigma_margin": 7.835000514984131,
+          "sigma_q": 43.44083301383952
+        },
+        "27": {
+          "sigma_margin": 3.213686466217041,
+          "sigma_q": 90.5667275781584
+        }
+      },
+      "version": "e14-bounded-dqag-v1",
+      "wall_time_s": 27.359000000004016
+    }
+  },
+  "paired_changes_from_bf16": {
+    "INT4": {
+      "A": {
+        "ci_high": -0.11521875000000033,
+        "ci_low": -0.8618333333333331,
+        "comparison_mean": 2.7938888888888886,
+        "mean": -0.49013888888888896,
+        "n_clusters": 75,
+        "n_rows": 150,
+        "percent_change": -14.924931275111014,
+        "reference_mean": 3.2840277777777773
+      },
+      "G": {
+        "ci_high": -0.06402430555555558,
+        "ci_low": -0.14125,
+        "comparison_mean": 0.10611111111111111,
+        "mean": -0.10305555555555555,
+        "n_clusters": 75,
+        "n_rows": 150,
+        "percent_change": -49.26958831341302,
+        "reference_mean": 0.20916666666666667
+      },
+      "Q": {
+        "ci_high": 0.23043749999999988,
+        "ci_low": 0.05665625000000001,
+        "comparison_mean": 0.8283333333333334,
+        "mean": 0.14583333333333334,
+        "n_clusters": 75,
+        "n_rows": 150,
+        "percent_change": 21.367521367521373,
+        "reference_mean": 0.6825
+      }
+    },
+    "INT8": {
+      "A": {
+        "ci_high": 0.2862638888888888,
+        "ci_low": 0.13790625,
+        "comparison_mean": 3.494305555555555,
+        "mean": 0.21027777777777779,
+        "n_clusters": 75,
+        "n_rows": 150,
+        "percent_change": 6.403045041234934,
+        "reference_mean": 3.2840277777777773
+      },
+      "G": {
+        "ci_high": 0.04722569444444443,
+        "ci_low": -0.010277777777777778,
+        "comparison_mean": 0.22597222222222219,
+        "mean": 0.016805555555555553,
+        "n_clusters": 75,
+        "n_rows": 150,
+        "percent_change": 8.034528552456822,
+        "reference_mean": 0.20916666666666667
+      },
+      "Q": {
+        "ci_high": 0.07833333333333334,
+        "ci_low": 0.02125,
+        "comparison_mean": 0.7308333333333333,
+        "mean": 0.04833333333333333,
+        "n_clusters": 75,
+        "n_rows": 150,
+        "percent_change": 7.081807081807082,
+        "reference_mean": 0.6825
+      }
+    }
+  },
+  "runs": {
+    "BF16": "E14_ffbf9491977c",
+    "INT4": "E14_5f683bd893de",
+    "INT8": "E14_bb53a2c07035"
+  },
+  "trace_aggregates": {
+    "BF16": [
+      {
+        "Q_margin_z": 0.3987264710308012,
+        "Q_q_z": 1.8745897715564699,
+        "structured_minus_random_A_margin_z": 1.0776346486203061,
+        "structured_minus_random_A_q_z": 5.3456975840830665e-05,
+        "structured_minus_random_G_margin_z": 0.00965859153428649,
+        "structured_minus_random_G_q_z": -0.0006658608441320186,
+        "trace_layer": 17
+      },
+      {
+        "Q_margin_z": 0.18835528347834685,
+        "Q_q_z": 1.1250685524835773,
+        "structured_minus_random_A_margin_z": 1.0246665284192593,
+        "structured_minus_random_A_q_z": 0.3637182216678371,
+        "structured_minus_random_G_margin_z": 0.036706015902001725,
+        "structured_minus_random_G_q_z": 0.07558518573992973,
+        "trace_layer": 20
+      },
+      {
+        "Q_margin_z": 0.30669929760364545,
+        "Q_q_z": 0.9382479500063597,
+        "structured_minus_random_A_margin_z": 1.0284865900954256,
+        "structured_minus_random_A_q_z": 0.492362039880983,
+        "structured_minus_random_G_margin_z": 0.06813610292176116,
+        "structured_minus_random_G_q_z": 0.09073505617496491,
+        "trace_layer": 23
+      },
+      {
+        "Q_margin_z": 0.22020585497596898,
+        "Q_q_z": 0.6794801978557777,
+        "structured_minus_random_A_margin_z": 1.0517387521902744,
+        "structured_minus_random_A_q_z": 0.7256793904182287,
+        "structured_minus_random_G_margin_z": 0.06561689617970792,
+        "structured_minus_random_G_q_z": 0.0891389906928188,
+        "trace_layer": 27
+      }
+    ],
+    "INT4": [
+      {
+        "Q_margin_z": 0.2427042492153961,
+        "Q_q_z": 1.8424113465530039,
+        "structured_minus_random_A_margin_z": 0.932501187147487,
+        "structured_minus_random_A_q_z": 0.0004447097723722824,
+        "structured_minus_random_G_margin_z": 0.010534038594418234,
+        "structured_minus_random_G_q_z": -0.00041084131259638205,
+        "trace_layer": 17
+      },
+      {
+        "Q_margin_z": 0.20094040397098123,
+        "Q_q_z": 0.9635896773516689,
+        "structured_minus_random_A_margin_z": 0.9492291358202634,
+        "structured_minus_random_A_q_z": 0.43148283188890785,
+        "structured_minus_random_G_margin_z": 0.01611015087129115,
+        "structured_minus_random_G_q_z": 0.06853018938583574,
+        "trace_layer": 20
+      },
+      {
+        "Q_margin_z": 0.309509950285641,
+        "Q_q_z": 0.7602940290839219,
+        "structured_minus_random_A_margin_z": 0.8554783423483043,
+        "structured_minus_random_A_q_z": 0.5657307548710246,
+        "structured_minus_random_G_margin_z": 0.05944136748348123,
+        "structured_minus_random_G_q_z": 0.06071773415803277,
+        "trace_layer": 23
+      },
+      {
+        "Q_margin_z": 0.24713057023255067,
+        "Q_q_z": 0.34861455083293763,
+        "structured_minus_random_A_margin_z": 0.8280607483543582,
+        "structured_minus_random_A_q_z": 0.4136079821461507,
+        "structured_minus_random_G_margin_z": 0.03388346662674083,
+        "structured_minus_random_G_q_z": 0.02179079430167723,
+        "trace_layer": 27
+      }
+    ],
+    "INT8": [
+      {
+        "Q_margin_z": 0.38949016101043465,
+        "Q_q_z": 1.8094209173133113,
+        "structured_minus_random_A_margin_z": 1.1043598555374343,
+        "structured_minus_random_A_q_z": 1.98866744042276e-05,
+        "structured_minus_random_G_margin_z": 0.005550355454299874,
+        "structured_minus_random_G_q_z": 0.0005998265569090753,
+        "trace_layer": 17
+      },
+      {
+        "Q_margin_z": 0.18900945342773387,
+        "Q_q_z": 1.1016630122914457,
+        "structured_minus_random_A_margin_z": 1.0701504888425235,
+        "structured_minus_random_A_q_z": 0.3821648276134442,
+        "structured_minus_random_G_margin_z": 0.03931056648019198,
+        "structured_minus_random_G_q_z": 0.07866717942514921,
+        "trace_layer": 20
+      },
+      {
+        "Q_margin_z": 0.3033928751870858,
+        "Q_q_z": 0.9059221039738415,
+        "structured_minus_random_A_margin_z": 1.0819683044066004,
+        "structured_minus_random_A_q_z": 0.5231080917174569,
+        "structured_minus_random_G_margin_z": 0.06987874460926043,
+        "structured_minus_random_G_q_z": 0.09789643861112948,
+        "trace_layer": 23
+      },
+      {
+        "Q_margin_z": 0.22676449854731498,
+        "Q_q_z": 0.6553883386461791,
+        "structured_minus_random_A_margin_z": 1.087363213922326,
+        "structured_minus_random_A_q_z": 0.7625953942183316,
+        "structured_minus_random_G_margin_z": 0.06867329677752687,
+        "structured_minus_random_G_q_z": 0.10264392528461477,
+        "trace_layer": 27
+      }
+    ]
+  }
+}

@@ -3,7 +3,8 @@
 Status date: 2026-08-28. Phase 0A.2, E01A/E01B discovery, the exploratory
 E01A trace-mechanism analysis, and the single preregistered E01 confirmation
 are complete. All four primary confirmation hypotheses passed Holm correction;
-the core E01 mechanism is frozen.
+the core E01 mechanism is frozen. The separately preregistered E14 bounded
+BF16/INT8/INT4 pilot on Qwen3-1.7B is also complete.
 
 ## Mission and claim boundary
 
@@ -309,10 +310,19 @@ Not established:
 ## Exact next boundary
 
 E01 discovery and its single untouched confirmation are complete; the core
-mechanism is frozen against further tuning. H1-H4 all passed, satisfying the
-conditional gate for the separately preregistered E14 stage-0/stage-1 study.
-E14 must preserve the confirmed Q/A/G definitions and may not reuse the
-consumed E01 confirmation split as an application holdout.
+mechanism is frozen against further tuning. E14 Stage 0/1 is complete on 150
+directed discovery examples. INT8 preserved D/Q/A/G. INT4 preserved
+precision-native D but reduced frozen-axis D and especially the structured
+interaction G; it also reduced additive A while scalar Q increased. The paired
+INT4-versus-BF16 changes were `-14.9%` for A and `-49.3%` for G, with both
+pair-cluster CIs excluding zero. Native task-margin discrimination declined but
+prompt perplexity did not catastrophically worsen, so semantic-specific damage
+is not yet isolated from all task-level degradation.
+
+Full E14 discovery is scientifically justified but remains unauthorized. Any
+full study should retain the frozen Q/A/G measurements and add a stronger,
+predeclared general-quality corpus. The consumed E01 confirmation split must
+not be reused as an E14 holdout.
 
 See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
 `E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-discovery results, and
@@ -320,4 +330,5 @@ See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
 See `E01B1_FULL_DISCOVERY_SUMMARY.md` for donor-free setpoint causality.
 See `E01B2_FULL_DISCOVERY_SUMMARY.md` for fixed-setpoint orthogonal-context
 causality and its claim boundaries. See `E01B3_FULL_DISCOVERY_SUMMARY.md` for
-the additive-versus-gating factorial decomposition.
+the additive-versus-gating factorial decomposition. See
+`E14_BOUNDED_PILOT_SUMMARY.md` for the bounded quantization result.
