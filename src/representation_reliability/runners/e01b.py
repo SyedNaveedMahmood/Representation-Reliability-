@@ -16,6 +16,7 @@ from ..config import config_hash, resolve_config, save_resolved_config
 from ..data.splits import build_discovery_label_map, discovery_view
 from ..interventions.setpoint import (
     norm_matched_direction_delta,
+    setpoint_fidelity_tolerances,
     setpoint_identity_diagnostics,
     source_free_setpoint_delta,
 )
@@ -61,7 +62,7 @@ from .extract import load_adapter
 
 logger = logging.getLogger(__name__)
 
-E01B1_VERSION = "e01b1-source-free-setpoints-v1"
+E01B1_VERSION = "e01b1-source-free-setpoints-v2"
 SITE = "resid_post"
 SELECTOR = "last_prompt"
 
@@ -896,7 +897,13 @@ def run_e01b(
         }
         if no_op_max > 1e-6 or hook_leakage > 1e-6:
             raise RuntimeError(f"E01B no-op/hook-leakage gate failed: {gates}")
-        if projection_max > 0.02 or orthogonal_max > 0.02 or fidelity_max > 0.02:
+        tolerances = setpoint_fidelity_tolerances(str(cfg.model.dtype))
+        gates["tolerances"] = tolerances
+        if (
+            projection_max > tolerances["projection_relative"]
+            or orthogonal_max > tolerances["orthogonal_relative"]
+            or fidelity_max > tolerances["target_state_relative_l2"]
+        ):
             raise RuntimeError(f"E01B setpoint fidelity gate failed: {gates}")
         if norm_max > 1e-10:
             raise RuntimeError(f"E01B control norm gate failed: {gates}")

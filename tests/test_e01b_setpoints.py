@@ -4,6 +4,7 @@ import pytest
 
 from representation_reliability.interventions.setpoint import (
     norm_matched_direction_delta,
+    setpoint_fidelity_tolerances,
     setpoint_identity_diagnostics,
     source_free_setpoint_delta,
 )
@@ -32,6 +33,14 @@ def test_source_free_setpoint_math_projection_and_orthogonal_preservation():
     assert diagnostics["q_after"] == pytest.approx(target)
     assert diagnostics["projection_abs_deviation"] < 1e-12
     assert diagnostics["orthogonal_abs_deviation"] < 1e-12
+
+
+def test_bfloat16_projection_gate_accounts_for_small_edit_rounding():
+    bf16 = setpoint_fidelity_tolerances("bfloat16")
+    assert 0.024704876291083977 < bf16["projection_relative"]
+    assert bf16["orthogonal_relative"] == 0.02
+    assert bf16["target_state_relative_l2"] == 0.02
+    assert setpoint_fidelity_tolerances("float32")["projection_relative"] < 0.001
 
 
 def test_validation_targets_use_exact_class_medians_and_fixed_quantiles():

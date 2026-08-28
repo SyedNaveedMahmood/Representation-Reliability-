@@ -7,6 +7,27 @@ import numpy as np
 from .truth_coordinate import coordinate_value, normalized_direction
 
 
+def setpoint_fidelity_tolerances(dtype: str) -> dict[str, float]:
+    """Return explicit dtype-aware numerical gates for captured model states.
+
+    BF16 componentwise rounding can dominate the projection error of a very
+    small setpoint edit even while full-state and orthogonal errors remain far
+    below one percent. The bounds are fail-closed and intentionally separate.
+    """
+    name = str(dtype).lower().replace("torch.", "")
+    if name in {"bfloat16", "bf16", "float16", "fp16"}:
+        return {
+            "projection_relative": 0.03,
+            "orthogonal_relative": 0.02,
+            "target_state_relative_l2": 0.02,
+        }
+    return {
+        "projection_relative": 1e-5,
+        "orthogonal_relative": 1e-5,
+        "target_state_relative_l2": 1e-5,
+    }
+
+
 def source_free_setpoint_delta(
     base_hidden: np.ndarray,
     unit_direction: np.ndarray,
