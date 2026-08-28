@@ -17,12 +17,12 @@ def setpoint_fidelity_tolerances(dtype: str) -> dict[str, float]:
     name = str(dtype).lower().replace("torch.", "")
     if name in {"bfloat16", "bf16", "float16", "fp16"}:
         return {
-            "projection_relative": 0.03,
+            "projection_validation_sigma": 0.05,
             "orthogonal_relative": 0.02,
             "target_state_relative_l2": 0.02,
         }
     return {
-        "projection_relative": 1e-5,
+        "projection_validation_sigma": 1e-5,
         "orthogonal_relative": 1e-5,
         "target_state_relative_l2": 1e-5,
     }

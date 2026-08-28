@@ -37,10 +37,16 @@ def test_source_free_setpoint_math_projection_and_orthogonal_preservation():
 
 def test_bfloat16_projection_gate_accounts_for_small_edit_rounding():
     bf16 = setpoint_fidelity_tolerances("bfloat16")
-    assert 0.024704876291083977 < bf16["projection_relative"]
+    # Observed smoke errors are small against the validation coordinate scale:
+    # 0.6B = 0.0310 sigma_q; 1.7B = 0.0119 sigma_q.
+    assert 0.031022306192670816 < bf16["projection_validation_sigma"]
+    assert 0.051 > bf16["projection_validation_sigma"]
     assert bf16["orthogonal_relative"] == 0.02
     assert bf16["target_state_relative_l2"] == 0.02
-    assert setpoint_fidelity_tolerances("float32")["projection_relative"] < 0.001
+    assert (
+        setpoint_fidelity_tolerances("float32")["projection_validation_sigma"]
+        < 0.001
+    )
 
 
 def test_validation_targets_use_exact_class_medians_and_fixed_quantiles():

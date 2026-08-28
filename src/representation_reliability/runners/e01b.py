@@ -62,7 +62,7 @@ from .extract import load_adapter
 
 logger = logging.getLogger(__name__)
 
-E01B1_VERSION = "e01b1-source-free-setpoints-v3"
+E01B1_VERSION = "e01b1-source-free-setpoints-v4"
 SITE = "resid_post"
 SELECTOR = "last_prompt"
 
@@ -876,6 +876,12 @@ def run_e01b(
             )
         ]
         projection_max = float(semantic["projection_relative_deviation"].max())
+        projection_sigma_max = float(
+            (
+                semantic["projection_abs_deviation"]
+                / float(setpoints["sigma_q_validation"])
+            ).max()
+        )
         orthogonal_max = float(semantic["orthogonal_relative_deviation"].max())
         fidelity_max = float(raw_df["target_state_relative_l2_deviation"].max())
         control_rows = raw_df[
@@ -886,6 +892,7 @@ def run_e01b(
             "no_op_max_logit_deviation": no_op_max,
             "hook_leakage_max_logit_deviation": hook_leakage,
             "projection_max_relative_deviation": projection_max,
+            "projection_max_validation_sigma_deviation": projection_sigma_max,
             "orthogonal_max_relative_deviation": orthogonal_max,
             "target_state_max_relative_l2_deviation": fidelity_max,
             "control_norm_max_relative_mismatch": norm_max,
@@ -900,7 +907,7 @@ def run_e01b(
         tolerances = setpoint_fidelity_tolerances(str(cfg.model.dtype))
         gates["tolerances"] = tolerances
         if (
-            projection_max > tolerances["projection_relative"]
+            projection_sigma_max > tolerances["projection_validation_sigma"]
             or orthogonal_max > tolerances["orthogonal_relative"]
             or fidelity_max > tolerances["target_state_relative_l2"]
         ):
