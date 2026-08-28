@@ -87,7 +87,7 @@ experiments:
       identity or nuisance matching matter when orthogonal source context is
       given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
-    status: e01b1_full_discovery_complete_e01b2_bounded_pilot_complete
+    status: e01b1_and_e01b2_full_discovery_complete_confirmation_locked
     depends_on: [E01A]
     dimensions: [C, R]
     refs: [internal_intervention_adapter, source_free_setpoints, orthogonal_context_controls]
@@ -98,15 +98,17 @@ experiments:
       and beat norm-matched random/orthogonal controls. Continuous-grid slopes
       are positive in both models, but per-example monotonicity is weak in 0.6B
       and near-uniform in 1.7B. Source-free traces reproduce the mixed bottleneck
-      dominated by readout conversion. In the frozen E01B-2 pilots, matched,
+      dominated by readout conversion. In frozen E01B-2 full discovery, matched,
       same-family, and different-family opposite-label orthogonal contexts all
       produced positive increments over coordinate-only and random orthogonal
       context at fixed q; matched and same-family were stronger than
-      different-family in the aggregate. Same-label and random increments were
-      near zero. At L17, structured contexts changed native readout while the
-      probed q displacement remained fixed, followed by altered downstream q
-      propagation. Relation-family ordering was heterogeneous, so the
-      family-specific pattern remains exploratory. Confirmation was not accessed.
+      different-family in the aggregate. Lambda-1 structured increments were
+      1.127/0.864/0.620 for 0.6B and 3.613/3.080/2.483 for 1.7B; all
+      opposite-label structured-minus-random CIs excluded zero. Random
+      increments were small but nonzero (-0.020 and 0.064). At L17, structured contexts changed native
+      readout while probed q remained fixed, followed by altered downstream q
+      propagation. Relation-family ordering was heterogeneous. Confirmation was
+      not accessed.
     rationale: >
       E01A matched and shuffled opposite-label coordinate treatments are
       indistinguishable across every non-zero alpha. Trace analysis finds no
@@ -149,14 +151,18 @@ experiments:
       qwen3_1_7b_smoke: E01B2_204fd7e0f8d9
       qwen3_0_6b_pilot: E01B2_d013bfeeabfa
       qwen3_1_7b_pilot: E01B2_909b590300eb
+    e01b2_full_runs:
+      qwen3_0_6b: E01B2_f2d75dab1eba
+      qwen3_1_7b: E01B2_e2b4b02cb3a4
     next_recommendation: >
-      Predeclare E01B-2 orthogonal-context modulation at the frozen source-free
-      scalar target, without accessing confirmation.
+      Freeze the E01B-2 site, targets, context construction, lambdas, controls,
+      metrics, and primary contrasts before separately deciding whether to
+      authorize confirmation. Preserve the distinction between multiplicative
+      context gating and an additive orthogonal causal signal.
     execution_policy: >
-      E01B-1 full discovery and E01B-2 bounded smoke/pilot validation are
-      complete. Full E01B-2 discovery is not authorized. Do not access
-      confirmation or run E13, E14, E15, E16, or E02 without a new explicit
-      authorization.
+      E01B-1 and E01B-2 full discovery are complete. Confirmation remains
+      locked. Do not access confirmation or run E13, E14, E15, E16, or E02
+      without a new explicit authorization.
 
   - id: E02
     name: decode_steer_gap

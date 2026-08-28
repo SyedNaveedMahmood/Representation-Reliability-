@@ -1,8 +1,8 @@
 # Summary So Far - Representation Reliability Harness
 
 Status date: 2026-08-28. Phase 0A.2, E01A full discovery, the exploratory
-E01A trace-mechanism analysis, and E01B-1 full discovery are complete.
-Confirmation remains locked.
+E01A trace-mechanism analysis, and E01B-1/E01B-2 full discovery are complete.
+Confirmation remains locked and was not accessed.
 
 ## Mission and claim boundary
 
@@ -44,6 +44,13 @@ validation-only standardization, finite flat-grid handling, dtype-aware
 setpoint gates, intervened-forward tracing, and treatment-shard resume. No
 donor hidden state is used.
 
+E01B-2 adds fixed-setpoint orthogonal-context decomposition, deterministic
+matched/same-family/different-family/same-label source plans, validation-only
+fallback norms, per-example norm standardization, ten-seed random orthogonal
+controls, exact coordinate-only reproduction gates, context-increment
+contrasts, relation-family summaries, downstream tracing, and shard-safe
+resume.
+
 The CPU-only E01A trace analysis adds clean-baseline deduplication,
 expected-label-oriented layer trajectories, discovery-standardized propagation
 and native-readout metrics, pair-cluster conversion regressions, cross-scale
@@ -51,7 +58,7 @@ uncertainty, source-equivalence regressions, relation-family/error strata, and
 six exploratory figures. It reads completed evidence only and performs no new
 model forward.
 
-The full suite passes: **138 tests**, including GPU checks that the final fixed
+The full suite passes: **150 tests**, including GPU checks that the final fixed
 readout matches native logits and that extraction/cache/intervention contracts
 remain exact.
 
@@ -189,6 +196,31 @@ This reproduces a mixed bottleneck dominated by readout conversion. See
 `E01B1_FULL_DISCOVERY_SUMMARY.md` for complete targets, gates, controls, traces,
 and claim boundaries.
 
+## E01B-2 orthogonal-context full-discovery result
+
+The completed runs `E01B2_f2d75dab1eba` (Qwen3-0.6B) and
+`E01B2_e2b4b02cb3a4` (Qwen3-1.7B) used all 150 discovery pairs, the frozen
+source-free opposite-class setpoint, context strengths 0.5/1.0, ten random
+orthogonal directions, and 2,000 pair-cluster bootstrap draws. Confirmation
+was not accessed.
+
+At lambda 1, matched/same-family/different-family context increments over the
+paired coordinate-only effect are `1.127`/`0.864`/`0.620` for 0.6B and
+`3.613`/`3.080`/`2.483` for 1.7B. Every opposite-label
+structured-minus-random CI excludes zero. Random increments are small but
+nonzero (`-0.020` and `0.064`), and the
+0.6B same-label increment is also small but positive (`0.105`); neither is
+comparable to the opposite-label structured effects.
+
+At L17, structured context changes validation-standardized native readout by
+`0.314` to `0.639` in 0.6B and `0.748` to `1.042` in 1.7B while changing the
+decoded q displacement by less than `0.001`. Structured contexts subsequently
+alter downstream q propagation. The discovery classification is **structured
+context gated, with aggregate relation-family gating and family-level
+heterogeneity**. This operational result does not distinguish a multiplicative
+q-by-context interaction from an additive causal signal in the orthogonal
+structured component. See `E01B2_FULL_DISCOVERY_SUMMARY.md`.
+
 ## What is and is not resolved
 
 Supported for Qwen3-0.6B:
@@ -200,6 +232,10 @@ Supported for Qwen3-0.6B:
 - the frozen truth decoder remains accurate on native errors.
 - the fixed native readout is weaker and geometrically poorly aligned with the
   external decoder.
+- the same frozen scalar setpoint has strongly context-dependent causal effects
+  under structured orthogonal state edits;
+- structured context sensitivity and its downstream readout/propagation effects
+  are substantially larger in 1.7B.
 
 Not established:
 
@@ -209,15 +245,19 @@ Not established:
 - that this is universal across model families, tasks, or scales;
 - that visible output behavior faithfully reports internal reasoning;
 - that one selected layer would confirm without untouched confirmation data.
+- whether E01B-2 context increments are a multiplicative utilization gate or
+  an additive orthogonal causal signal under this intervention.
 
-## Exact next question
+## Exact next boundary
 
-E01B-2 should hold the now-frozen source-free scalar displacement fixed and
-give matched/same-family/different-family orthogonal context an explicit route
-to affect behavior. This is a registered proposal, not authorization to run
-E01B-2 or touch confirmation.
+E01B-2 discovery is complete. Freeze the site, targets, context construction,
+lambdas, controls, metrics, and primary contrasts before separately deciding
+whether to spend the untouched confirmation split. No confirmation or
+application experiment is authorized by these discovery results.
 
 See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
 `E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-discovery results, and
 `E01A_TRACE_MECHANISM_ANALYSIS.md` for the exploratory pathway localization.
 See `E01B1_FULL_DISCOVERY_SUMMARY.md` for donor-free setpoint causality.
+See `E01B2_FULL_DISCOVERY_SUMMARY.md` for fixed-setpoint orthogonal-context
+causality and its claim boundaries.

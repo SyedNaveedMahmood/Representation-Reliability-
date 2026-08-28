@@ -1,7 +1,7 @@
 # E01B — Source-Free Semantic Setpoints and Orthogonal Context
 
-Status: E01B-1 full discovery complete; E01B-2 proposed but not authorized.
-Confirmation remains locked.
+Status: E01B-1 and E01B-2 full discovery complete.
+Confirmation remains locked and was not accessed.
 
 Depends on:
 
@@ -395,5 +395,15 @@ E01B-1 full discovery completed on 2026-08-28 for Qwen3-0.6B and
 Qwen3-1.7B. The source-free treatment reproduced E01A effects and beat both
 norm-matched direction controls. See `E01B1_FULL_DISCOVERY_SUMMARY.md`.
 
-E01B-2 remains proposed and requires separate authorization. Do not run E01B-2,
-confirmation, or an application branch merely because E01B-1 completed.
+E01B-2 full discovery completed on 2026-08-28 for Qwen3-0.6B and
+Qwen3-1.7B. Opposite-label structured orthogonal contexts exceeded
+coordinate-only and norm-matched random context at the fixed scalar target.
+Matched and same-family effects exceeded different-family effects in the pooled
+analysis, with relation-family heterogeneity. The readout effect was already
+present at L17 while decoded q remained fixed, followed by downstream q
+propagation differences. See `E01B2_FULL_DISCOVERY_SUMMARY.md`.
+
+This supports operational context-gated utilization under the frozen
+intervention, but does not distinguish multiplicative gating from an additive
+causal signal in the orthogonal component. Do not access confirmation or begin
+an application branch without separate authorization.

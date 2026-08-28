@@ -49,6 +49,11 @@ The current Qwen3 discovery already provides one controlled instance:
 5. At L17/L20, the standardized injected truth perturbation is comparable across checkpoints, while native-readout response is much stronger in 1.7B.
 6. At L23/L27, 1.7B additionally retains more of the standardized perturbation.
 7. The current discovery classification is therefore a mixed bottleneck dominated by readout conversion.
+8. Source-free validation-defined setpoints reproduce donor-derived coordinate effects.
+9. At an identical scalar setpoint and orthogonal norm, opposite-label structured
+   contexts change behavior far more than random context in both checkpoints.
+10. The context effect enters native readout at L17 while decoded q remains fixed,
+    then changes downstream q propagation; the effect is larger in 1.7B.
 
 This is evidence for checkpoint-dependent utilization, not yet a general law.
 
@@ -60,7 +65,9 @@ This is evidence for checkpoint-dependent utilization, not yet a general law.
 
 Experiment family: **E01B**.
 
-This is the immediate mechanism-completion step.
+Full discovery supports structured context sensitivity. The remaining boundary
+is whether the orthogonal component gates conversion multiplicatively or carries
+an additional causal signal additively; confirmation remains untouched.
 
 ### Q2 — Learning and transfer
 
@@ -140,6 +147,11 @@ The same semantic coordinate displacement can have different behavioral conseque
 Candidate experiment: E01B-2.
 
 Falsifier: structured orthogonal context has no reproducible effect beyond random orthogonal context.
+
+Discovery status: the falsifier was not observed. Structured opposite-label
+contexts exceeded random context in both models, with aggregate relation-family
+specificity and family-level heterogeneity. This remains task/site/model-family
+specific and unconfirmed.
 
 ### H5 — Temporal causal decay
 

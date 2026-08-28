@@ -27,7 +27,7 @@ random/orthogonal controls, and preserve the large 1.7B-over-0.6B conversion
 gap. The 1.7B grid is strongly monotonic; 0.6B has a positive population slope
 but weak per-example monotonicity. Confirmation remains untouched.
 
-### A2. E01B-2 orthogonal-context modulation — proposed, not authorized
+### A2. E01B-2 orthogonal-context modulation — full discovery complete
 
 Goal: determine whether the same scalar semantic displacement has stable causal meaning across orthogonal representational contexts.
 
@@ -37,7 +37,17 @@ Success outcomes are informative in either direction:
 - structured-context-sensitive -> context-gated utilization;
 - random-context-sensitive -> semantic specificity concern.
 
-After A2, freeze the mechanism intended for confirmation.
+Outcome: structured opposite-label orthogonal contexts produce much larger
+effects than norm-matched random context at the same scalar target in both
+models. Matched and same-family effects exceed different-family effects in the
+aggregate, although the ordering is heterogeneous by relation family. The
+effect enters native readout immediately at L17 while q is fixed and then
+changes downstream q propagation. This supports operational context-gated
+utilization, while leaving additive orthogonal signal versus multiplicative
+gating unresolved. Confirmation remains untouched.
+
+The A2 mechanism must now be frozen before any separately authorized
+confirmation run.
 
 ## Phase B — test fragility under compression
 
@@ -152,12 +162,12 @@ Current recommended ordering:
 
 | Rank | Experiment | Why |
 |---:|---|---|
-| 1 | E01B-1 | establishes donor-free causal object |
-| 2 | E01B-2 | tests contextual sufficiency |
-| 3 | E14 | cheapest strong test of utilization fragility |
-| 4 | E13 | highest transfer/method upside |
-| 5 | E16 | deepest developmental claim if checkpoints permit |
-| 6 | E15 | highest long-horizon conceptual upside, highest evaluation complexity |
+| 1 | E01B-1 | complete: establishes donor-free causal object |
+| 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
+| 3 | E14 | cheapest strong test of utilization fragility; not authorized |
+| 4 | E13 | highest transfer/method upside; not authorized |
+| 5 | E16 | deepest developmental claim if checkpoints permit; not authorized |
+| 6 | E15 | highest long-horizon conceptual upside; not authorized |
 
 ## Paper decision points
 
