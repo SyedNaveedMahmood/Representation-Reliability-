@@ -31,7 +31,7 @@ FULL_RUNS = {
 }
 REFERENCE_DIGESTS = {
     "bf16_probe_reference.npz": "4b88e0277d5792ac1368676227c8b80f65618bcfe68888693070f2e254d242aa",
-    "bf16_reference.json": "1e43d9ed1b765c06a86477f6c4df64ee347cba13eca7d557e3bdd5d0401071b",
+    "bf16_reference.json": "1e43d9ed1b765c06a86477f6c4df64ee347cba13eca7d557e3bddd5d0401071b",
     "bf16_native_probe_reference.npz": "4b88e0277d5792ac1368676227c8b80f65618bcfe68888693070f2e254d242aa",
     "int8_native_probe_reference.npz": "648ea88934904974ca4fa295d6883f5c91200b47e1e2a06bd95038545fca5227",
     "int4_native_probe_reference.npz": "536096411836b7a3944028c9269e1f418ebb57088341005ac40d0d4d9006275b",

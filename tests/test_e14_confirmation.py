@@ -9,6 +9,7 @@ from representation_reliability.metrics.e14_confirmation import (
 from representation_reliability.runners.e14_confirmation_support import (
     HOLDOUT_SPEC,
     HOLDOUT_SPEC_SHA256,
+    REFERENCE_DIGESTS,
     canonical_digest,
     validate_e14_confirmation_lock,
 )
@@ -16,6 +17,7 @@ from representation_reliability.runners.e14_confirmation_support import (
 
 def test_frozen_e14_holdout_spec_digest_without_materializing_rows():
     assert canonical_digest(HOLDOUT_SPEC) == HOLDOUT_SPEC_SHA256
+    assert all(len(value) == 64 for value in REFERENCE_DIGESTS.values())
 
 
 def test_e14_protocol_rejects_wrong_commit_before_any_access(tmp_path):
