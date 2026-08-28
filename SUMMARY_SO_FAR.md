@@ -1,7 +1,7 @@
 # Summary So Far - Representation Reliability Harness
 
-Status date: 2026-08-27. Phase 0A.2 and E01A full discovery are complete.
-Confirmation remains locked.
+Status date: 2026-08-27. Phase 0A.2, E01A full discovery, and the exploratory
+E01A trace-mechanism analysis are complete. Confirmation remains locked.
 
 ## Mission and claim boundary
 
@@ -37,7 +37,14 @@ site, magnitude-matched random and orthogonal controls, same-label and shuffled
 source controls, full-residual upper bounds, exact-batch BF16 fidelity checks,
 downstream tracing, pair-cluster inference, and shard-safe resume.
 
-The full suite passes: **116 tests**, including GPU checks that the final fixed
+The CPU-only E01A trace analysis adds clean-baseline deduplication,
+expected-label-oriented layer trajectories, discovery-standardized propagation
+and native-readout metrics, pair-cluster conversion regressions, cross-scale
+uncertainty, source-equivalence regressions, relation-family/error strata, and
+six exploratory figures. It reads completed evidence only and performs no new
+model forward.
+
+The full suite passes: **125 tests**, including GPU checks that the final fixed
 readout matches native logits and that extraction/cache/intervention contracts
 remain exact.
 
@@ -132,6 +139,25 @@ zero), while the 1.7B alpha-1 median is 0.625. See
 `E01A_FULL_DISCOVERY_SUMMARY.md` for exact confidence intervals, integrity
 checks, dose response, and claim boundaries.
 
+## E01A trace-mechanism result
+
+The alpha-1 standardized injected coordinate is comparable across scales at
+L17 (0.6B `1.826`, 1.7B `1.867`) and L20 (`1.152`, `1.132`). At L23/L27,
+1.7B retains more signal (`0.950`/`0.679` versus `0.776`/`0.490`). The larger
+difference is conversion into native readout: standardized L27 margin change
+is `0.212` versus `0.020`, and the no-intercept standardized conversion slope
+is `0.308` versus `0.039`. The discovery mechanism classification is
+**mixed bottleneck, dominated by readout conversion**.
+
+Matched and shuffled alpha-1 coordinate targets are strongly correlated, and
+their non-zero-alpha regression has no residual matched-source coefficient
+after actual coordinate displacement is included: `0.00054` (95% CI
+`[-0.00289, 0.00401]`) for 0.6B and `0.00048` (`[-0.00591, 0.00666]`) for
+1.7B. This supports the bounded explanation that E01A's coordinate-only
+conditions carry only a scalar target; it does not prove source context would
+be irrelevant if orthogonal information could enter. See
+`E01A_TRACE_MECHANISM_ANALYSIS.md`.
+
 ## What is and is not resolved
 
 Supported for Qwen3-0.6B:
@@ -155,12 +181,12 @@ Not established:
 
 ## Exact next question
 
-E01B should test why matched and shuffled opposite-label coordinate sources
-are equivalent across the full dose response: is causal conversion determined
-only by the target coordinate, or do source identity, relation-family matching,
-and nuisance attributes matter under a more discriminating predeclared design?
-This is a registered proposal, not authorization to run E01B or touch
-confirmation.
+E01B should separate two questions: source-free coordinate setpoints should
+remove source identity entirely, while orthogonal-context modulation should
+hold scalar displacement fixed and give matched/same-family/different-family
+source context an explicit route to affect behavior. This is a registered
+proposal, not authorization to run E01B or touch confirmation.
 
 See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
-`E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-discovery results.
+`E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-discovery results, and
+`E01A_TRACE_MECHANISM_ANALYSIS.md` for the exploratory pathway localization.

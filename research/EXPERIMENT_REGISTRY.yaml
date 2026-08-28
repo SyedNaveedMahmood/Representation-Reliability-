@@ -73,14 +73,21 @@ experiments:
       supports causal actionability of the decoded coordinate under the tested
       intervention and stronger conversion in 1.7B, but not matched-source
       specificity. Confirmation was not accessed.
-    next_recommendation: test coordinate-target versus source-identity specificity
+    trace_mechanism_outcome: >
+      Post hoc discovery trace analysis finds a mixed bottleneck dominated by
+      readout conversion. Standardized injected signal is comparable at L17/L20,
+      while 1.7B retains more at L23/L27 and has substantially larger native-margin
+      changes and conversion slopes at every traced layer. After controlling
+      actual scalar coordinate displacement, matched-source indicator CIs include
+      zero in both models. Confirmation remained locked.
+    next_recommendation: test source-free setpoints plus orthogonal-context modulation
 
   - id: E01B
-    name: coordinate_target_source_specificity
+    name: coordinate_setpoint_and_orthogonal_context
     question: >
-      Is E01A causal conversion determined by the requested opposite-label
-      coordinate target rather than matched source identity, relation-family
-      matching, or other nuisance attributes?
+      Does source-free control reproduce E01A conversion, and does source
+      identity or nuisance matching matter when orthogonal source context is
+      given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
     status: proposed_not_authorized
     depends_on: [E01A]
@@ -88,12 +95,24 @@ experiments:
     refs: [internal_intervention_adapter, matched_source_controls]
     max_gpu_hours: 4
     discovery_signal: >
-      Predeclared multi-source comparisons separate coordinate-target effects
-      from source-identity and relation-family effects.
+      Source-free setpoints reproduce coordinate dose response; fixed-coordinate
+      orthogonal-context contrasts separate matched, same-family shuffled,
+      different-family shuffled, and random context effects.
     rationale: >
       Unexpected E01A result: matched and shuffled opposite-label coordinate
       treatments are statistically indistinguishable across every non-zero
-      alpha in both model scales. Register before any additional scaling.
+      alpha in both model scales. Trace analysis finds no residual matched-source
+      coefficient after scalar displacement, but E01A discards orthogonal source
+      information by construction. Register before any additional scaling.
+    proposed_design:
+      source_free_setpoints: >
+        Estimate class medians or predeclared standardized coordinate targets
+        from a non-confirmation development split and set the coordinate without
+        any source example.
+      orthogonal_context_modulation: >
+        Hold coordinate displacement fixed while adding no orthogonal context,
+        matched-twin context, same-family shuffled context, different-family
+        shuffled context, or norm-matched random orthogonal context.
 
   - id: E02
     name: decode_steer_gap

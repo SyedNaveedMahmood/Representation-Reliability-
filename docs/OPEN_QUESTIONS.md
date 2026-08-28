@@ -9,10 +9,16 @@ readout mismatch for Qwen3-0.6B. E01A now shows that the frozen decoded
 coordinate is causally actionable relative to random, orthogonal, and
 same-label controls at both scales, with much stronger conversion in 1.7B.
 The matched and shuffled opposite-label coordinate treatments are equivalent
-across the full dose response. This promotes two bounded questions:
+across the full dose response. Post hoc discovery tracing localizes a mixed
+bottleneck dominated by native-readout conversion: injected standardized
+signal is similar at L17/L20, while 1.7B both converts it much more strongly at
+every traced layer and retains more at L23/L27. Scalar target regressions find
+no residual matched-source indicator in either model. This promotes two bounded
+questions:
 
-- Is coordinate-target causality independent of matched source identity and
-  relation-family nuisance matching?
+- Can source-free coordinate setpoints reproduce E01A conversion?
+- Does matched or relation-family context matter when its orthogonal component
+  is allowed to enter at a fixed scalar coordinate displacement?
 - Which scale/post-training/interface change improves native readout alignment
   without materially changing representation strength?
 
@@ -23,14 +29,17 @@ for E01A remains locked.
 
 ### Q1. Why are matched and shuffled coordinate sources equivalent?
 
-At the frozen layer 17 `resid_post`/last-prompt site, predeclare multiple
-opposite-label coordinate targets per base and separate target-coordinate,
-source-identity, and relation-family effects. Do not touch confirmation data.
+At the frozen layer 17 `resid_post`/last-prompt site, first use source-free
+class-median or standardized coordinate setpoints estimated from a
+non-confirmation development split. Then hold scalar displacement fixed and
+vary the orthogonal component among none, matched twin, same-family shuffled,
+different-family shuffled, and norm-matched random context. Do not touch
+confirmation data.
 
 Interesting:
-- conversion depends only on requested coordinate value;
-- matched identity matters after controlling coordinate displacement;
-- source specificity differs across model scale.
+- source-free setpoints reproduce the coordinate-only response;
+- matched identity matters only when orthogonal context can enter;
+- context modulation or conversion differs across model scale.
 
 **Novelty 5 | Importance 5 | Compute 5 | Cleanliness 5**
 

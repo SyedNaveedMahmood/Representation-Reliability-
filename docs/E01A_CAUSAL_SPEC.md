@@ -2,7 +2,8 @@
 
 Status: full discovery completed for Qwen3-0.6B and Qwen3-1.7B on
 2026-08-27; confirmation remains locked. See
-`../E01A_FULL_DISCOVERY_SUMMARY.md`.
+`../E01A_FULL_DISCOVERY_SUMMARY.md`. Exploratory trace-mechanism analysis is
+reported in `../E01A_TRACE_MECHANISM_ANALYSIS.md`.
 
 ## Question
 
@@ -121,6 +122,27 @@ The high-value comparison is `D_0.6B ≈ D_1.7B` but `C_0.6B != C_1.7B`, where C
 is operationalized by controlled change in native answer margin per unit decoded-coordinate
 intervention. Do not attribute any difference solely to parameter count because the
 checkpoints can also differ in learned readout/interface behavior.
+
+## Exploratory trace-mechanism result
+
+At alpha 1, discovery-standardized truth-coordinate changes are comparable
+between checkpoints at L17/L20. Qwen3-1.7B retains more standardized signal at
+L23/L27 and shows substantially larger standardized native-margin changes and
+conversion slopes at every traced layer. The discovery classification is a
+mixed bottleneck dominated by readout conversion, not a pure propagation
+bottleneck.
+
+Matched and shuffled coordinate targets are strongly correlated. Across all
+non-zero alphas, the pair-cluster regression matched-source indicator includes
+zero after actual scalar coordinate displacement is included in both models.
+This is expected to the extent that E01A's coordinate-only treatments discard
+all source information except one scalar. It does not test whether orthogonal
+source context matters.
+
+The proposed, unauthorized E01B design therefore has two parts: source-free
+coordinate setpoints estimated only from a non-confirmation development split,
+and orthogonal-context modulation at fixed scalar displacement. Confirmation
+remains locked.
 
 ## Claim boundary
 
