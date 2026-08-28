@@ -46,7 +46,7 @@ changes downstream q propagation. This supports operational context-gated
 utilization, while leaving additive orthogonal signal versus multiplicative
 gating unresolved. Confirmation remains untouched.
 
-### A3. E01B-3 additive-vs-gating factorial decomposition — full discovery complete
+### A3. E01B-3 additive-vs-gating factorial decomposition — strongly confirmed
 
 Goal: separate the E01B-2 context increment into an independent context-only
 effect and a true interaction with the frozen scalar intervention.
@@ -70,10 +70,12 @@ larger and a smaller positive structured G also exceeds random, supporting a
 mixed additive-plus-gating result. L17 q remains fixed; additive readout effects
 appear immediately and 1.7B develops downstream q/readout interaction. The
 additive matched/same-family advantage does not carry over to G; different-
-family interaction is largest in 1.7B. Confirmation remains locked.
-
-The A2/A3 mechanism must be frozen before any separately authorized confirmation
-run.
+family interaction is largest in 1.7B. The single preregistered confirmation
+passed H1-H4 after Holm correction. The core mechanism is frozen: scalar q is
+causally effective; structured orthogonal state carries independent causal
+information in both checkpoints; and 1.7B additionally shows structured
+q-by-context interaction. No such interaction was detected in 0.6B, without an
+equivalence claim.
 
 ## Phase B — test fragility under compression
 
@@ -178,7 +180,9 @@ Do not begin with open-ended agents. First freeze one structured stateful task w
 
 ## Confirmation policy
 
-The existing E01 confirmation split remains locked until the E01B mechanism is frozen.
+The E01 confirmation split was consumed exactly once after remote
+preregistration; the result was strong confirmation. It must not be reopened or
+used for core-mechanism tuning.
 
 Application branches must not consume that holdout. Each new branch should have its own discovery/confirmation partition where appropriate.
 
@@ -190,8 +194,8 @@ Current recommended ordering:
 |---:|---|---|
 | 1 | E01B-1 | complete: establishes donor-free causal object |
 | 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
-| 3 | E01B-3 | full discovery complete; freeze claim before confirmation decision |
-| 4 | E14 | cheapest strong test of utilization fragility; not authorized |
+| 3 | E01B-3 | strong confirmation complete; mechanism frozen |
+| 4 | E14 | conditional gate passed; stage 0/1 requires its own frozen preregistration |
 | 5 | E13 | highest transfer/method upside; not authorized |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
 | 7 | E15 | highest long-horizon conceptual upside; not authorized |

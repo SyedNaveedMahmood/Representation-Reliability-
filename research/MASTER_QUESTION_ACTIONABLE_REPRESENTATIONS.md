@@ -59,8 +59,13 @@ The current Qwen3 discovery already provides one controlled instance:
     nearly all of the 0.6B E01B-2 increment.
 12. Qwen3-1.7B additionally has a smaller structured q-by-context interaction
     beyond random context, whereas Qwen3-0.6B does not resolve such gating.
+13. One preregistered untouched confirmation strongly replicated scalar
+    actionability, additive structured information in both checkpoints, the
+    1.7B structured interaction, and its cross-checkpoint difference after
+    Holm correction across exactly four primary hypotheses.
 
-This is evidence for checkpoint-dependent utilization, not yet a general law.
+This is confirmed checkpoint-dependent utilization under the frozen task/site,
+not a general law across tasks, sites, architectures, or model families.
 
 ## 4. The four high-value unanswered subquestions
 
@@ -73,8 +78,9 @@ Experiment family: **E01B**.
 Full discovery resolves the decomposition under the frozen task/site. Orthogonal
 structured state carries a large additive causal signal in both checkpoints.
 Only 1.7B additionally shows a resolved structured q-by-context interaction,
-and that interaction is much smaller than the additive component. Confirmation
-remains untouched.
+and that interaction is much smaller than the additive component. The frozen
+mechanism received strong confirmation; no structured interaction was detected
+in 0.6B, but equivalence to zero was not tested.
 
 ### Q2 — Learning and transfer
 
@@ -191,12 +197,13 @@ E01B-1 source-free setpoints
     -> E01B-2 orthogonal context
     -> E01B-3 additive-vs-gating decomposition
     -> freeze full-discovery claim
+    -> one preregistered untouched confirmation (complete: strong)
     -> choose ONE high-upside extension first
          default: E14 quantization reliability
          second: E13 distillation reliability
     -> E16 training emergence if suitable checkpoints are available
     -> E15 long-horizon causal half-life only after a clean sequential task is selected
-    -> confirmation after the mechanism/claim intended for the paper is frozen
+    -> application-specific discovery/confirmation without retuning core E01
 ```
 
 E14 is the default first application/robustness extension because it is cheap, deployment-relevant, and directly asks whether functional utilization is more fragile than representation under compression.
@@ -215,6 +222,8 @@ The project should only broaden to the latter branches if they sharpen this clai
 
 ## 10. Claim boundary
 
-Until further experiments succeed, the strongest supported statement remains checkpoint-, task-, and site-specific discovery evidence. Terms such as "knowledge," "functional utilization," and "actionability" must always be tied to an operationally measured variable and intervention.
+The strongest supported statement is checkpoint-, task-, and site-specific
+confirmed evidence. Terms such as "knowledge," "functional utilization," and
+"actionability" must remain tied to the operational variable and intervention.
 
 The master question is intentionally broader than the current evidence; the experiment registry controls when broader claims become justified.

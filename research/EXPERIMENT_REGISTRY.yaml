@@ -55,7 +55,7 @@ experiments:
       truth coordinate shift the predeclared Yes-minus-No counterfactual margin
       beyond magnitude-matched direction and source controls?
     priority: P0
-    status: complete_discovery_confirmation_locked
+    status: mechanism_frozen_strong_confirmation
     depends_on: [E00, E00C]
     dimensions: [D, C]
     refs: [internal_intervention_adapter, pair_cluster_bootstrap]
@@ -87,7 +87,7 @@ experiments:
       identity or nuisance matching matter when orthogonal source context is
       given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
-    status: confirmation_preregistered_authorized_once
+    status: mechanism_frozen_strong_confirmation
     depends_on: [E01A]
     dimensions: [C, R]
     refs: [internal_intervention_adapter, source_free_setpoints, orthogonal_context_controls]
@@ -213,16 +213,27 @@ experiments:
       confirmation_campaigns_authorized: 1
       confirmation_accessed_at_preregistration: false
       e14_entry_gate: H1_and_H2_and_H3_pass_without_material_sign_reversal
+    confirmation_result:
+      run: CONFIRMATION_46312baf5992
+      first_access_timestamp: 2026-08-28T13:27:38.622637+00:00
+      access_count: 1
+      classification: strong
+      H1: {estimate: 0.014375, ci: [0.000625, 0.0190625], raw_p: 0.0260797392, holm_p: 0.0260797392, verdict: PASS}
+      H2: {estimate: 1.273375, ci: [1.069399, 1.484001], raw_p: 0.0000099999, holm_p: 0.0000399996, verdict: PASS}
+      H3: {estimate: 0.13284375, ci: [0.110312, 0.156095], raw_p: 0.0000099999, holm_p: 0.0000399996, verdict: PASS}
+      H4: {estimate: 0.13790625, ci: [0.113219, 0.163469], raw_p: 0.0000099999, holm_p: 0.0000399996, verdict: PASS}
+      mechanism_frozen: true
+      e14_entry_gate_passed: true
     next_recommendation: >
-      Execute the single locked confirmation campaign defined in
-      docs/E01_CONFIRMATION_PROTOCOL.md. Proceed to E14 stage 0/1 only if its
-      predeclared H1/H2/H3 entry gate passes without a material sign reversal.
+      The single locked confirmation campaign is complete and H1-H4 passed.
+      Preserve the frozen mechanism and proceed only to separately
+      preregistered E14 stage 0/stage 1.
     execution_policy: >
-      E01B-1, E01B-2, and E01B-3 full discovery are complete. Exactly one
-      confirmation campaign is authorized, but it may begin only after the
-      locked protocol is committed and pushed and the no-confirmation contract
-      tests pass. E14 stage 0/1 is conditionally authorized by the frozen gate;
-      E13, E15, E16, and E02 remain unauthorized.
+      E01B-1/E01B-2/E01B-3 discovery and the single confirmation campaign are
+      complete. The core task/site mechanism is frozen against further tuning
+      and the E01 holdout must not be reopened. E14 stage 0/1 passed its entry
+      gate but requires its own preregistration; E13, E15, E16, and E02 remain
+      unauthorized.
 
   - id: E02
     name: decode_steer_gap

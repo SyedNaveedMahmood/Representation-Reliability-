@@ -1,8 +1,9 @@
 # Summary So Far - Representation Reliability Harness
 
-Status date: 2026-08-28. Phase 0A.2, E01A full discovery, the exploratory
-E01A trace-mechanism analysis, and E01B-1/E01B-2 full discovery are complete.
-Confirmation remains locked and was not accessed.
+Status date: 2026-08-28. Phase 0A.2, E01A/E01B discovery, the exploratory
+E01A trace-mechanism analysis, and the single preregistered E01 confirmation
+are complete. All four primary confirmation hypotheses passed Holm correction;
+the core E01 mechanism is frozen.
 
 ## Mission and claim boundary
 
@@ -58,7 +59,7 @@ uncertainty, source-equivalence regressions, relation-family/error strata, and
 six exploratory figures. It reads completed evidence only and performs no new
 model forward.
 
-The full suite passes: **150 tests**, including GPU checks that the final fixed
+The full suite passes: **173 tests**, including GPU checks that the final fixed
 readout matches native logits and that extraction/cache/intervention contracts
 remain exact.
 
@@ -251,6 +252,27 @@ in 1.7B, different-family G is larger than matched and same-family G. Relation
 compatibility therefore structures the additive signal, not a monotonic positive
 gating hierarchy. See `E01B3_FULL_DISCOVERY_SUMMARY.md`.
 
+## E01 strong confirmation and final mechanism freeze
+
+The single joint campaign `CONFIRMATION_46312baf5992` evaluated 200 directed
+examples / 100 untouched pairs per checkpoint under the remotely pushed
+protocol `e0ddfae54b350c0545c71a8237645375bdf84929`. The split was first
+accessed at `2026-08-28T13:27:38.622637+00:00`; the campaign/access count is
+one.
+
+All four primary hypotheses passed Holm correction: H1 scalar actionability in
+both checkpoints (`0.014375`, Holm `0.026080`); H2 matched additive signal over
+random in both checkpoints (`1.273375`, Holm `0.000040`); H3 structured
+interaction over random in 1.7B (`0.132844`, Holm `0.000040`); and H4 the
+1.7B-over-0.6B structured-interaction difference (`0.137906`, Holm `0.000040`).
+The classification is **strong confirmation**.
+
+The final frozen result is distributed semantic actionability: scalar q is
+causally effective, structured orthogonal state carries substantial independent
+causal information in both checkpoints, and 1.7B also has a reproducible
+structured q-by-context interaction. No structured interaction was detected in
+0.6B; equivalence to zero was not tested. See `E01_CONFIRMATION_SUMMARY.md`.
+
 ## What is and is not resolved
 
 Supported for Qwen3-0.6B:
@@ -278,7 +300,7 @@ Not established:
   opposite-label coordinate target;
 - that this is universal across model families, tasks, or scales;
 - that visible output behavior faithfully reports internal reasoning;
-- that one selected layer would confirm without untouched confirmation data.
+- that the confirmed selected-layer mechanism generalizes to another site.
 - whether the E01B-3 decomposition generalizes beyond this task, site, model
   family, and pair construction;
 - whether the probe-defined axis and orthogonal components correspond to the
@@ -286,11 +308,11 @@ Not established:
 
 ## Exact next boundary
 
-E01B-1/E01B-2/E01B-3 discovery is complete. Freeze the exact factorial claim,
-site, targets, context construction, lambdas, controls, metrics, contrasts, and
-prospective decision rule before separately deciding whether to spend the
-untouched confirmation split. No confirmation or application experiment is
-authorized by these discovery results.
+E01 discovery and its single untouched confirmation are complete; the core
+mechanism is frozen against further tuning. H1-H4 all passed, satisfying the
+conditional gate for the separately preregistered E14 stage-0/stage-1 study.
+E14 must preserve the confirmed Q/A/G definitions and may not reuse the
+consumed E01 confirmation split as an application holdout.
 
 See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
 `E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-discovery results, and
