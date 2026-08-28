@@ -341,6 +341,26 @@ def confirm_e14(
     typer.echo(f"E14 confirmation complete: {run_dir}")
 
 
+@app.command("e13-bounded")
+def e13_bounded() -> None:
+    """Run the preregistered one-seed R0/R1/R2 distillation diagnostic."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13 import run_e13_bounded
+
+    run_dir = run_e13_bounded()
+    typer.echo(f"E13 bounded diagnostic complete: {run_dir}")
+
+
+@app.command("e13-smoke")
+def e13_smoke() -> None:
+    """Run the tiny preregistered E13 optimization/hook contract."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13 import run_e13_training_smoke
+
+    result = run_e13_training_smoke()
+    typer.echo(f"E13 training smoke complete: {result}")
+
+
 @app.command()
 def extract(
     base: Path | None = None,
