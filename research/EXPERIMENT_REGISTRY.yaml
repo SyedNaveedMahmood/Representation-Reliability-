@@ -200,7 +200,7 @@ experiments:
     confirmation_preregistration:
       status: confirmation_preregistered_authorized_once
       protocol: docs/E01_CONFIRMATION_PROTOCOL.md
-      protocol_sha256: 2cde885695cb60b0082536f5e3986415d575712e170d164ef940e7d8d853bc9c
+      protocol_sha256: 46312baf59923a2a0e5d1b755d313cd83b42883760baf7b5ba1209410fba81a3
       primary_family: [H1_scalar_actionability_both_models, H2_structured_additive_both_models, H3_structured_interaction_1_7b, H4_cross_checkpoint_interaction_difference]
       family_wise_alpha: 0.05
       multiplicity: Holm_across_H1_H4

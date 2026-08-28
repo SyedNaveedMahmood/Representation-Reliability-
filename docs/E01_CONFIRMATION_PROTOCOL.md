@@ -35,7 +35,7 @@ Both use BF16. The candidates are exactly `" Yes"` and `" No"`, each one token u
 - direction: the unit coefficient direction of the frozen train/validation linear truth probe
 - scaler fitting: train only
 - regularization selection: validation only
-- final probe fitting: train plus validation under the already-established probe contract
+- final probe fitting: train only after validation-only C selection, exactly matching the established discovery probe contract
 - confirmation labels: never used to fit the scaler, choose C, fit the probe, choose the direction, or construct targets
 
 Frozen probe/scaler digests:
