@@ -87,15 +87,18 @@ experiments:
       identity or nuisance matching matter when orthogonal source context is
       given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
-    status: authorized_e01b1_implementation_smoke_only
+    status: e01b1_full_discovery_complete_e01b2_proposed_not_authorized
     depends_on: [E01A]
     dimensions: [C, R]
     refs: [internal_intervention_adapter, source_free_setpoints, orthogonal_context_controls]
     max_gpu_hours: 4
     discovery_signal: >
-      Source-free setpoints reproduce coordinate dose response; fixed-coordinate
-      orthogonal-context contrasts separate matched, same-family shuffled,
-      different-family shuffled, and random context effects.
+      E01B-1 full discovery is complete. Validation-defined donor-free class
+      setpoints reproduce E01A effects (0.02625 for 0.6B and 0.66604 for 1.7B)
+      and beat norm-matched random/orthogonal controls. Continuous-grid slopes
+      are positive in both models, but per-example monotonicity is weak in 0.6B
+      and near-uniform in 1.7B. Source-free traces reproduce the mixed bottleneck
+      dominated by readout conversion. Confirmation was not accessed.
     rationale: >
       E01A matched and shuffled opposite-label coordinate treatments are
       indistinguishable across every non-zero alpha. Trace analysis finds no
@@ -111,10 +114,16 @@ experiments:
         while adding no orthogonal context, matched-twin context, same-family
         shuffled context, different-family shuffled context, same-label context,
         or norm-matched random orthogonal context.
+    e01b1_runs:
+      qwen3_0_6b: E01B1_e1169f3ffe11
+      qwen3_1_7b: E01B1_5b9d70c8cffe
+    next_recommendation: >
+      Predeclare E01B-2 orthogonal-context modulation at the frozen source-free
+      scalar target, without accessing confirmation.
     execution_policy: >
-      Immediate authorization covers implementation, unit/GPU contract tests,
-      and bounded smoke/pilot of E01B-1 only. Do not run E01B-1 full discovery,
-      E01B-2, confirmation, E13, E14, E15, or E16 without a new explicit authorization.
+      E01B-1 full discovery is complete. E01B-2 remains proposed and is not
+      authorized. Do not run E01B-2, confirmation, E13, E14, E15, E16, or E02
+      without a new explicit authorization.
 
   - id: E02
     name: decode_steer_gap

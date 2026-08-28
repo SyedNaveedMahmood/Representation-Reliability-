@@ -10,7 +10,7 @@ This roadmap converts the master question into a gated experiment program.
 
 ## Phase A — establish the causal object
 
-### A1. E01B-1 source-free setpoints — immediate
+### A1. E01B-1 source-free setpoints — full discovery complete
 
 Goal: establish whether donor-free scalar targets reproduce the E01A causal response.
 
@@ -22,9 +22,12 @@ semantic treatment > random/orthogonal controls
 1.7B conversion > 0.6B conversion
 ```
 
-If this fails, do not proceed under a scalar-setpoint narrative. Revisit the causal object before application extensions.
+Outcome: donor-free semantic setpoints reproduce E01A, beat norm-matched
+random/orthogonal controls, and preserve the large 1.7B-over-0.6B conversion
+gap. The 1.7B grid is strongly monotonic; 0.6B has a positive population slope
+but weak per-example monotonicity. Confirmation remains untouched.
 
-### A2. E01B-2 orthogonal-context modulation — gated on A1
+### A2. E01B-2 orthogonal-context modulation — proposed, not authorized
 
 Goal: determine whether the same scalar semantic displacement has stable causal meaning across orthogonal representational contexts.
 

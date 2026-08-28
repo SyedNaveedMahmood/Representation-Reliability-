@@ -1,7 +1,8 @@
 # Summary So Far - Representation Reliability Harness
 
-Status date: 2026-08-27. Phase 0A.2, E01A full discovery, and the exploratory
-E01A trace-mechanism analysis are complete. Confirmation remains locked.
+Status date: 2026-08-28. Phase 0A.2, E01A full discovery, the exploratory
+E01A trace-mechanism analysis, and E01B-1 full discovery are complete.
+Confirmation remains locked.
 
 ## Mission and claim boundary
 
@@ -37,6 +38,12 @@ site, magnitude-matched random and orthogonal controls, same-label and shuffled
 source controls, full-residual upper bounds, exact-batch BF16 fidelity checks,
 downstream tracing, pair-cluster inference, and shard-safe resume.
 
+E01B-1 adds validation-defined source-free class medians and continuous
+quantile setpoints, per-example norm-matched random/orthogonal controls,
+validation-only standardization, finite flat-grid handling, dtype-aware
+setpoint gates, intervened-forward tracing, and treatment-shard resume. No
+donor hidden state is used.
+
 The CPU-only E01A trace analysis adds clean-baseline deduplication,
 expected-label-oriented layer trajectories, discovery-standardized propagation
 and native-readout metrics, pair-cluster conversion regressions, cross-scale
@@ -44,7 +51,7 @@ uncertainty, source-equivalence regressions, relation-family/error strata, and
 six exploratory figures. It reads completed evidence only and performs no new
 model forward.
 
-The full suite passes: **125 tests**, including GPU checks that the final fixed
+The full suite passes: **138 tests**, including GPU checks that the final fixed
 readout matches native logits and that extraction/cache/intervention contracts
 remain exact.
 
@@ -158,6 +165,30 @@ conditions carry only a scalar target; it does not prove source context would
 be irrelevant if orthogonal information could enter. See
 `E01A_TRACE_MECHANISM_ANALYSIS.md`.
 
+## E01B-1 source-free full-discovery result
+
+The completed runs `E01B1_e1169f3ffe11` (Qwen3-0.6B) and
+`E01B1_5b9d70c8cffe` (Qwen3-1.7B) used all 150 discovery pairs, ten random and
+ten orthogonal-random directions, and validation-only targets/scales.
+Confirmation was not accessed.
+
+Opposite-class source-free median effects are `0.026250` (95% CI `[0.016667,
+0.035833]`) for 0.6B and `0.666042` (`[0.641042, 0.692302]`) for 1.7B. Both
+beat norm-matched random and orthogonal controls. These closely reproduce E01A
+alpha-1 donor-derived effects (`0.028333` and `0.662083`), supporting the
+bounded conclusion that donor hidden states are unnecessary for the measured
+coordinate-only effect.
+
+The validation-grid population slope is positive in both models: `0.014022`
+(`[0.010617, 0.017646]`) for 0.6B and `0.038412` (`[0.036730, 0.040176]`) for
+1.7B. Per-example monotonicity is nevertheless weak in 0.6B (median Spearman
+`0.224`; exact monotonic fraction `0.420`) and strong in 1.7B (`1.000` and
+`0.937`). Final-layer standardized native-margin changes are `0.018984` and
+`0.213666`, while standardized coordinate retention is `0.497` and `0.688`.
+This reproduces a mixed bottleneck dominated by readout conversion. See
+`E01B1_FULL_DISCOVERY_SUMMARY.md` for complete targets, gates, controls, traces,
+and claim boundaries.
+
 ## What is and is not resolved
 
 Supported for Qwen3-0.6B:
@@ -181,12 +212,12 @@ Not established:
 
 ## Exact next question
 
-E01B should separate two questions: source-free coordinate setpoints should
-remove source identity entirely, while orthogonal-context modulation should
-hold scalar displacement fixed and give matched/same-family/different-family
-source context an explicit route to affect behavior. This is a registered
-proposal, not authorization to run E01B or touch confirmation.
+E01B-2 should hold the now-frozen source-free scalar displacement fixed and
+give matched/same-family/different-family orthogonal context an explicit route
+to affect behavior. This is a registered proposal, not authorization to run
+E01B-2 or touch confirmation.
 
 See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
 `E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-discovery results, and
 `E01A_TRACE_MECHANISM_ANALYSIS.md` for the exploratory pathway localization.
+See `E01B1_FULL_DISCOVERY_SUMMARY.md` for donor-free setpoint causality.

@@ -1,6 +1,7 @@
 # E01B — Source-Free Semantic Setpoints and Orthogonal Context
 
-Status: design frozen for implementation. Confirmation remains locked.
+Status: E01B-1 full discovery complete; E01B-2 proposed but not authorized.
+Confirmation remains locked.
 
 Depends on:
 
@@ -388,11 +389,11 @@ E01B_SUMMARY.md
 
 Raw evidence must be saved before summaries.
 
-## 20. Immediate execution policy
+## 20. Execution status and boundary
 
-The next authorized engineering task is:
+E01B-1 full discovery completed on 2026-08-28 for Qwen3-0.6B and
+Qwen3-1.7B. The source-free treatment reproduced E01A effects and beat both
+norm-matched direction controls. See `E01B1_FULL_DISCOVERY_SUMMARY.md`.
 
-> **Implement and smoke/pilot E01B-1 only.**
-
-Do not run E01B-2, full discovery, confirmation, or the distillation branch in
-the same task.
+E01B-2 remains proposed and requires separate authorization. Do not run E01B-2,
+confirmation, or an application branch merely because E01B-1 completed.
