@@ -81,6 +81,9 @@ equivalence claim.
 
 ### B1. E14 quantization reliability — default first extension
 
+Status: **authorized_stage0_stage1_only** under the frozen
+`docs/E14_QUANTIZATION_RELIABILITY_DESIGN.md` protocol.
+
 Goal: test whether representational availability survives compression better than causal utilization.
 
 Start with Qwen3-1.7B:
@@ -92,8 +95,14 @@ BF16 -> INT8 -> INT4
 Primary question:
 
 ```text
-Can D remain near ceiling while C/readout conversion drops?
+Can D remain near ceiling while scalar Q, multidimensional additive A, or
+q-by-context interaction G drops?
 ```
+
+The bounded Qwen3-1.7B ladder uses one weight-only backend (Optimum-Quanto
+0.2.7) across BF16/INT8/INT4. It measures precision-native and frozen-BF16-axis
+D, behavior B, source-free Q0, matched/random A and G, and depth tracing. Full
+discovery and any additional precision/model/backend remain unauthorized.
 
 Why first:
 

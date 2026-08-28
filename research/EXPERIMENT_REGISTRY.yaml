@@ -379,25 +379,28 @@ experiments:
       representation while disproportionately degrading its causal utilization
       and native-readout conversion?
     priority: P0
-    status: proposed_not_authorized
+    status: authorized_stage0_stage1_only
     depends_on: [E01B]
-    dimensions: [D, C, R]
-    refs: [post_training_quantization, source_free_setpoints, causal_conversion]
+    dimensions: [D, B, Q, A, G, R]
+    refs:
+      [post_training_quantization, source_free_setpoints, factorial_decomposition]
     max_gpu_hours: 6
     discovery_signal: >
-      A precision regime preserves held-out D within a predeclared tolerance
-      while materially reducing source-free C or downstream standardized
-      native-margin response.
+      A precision regime leaves semantic D comparatively stable while one or
+      more frozen actionability components Q, structured-minus-random A, or
+      structured-minus-random G degrade without catastrophic general damage.
     rationale: >
       Quantization perturbs the same trained checkpoint without changing its
       training objective, offering a low-compute test of whether functional
       utilization is more fragile than representational availability.
     proposed_design: >
-      Qwen3-1.7B BF16/INT8/INT4 primary ladder with frozen E01B semantic
-      measurement; optional INT3/INT2 only after stable primary results.
+      Qwen3-1.7B BF16/INT8/INT4 Optimum-Quanto 0.2.7 weight-only ladder;
+      precision-native and frozen-BF16-axis D; frozen source-free Q and matched
+      versus random orthogonal A/G; L17/L20/L23/L27 tracing; no calibration.
     execution_policy: >
-      Design only. Do not implement E14 until E01B is frozen and explicit
-      authorization is given.
+      Authorized only for <=50-example Stage 0 engineering smoke and
+      <=150-example Stage 1 discovery pilot. Do not run full discovery, another
+      model/backend, INT3/INT2, activation quantization, or confirmation.
 
   - id: E15
     name: temporal_causal_half_life

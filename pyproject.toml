@@ -30,6 +30,7 @@ dependencies = [
 
 [project.optional-dependencies]
 instrumentation = ["nnsight"]
+quantization = ["optimum-quanto==0.2.7"]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11"]
 
 [project.scripts]
