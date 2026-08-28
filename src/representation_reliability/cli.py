@@ -327,6 +327,20 @@ def e14(
     typer.echo(f"E14 run complete: {run_dir}")
 
 
+@app.command("confirm-e14")
+def confirm_e14(
+    protocol_commit: str = typer.Option(
+        ..., "--protocol-commit", help="exact E14 preregistration commit"
+    ),
+) -> None:
+    """Execute the single locked E14 precision confirmation."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e14_confirmation import run_e14_confirmation
+
+    run_dir = run_e14_confirmation(protocol_commit=protocol_commit)
+    typer.echo(f"E14 confirmation complete: {run_dir}")
+
+
 @app.command()
 def extract(
     base: Path | None = None,

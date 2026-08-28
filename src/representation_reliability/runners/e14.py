@@ -142,6 +142,33 @@ def _save_native_probe_reference(
     np.savez(run_dir / "native_probe_reference.npz", **payload)
 
 
+def _verify_native_probe_reference(
+    source: Path,
+    fits: dict[int, dict[str, Any]],
+    directions: dict[int, np.ndarray],
+    layers: list[int],
+) -> float:
+    """Verify refitted development-only probes against frozen full-discovery probes."""
+    maximum = 0.0
+    with np.load(source / "native_probe_reference.npz") as archive:
+        for layer in layers:
+            observed = {
+                "coef": np.asarray(fits[layer]["classifier"].coef_[0], dtype=np.float64),
+                "intercept": np.asarray(fits[layer]["classifier"].intercept_, dtype=np.float64),
+                "mean": np.asarray(fits[layer]["scaler_mean"], dtype=np.float64),
+                "scale": np.asarray(fits[layer]["scaler_scale"], dtype=np.float64),
+                "direction": np.asarray(directions[layer], dtype=np.float64),
+            }
+            for name, value in observed.items():
+                maximum = max(
+                    maximum,
+                    float(np.max(np.abs(value - archive[f"{name}_{layer}"]))),
+                )
+    if maximum > 1e-10:
+        raise RuntimeError(f"native probe identity drifted from full discovery: {maximum}")
+    return maximum
+
+
 def _find_bf16_reference(repo_root: Path, profile: str, split_hash: str) -> Path:
     root = repo_root / "runs" / "E14"
     if not root.exists():
@@ -259,6 +286,13 @@ def run_e14(
     max_pairs: int | None = None,
     layer: int = 17,
     trace_layers: str = "17,20,23,27",
+    _evaluation_samples: list[Any] | None = None,
+    _evaluation_frame: pd.DataFrame | None = None,
+    _frozen_bf16_source: Path | None = None,
+    _frozen_native_source: Path | None = None,
+    _output_experiment: str = "E14",
+    _confirmation_accessed: bool = False,
+    _protocol_identity: dict[str, str] | None = None,
 ) -> Path:
     start_time = time.monotonic()
     precision = normalize_precision(precision)
@@ -277,9 +311,28 @@ def run_e14(
     if int(layer) != 17:
         raise RuntimeError("E14 intervention layer is frozen at 17")
 
-    samples, full_df = _generate_dataset(cfg)
+    development_samples, full_df = _generate_dataset(cfg)
     frame = discovery_view(full_df).reset_index(drop=True)
-    if (frame["split"].astype(str) == "confirmation").any():
+    if _evaluation_samples is not None or _evaluation_frame is not None:
+        if _evaluation_samples is None or _evaluation_frame is None:
+            raise RuntimeError("E14 locked evaluation requires samples and frame together")
+        if not _confirmation_accessed or _output_experiment != "E14_CONFIRMATION":
+            raise RuntimeError("external E14 evaluation is restricted to locked confirmation")
+        development = frame[frame["split"].isin(["train", "validation"])].copy()
+        heldout = _evaluation_frame.copy()
+        if set(heldout["split"].astype(str)) != {"confirmation"}:
+            raise RuntimeError("E14 holdout frame must be confirmation-only")
+        heldout["split"] = "discovery_test"
+        frame = pd.concat([development, heldout], ignore_index=True)
+        development_ids = set(development["sample_id"].astype(str))
+        samples = [
+            sample
+            for sample in development_samples
+            if str(sample.sample_id) in development_ids
+        ] + list(_evaluation_samples)
+    else:
+        samples = development_samples
+    if not _confirmation_accessed and (frame["split"].astype(str) == "confirmation").any():
         raise RuntimeError("discovery view exposed confirmation")
     labels = build_discovery_label_map(frame)
     ids = frame["sample_id"].astype(str).tolist()
@@ -309,25 +362,30 @@ def run_e14(
         "max_pairs": pair_cap,
         "random_seeds": list(RANDOM_SEEDS[:random_count]),
         "trace_layers": traces,
+        "output_experiment": _output_experiment,
+        "confirmation_accessed": _confirmation_accessed,
+        "protocol_identity": _protocol_identity,
     }
     resolved_hash = hashlib.sha256(
         (config_hash(cfg) + "|" + json.dumps(shape, sort_keys=True)).encode()
     ).hexdigest()
     run_id = make_run_id(
-        "E14",
+        _output_experiment,
         resolved_hash,
         int(cfg.reproducibility.seed),
         revisions.get("model_sha") or "unpinned",
         split_hash,
     )
     repo_root = Path(__file__).resolve().parents[3]
-    canonical = repo_root / cfg.project.output_root / "E14" / run_id
+    canonical = repo_root / cfg.project.output_root / _output_experiment / run_id
     existing = StatusFile.load(canonical)
     if existing is not None and existing.is_complete():
         return canonical
-    run_dir = allocate_run_dir(repo_root / cfg.project.output_root, "E14", run_id)
+    run_dir = allocate_run_dir(
+        repo_root / cfg.project.output_root, _output_experiment, run_id
+    )
     save_resolved_config(cfg, run_dir / "config.resolved.yaml", {**provenance, "shape": shape})
-    status = StatusFile.create(run_dir, run_id, "E14")
+    status = StatusFile.create(run_dir, run_id, _output_experiment)
     manifest = RunManifest(run_dir)
     manifest.set_start(resolved_hash, {**provenance, "e14_shape": shape}, cfg.effective_seeds())
     manifest.update_model_info(
@@ -350,7 +408,8 @@ def run_e14(
     manifest.update_dataset_info(
         split_hash=split_hash,
         prompt_hash_sample=prompt_hash(str(frame.iloc[0]["prompt"])),
-        confirmation_accessed=False,
+        confirmation_accessed=_confirmation_accessed,
+        protocol_identity=_protocol_identity,
     )
 
     try:
@@ -371,6 +430,7 @@ def run_e14(
         fits: dict[int, dict[str, Any]] = {}
         native_directions: dict[int, np.ndarray] = {}
         probe_rows: list[dict[str, Any]] = []
+        native_probe_max_deviation = 0.0
         for trace in needed_layers:
             fit, row = _fit_layer_probe(
                 activations,
@@ -384,11 +444,32 @@ def run_e14(
             native_directions[trace] = _unit(raw_probe_direction(fit))
             probe_rows.append(row)
         if profile == "full":
-            _save_native_probe_reference(run_dir, fits, native_directions)
+            if _frozen_native_source is None:
+                _save_native_probe_reference(run_dir, fits, native_directions)
+            else:
+                native_probe_max_deviation = _verify_native_probe_reference(
+                    _frozen_native_source, fits, native_directions, needed_layers
+                )
 
         validation_ids = frame.loc[frame["split"] == "validation", "sample_id"].astype(str).tolist()
         validation_labels = np.asarray([labels[sid] for sid in validation_ids], dtype=int)
-        if precision == "bf16":
+        if _frozen_bf16_source is not None:
+            reference_source = _frozen_bf16_source
+            reference_fits, reference_directions, targets, reference_identity = (
+                _load_bf16_reference(reference_source, needed_layers)
+            )
+            expected = {
+                "model_id": str(cfg.model.id),
+                "resolved_revision": revisions.get("model_sha"),
+                "tokenizer_revision": revisions.get("tokenizer_sha"),
+                "candidate_token_ids": token_ids,
+                "layers": needed_layers,
+                "confirmation_accessed": False,
+            }
+            for key, value in expected.items():
+                if reference_identity.get(key) != value:
+                    raise RuntimeError(f"frozen BF16 reference identity mismatch: {key}")
+        elif precision == "bf16":
             reference_fits = {
                 trace: {
                     "coef": np.asarray(fits[trace]["classifier"].coef_[0]),
@@ -712,7 +793,7 @@ def run_e14(
                         "A": float(estimates["A"]),
                         "Q_context": float(estimates["Q_context"]),
                         "G": float(estimates["G"]),
-                        "confirmation_accessed": False,
+                        "confirmation_accessed": _confirmation_accessed,
                     }
                 )
                 for trace in traces:
@@ -750,7 +831,7 @@ def run_e14(
                             "G_q_z": float(trace_est_q["G"]) / refs["sigma_q"],
                             "A_margin_z": float(trace_est_m["A"]) / refs["sigma_margin"],
                             "G_margin_z": float(trace_est_m["G"]) / refs["sigma_margin"],
-                            "confirmation_accessed": False,
+                            "confirmation_accessed": _confirmation_accessed,
                         }
                     )
 
@@ -791,13 +872,15 @@ def run_e14(
                     "pair_id": str(samples_by_id[sid].pair_id),
                     "gold_label": int(labels[sid]),
                     "yes_no_margin": clean_margins[sid],
+                    "native_probe_score": float(native_scores[base_ids.index(sid)]),
+                    "frozen_probe_score": float(frozen_scores[base_ids.index(sid)]),
                     "prediction": _prediction(clean_margins[sid]),
                     "prompt_nll": nll[sid],
                     "prompt_token_count": int(token_sites[sid]["sequence_length"]),
                     "token_index": int(token_indices[sid]),
                     "candidate_yes_id": token_ids[0],
                     "candidate_no_id": token_ids[1],
-                    "confirmation_accessed": False,
+                    "confirmation_accessed": _confirmation_accessed,
                 }
                 for sid in base_ids
             ]
@@ -852,12 +935,14 @@ def run_e14(
                 ),
                 "trace_rows": len(trace_df),
                 "runtime_residual_dtype": "bfloat16",
-                "confirmation_accessed": False,
+                "confirmation_accessed": _confirmation_accessed,
+                "native_probe_max_abs_deviation": native_probe_max_deviation,
             },
             "quantization": quantization,
             "bf16_reference_source": str(reference_source.relative_to(repo_root)),
             "wall_time_s": float(time.monotonic() - start_time),
-            "confirmation_accessed": False,
+            "confirmation_accessed": _confirmation_accessed,
+            "protocol_identity": _protocol_identity,
         }
         if not metrics["integrity"]["finite"]:
             raise RuntimeError("E14 produced nonfinite evidence")
