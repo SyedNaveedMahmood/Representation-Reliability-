@@ -187,9 +187,9 @@ def _summary_markdown(summary: dict[str, Any]) -> str:
     target = summary["validation_setpoints"]
     return f"""# E01B-1 Source-Free Setpoint Causality
 
-Status: `{summary['status']}`  
-Model: `{summary['model_id']}`  
-Profile: `{summary['profile']}`  
+Status: `{summary['status']}`
+Model: `{summary['model_id']}`
+Profile: `{summary['profile']}`
 Site: `resid_post / L{summary['layer']} / last_prompt`
 
 ## Scope and provenance
@@ -218,8 +218,8 @@ Site: `resid_post / L{summary['layer']} / last_prompt`
 
 ## Effects (bounded validation run)
 
-Opposite-class median mean target-oriented margin change: `{summary['opposite_class']['mean_delta_margin_toward_target']}`  
-Grid median within-example Spearman: `{summary['grid_response']['median_within_base_spearman']}`  
+Opposite-class median mean target-oriented margin change: `{summary['opposite_class']['mean_delta_margin_toward_target']}`
+Grid median within-example Spearman: `{summary['grid_response']['median_within_base_spearman']}`
 Grid monotonic fraction: `{summary['grid_response']['fraction_monotonic_nondecreasing']}`
 
 These are exploratory discovery results from a smoke/pilot profile, not a full-discovery or confirmation result.
