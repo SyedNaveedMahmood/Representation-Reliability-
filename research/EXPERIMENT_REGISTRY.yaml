@@ -87,7 +87,7 @@ experiments:
       identity or nuisance matching matter when orthogonal source context is
       given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
-    status: e01b1_full_discovery_complete_e01b2_bounded_pilot_in_progress
+    status: e01b1_full_discovery_complete_e01b2_bounded_pilot_complete
     depends_on: [E01A]
     dimensions: [C, R]
     refs: [internal_intervention_adapter, source_free_setpoints, orthogonal_context_controls]
@@ -98,7 +98,15 @@ experiments:
       and beat norm-matched random/orthogonal controls. Continuous-grid slopes
       are positive in both models, but per-example monotonicity is weak in 0.6B
       and near-uniform in 1.7B. Source-free traces reproduce the mixed bottleneck
-      dominated by readout conversion. Confirmation was not accessed.
+      dominated by readout conversion. In the frozen E01B-2 pilots, matched,
+      same-family, and different-family opposite-label orthogonal contexts all
+      produced positive increments over coordinate-only and random orthogonal
+      context at fixed q; matched and same-family were stronger than
+      different-family in the aggregate. Same-label and random increments were
+      near zero. At L17, structured contexts changed native readout while the
+      probed q displacement remained fixed, followed by altered downstream q
+      propagation. Relation-family ordering was heterogeneous, so the
+      family-specific pattern remains exploratory. Confirmation was not accessed.
     rationale: >
       E01A matched and shuffled opposite-label coordinate treatments are
       indistinguishable across every non-zero alpha. Trace analysis finds no
@@ -129,14 +137,26 @@ experiments:
         truth coordinate, with possible relation-family specificity. Evaluate
         this unchanged hypothesis in the already-authorized 1.7B bounded pilot;
         do not tune conditions, lambdas, normalization, or metrics.
+      bounded_result: >
+        Supported as pilot-only evidence in both models. At lambda 1, matched,
+        same-family, and different-family context increments were respectively
+        1.108, 0.909, and 0.590 in 0.6B and 3.660, 3.157, and 2.450 in 1.7B;
+        random increments were -0.003 and -0.022. Aggregate matched-minus-
+        different-family and same-family-minus-different-family CIs excluded
+        zero in both models, with heterogeneous family-level ordering.
+    e01b2_bounded_runs:
+      qwen3_0_6b_smoke: E01B2_d20936222dbc
+      qwen3_1_7b_smoke: E01B2_204fd7e0f8d9
+      qwen3_0_6b_pilot: E01B2_d013bfeeabfa
+      qwen3_1_7b_pilot: E01B2_909b590300eb
     next_recommendation: >
       Predeclare E01B-2 orthogonal-context modulation at the frozen source-free
       scalar target, without accessing confirmation.
     execution_policy: >
-      E01B-1 full discovery is complete. E01B-2 smoke and pilot validation is
-      explicitly authorized; full E01B-2 discovery is not authorized. Do not
-      access confirmation or run E13, E14, E15, E16, or E02 without a new
-      explicit authorization.
+      E01B-1 full discovery and E01B-2 bounded smoke/pilot validation are
+      complete. Full E01B-2 discovery is not authorized. Do not access
+      confirmation or run E13, E14, E15, E16, or E02 without a new explicit
+      authorization.
 
   - id: E02
     name: decode_steer_gap
