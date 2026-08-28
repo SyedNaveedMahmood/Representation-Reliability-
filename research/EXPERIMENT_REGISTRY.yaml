@@ -22,8 +22,6 @@ experiments:
       run the gated Qwen3-1.7B comparison; see E00C.outcome. E01A full
       discovery is now complete; confirmation remains locked.
 
-
-
   - id: E00C
     name: origin_readout_diagnosis
     question: >
@@ -89,30 +87,34 @@ experiments:
       identity or nuisance matching matter when orthogonal source context is
       given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
-    status: proposed_not_authorized
+    status: authorized_e01b1_implementation_smoke_only
     depends_on: [E01A]
     dimensions: [C, R]
-    refs: [internal_intervention_adapter, matched_source_controls]
+    refs: [internal_intervention_adapter, source_free_setpoints, orthogonal_context_controls]
     max_gpu_hours: 4
     discovery_signal: >
       Source-free setpoints reproduce coordinate dose response; fixed-coordinate
       orthogonal-context contrasts separate matched, same-family shuffled,
       different-family shuffled, and random context effects.
     rationale: >
-      Unexpected E01A result: matched and shuffled opposite-label coordinate
-      treatments are statistically indistinguishable across every non-zero
-      alpha in both model scales. Trace analysis finds no residual matched-source
-      coefficient after scalar displacement, but E01A discards orthogonal source
-      information by construction. Register before any additional scaling.
+      E01A matched and shuffled opposite-label coordinate treatments are
+      indistinguishable across every non-zero alpha. Trace analysis finds no
+      residual matched-source coefficient after scalar displacement, but E01A
+      discards orthogonal source information by construction.
     proposed_design:
       source_free_setpoints: >
-        Estimate class medians or predeclared standardized coordinate targets
-        from a non-confirmation development split and set the coordinate without
-        any source example.
+        Primary targets are validation-only class medians; a secondary pooled
+        validation quantile grid Q05/Q25/Q50/Q75/Q95 measures continuous
+        setpoint-response. No donor activation is used.
       orthogonal_context_modulation: >
-        Hold coordinate displacement fixed while adding no orthogonal context,
-        matched-twin context, same-family shuffled context, different-family
-        shuffled context, or norm-matched random orthogonal context.
+        Conditional on E01B-1, hold the source-free coordinate displacement fixed
+        while adding no orthogonal context, matched-twin context, same-family
+        shuffled context, different-family shuffled context, same-label context,
+        or norm-matched random orthogonal context.
+    execution_policy: >
+      Immediate authorization covers implementation, unit/GPU contract tests,
+      and bounded smoke/pilot of E01B-1 only. Do not run E01B-1 full discovery,
+      E01B-2, confirmation, or E13 without a new explicit authorization.
 
   - id: E02
     name: decode_steer_gap
@@ -167,7 +169,7 @@ experiments:
     question: Does representational invariance imply causal invariance?
     priority: P1
     status: planned
-    depends_on: [E01, E02]
+    depends_on: [E01A, E02]
     dimensions: [D, C, S, R]
     refs: [nnsight, pyvene]
     max_gpu_hours: 10
@@ -215,3 +217,45 @@ experiments:
     dimensions: [D, C, R]
     refs: [statebridge]
     max_gpu_hours: 12
+
+  - id: E13
+    name: distillation_reliability_transfer
+    question: >
+      When a student already contains a highly decodable semantic representation,
+      does knowledge distillation transfer the teacher's ability to use it, or
+      can representation and causal conversion remain dissociated after distillation?
+    priority: P0
+    status: proposed_not_authorized
+    depends_on: [E01B]
+    dimensions: [D, C, R]
+    refs: [logit_kd, hidden_state_kd, trajectory_kd, source_free_setpoints]
+    max_gpu_hours: 16
+    discovery_signal: >
+      Distillation regimes move decodability, readout alignment, causal
+      conversion, and behavior differently across training checkpoints,
+      revealing whether representation transfer and utilization transfer are
+      separable.
+    rationale: >
+      The current 0.6B checkpoint already has near-ceiling D but weak causal
+      conversion relative to 1.7B. This creates a controlled setting to ask
+      whether distillation repairs use of an existing representation rather
+      than merely adding decodable information. Targeted 2026-08-28 literature
+      search found nearby logit/hidden-state/trajectory KD work but no direct
+      collision measuring teacher-student transfer of a probe-defined causal
+      conversion pathway.
+    proposed_design:
+      diagnostic_regimes: >
+        Frozen student, hard-label SFT, logit KD, one standard
+        hidden-state/trajectory KD baseline, and optional combined KD; measure
+        B/D/native-readout/C trajectories at fixed training checkpoints.
+      fresh_corpus: >
+        Use a new grouped synthetic discovery corpus with new seeds/surface forms
+        and a separate E13-specific confirmation holdout; never train on E01
+        confirmation.
+      method_trigger: >
+        Only if standard KD leaves a reproducible teacher-student conversion gap,
+        test a conversion-response distillation loss that matches the teacher's
+        standardized native-margin response to source-free semantic setpoints.
+    execution_policy: >
+      Design only. Do not implement or train E13 until E01B is frozen and an
+      explicit authorization is given.
