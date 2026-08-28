@@ -294,6 +294,40 @@ def confirm_actionability(
 
 
 @app.command()
+def e14(
+    base: Path | None = None,
+    model: Path | None = None,
+    experiment: Path | None = None,
+    precision: str = typer.Option(..., "--precision", help="bf16, int8, or int4"),
+    profile: str = typer.Option(..., "--profile", help="authorized: smoke or pilot"),
+    max_pairs: int | None = typer.Option(
+        None, "--max-pairs", help="optional cap within the frozen bounded profile"
+    ),
+    layer: int = typer.Option(17, "--layer", help="frozen resid_post layer"),
+    trace_layers: str = typer.Option(
+        "17,20,23,27", "--trace-layers", help="frozen trace layers"
+    ),
+    overrides: list[str] = typer.Option(None, "--set", help="dot-path overrides"),
+) -> None:
+    """Run one precision of the authorized E14 smoke/pilot ladder."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e14 import run_e14
+
+    run_dir = run_e14(
+        base,
+        model,
+        experiment,
+        tuple(overrides or ()),
+        precision=precision,
+        profile=profile,
+        max_pairs=max_pairs,
+        layer=layer,
+        trace_layers=trace_layers,
+    )
+    typer.echo(f"E14 run complete: {run_dir}")
+
+
+@app.command()
 def extract(
     base: Path | None = None,
     model: Path | None = None,
