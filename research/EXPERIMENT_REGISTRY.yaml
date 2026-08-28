@@ -87,7 +87,7 @@ experiments:
       identity or nuisance matching matter when orthogonal source context is
       given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
-    status: e01b1_and_e01b2_full_discovery_complete_confirmation_locked
+    status: e01b3_authorized_implementation_smoke_pilot_only
     depends_on: [E01A]
     dimensions: [C, R]
     refs: [internal_intervention_adapter, source_free_setpoints, orthogonal_context_controls]
@@ -154,15 +154,27 @@ experiments:
     e01b2_full_runs:
       qwen3_0_6b: E01B2_f2d75dab1eba
       qwen3_1_7b: E01B2_e2b4b02cb3a4
+    e01b3_preregistration:
+      status: authorized_implementation_smoke_pilot_only
+      design: docs/E01B3_FACTORIAL_DECOMPOSITION_DESIGN.md
+      question: >
+        Decompose each frozen E01B-2 context increment into an additive
+        context-only effect A and a q-by-context factorial interaction G.
+      frozen_arms: [Y00_clean, Y10_setpoint_only, Y01_context_only, Y11_setpoint_plus_context]
+      primary_estimand: G = (Y11 - Y10) - (Y01 - Y00)
+      bootstrap_unit: pair_id
+      trace_layers: [17, 20, 23, 27]
+      execution_limit: smoke_and_pilot_only
     next_recommendation: >
-      Freeze the E01B-2 site, targets, context construction, lambdas, controls,
-      metrics, and primary contrasts before separately deciding whether to
-      authorize confirmation. Preserve the distinction between multiplicative
-      context gating and an additive orthogonal causal signal.
+      Execute the frozen E01B-3 additive-versus-gating factorial decomposition
+      through bounded smoke and pilot only. Do not authorize confirmation until
+      the mechanism and a prospective full-discovery decision are separately
+      frozen.
     execution_policy: >
-      E01B-1 and E01B-2 full discovery are complete. Confirmation remains
-      locked. Do not access confirmation or run E13, E14, E15, E16, or E02
-      without a new explicit authorization.
+      E01B-1 and E01B-2 full discovery are complete. Only E01B-3 implementation,
+      tests, smoke, and pilot are currently authorized. E01B-3 full discovery
+      and confirmation remain locked. Do not access confirmation or run E13,
+      E14, E15, E16, or E02 without a new explicit authorization.
 
   - id: E02
     name: decode_steer_gap

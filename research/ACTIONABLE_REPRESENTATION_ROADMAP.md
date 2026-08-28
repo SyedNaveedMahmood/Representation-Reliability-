@@ -46,8 +46,28 @@ changes downstream q propagation. This supports operational context-gated
 utilization, while leaving additive orthogonal signal versus multiplicative
 gating unresolved. Confirmation remains untouched.
 
-The A2 mechanism must now be frozen before any separately authorized
-confirmation run.
+### A3. E01B-3 additive-vs-gating factorial decomposition — authorized bounded validation
+
+Goal: separate the E01B-2 context increment into an independent context-only
+effect and a true interaction with the frozen scalar intervention.
+
+The pre-registered four-arm design is:
+
+```text
+Y00 clean
+Y10 semantic setpoint only
+Y01 orthogonal context only
+Y11 semantic setpoint plus context
+```
+
+It estimates additive context signal `A = Y01-Y00` and factorial interaction
+`G = (Y11-Y10)-(Y01-Y00)`. Site, targets, source plans, context norms, lambdas,
+controls, traces, and pair-cluster inference are frozen from E01B-1/E01B-2.
+Only implementation, smoke, and pilot are authorized. Full discovery and
+confirmation remain locked.
+
+The A2/A3 mechanism must be frozen before any separately authorized confirmation
+run.
 
 ## Phase B — test fragility under compression
 
@@ -164,10 +184,11 @@ Current recommended ordering:
 |---:|---|---|
 | 1 | E01B-1 | complete: establishes donor-free causal object |
 | 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
-| 3 | E14 | cheapest strong test of utilization fragility; not authorized |
-| 4 | E13 | highest transfer/method upside; not authorized |
-| 5 | E16 | deepest developmental claim if checkpoints permit; not authorized |
-| 6 | E15 | highest long-horizon conceptual upside; not authorized |
+| 3 | E01B-3 | authorized bounded factorial decomposition; full discovery locked |
+| 4 | E14 | cheapest strong test of utilization fragility; not authorized |
+| 5 | E13 | highest transfer/method upside; not authorized |
+| 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
+| 7 | E15 | highest long-horizon conceptual upside; not authorized |
 
 ## Paper decision points
 
