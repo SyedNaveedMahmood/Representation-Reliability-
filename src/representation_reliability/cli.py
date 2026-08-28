@@ -188,6 +188,55 @@ def e01b(
 
 
 @app.command()
+def e01b2(
+    base: Path | None = None,
+    model: Path | None = None,
+    experiment: Path | None = None,
+    layer: int = typer.Option(17, "--layer", help="frozen resid_post layer"),
+    profile: str = typer.Option(
+        "full", "--profile", help="bounded profile: smoke, pilot, or full"
+    ),
+    max_pairs: int | None = typer.Option(
+        None, "--max-pairs", help="optional deterministic discovery pair cap"
+    ),
+    context_strengths: str = typer.Option(
+        "0.5,1.0",
+        "--context-strengths",
+        help="frozen comma-separated orthogonal context strengths",
+    ),
+    random_orthogonal_directions: int = typer.Option(
+        10,
+        "--random-orthogonal-directions",
+        min=1,
+        help="number of deterministic random orthogonal contexts",
+    ),
+    trace_layers: str = typer.Option(
+        "17,20,23,27",
+        "--trace-layers",
+        help="frozen intervened-forward trace layers",
+    ),
+    overrides: list[str] = typer.Option(None, "--set", help="dot-path overrides"),
+) -> None:
+    """Run E01B-2 fixed-setpoint orthogonal-context modulation."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e01b2 import run_e01b2
+
+    run_dir = run_e01b2(
+        base,
+        model,
+        experiment,
+        tuple(overrides or ()),
+        layer=layer,
+        profile=profile,
+        max_pairs=max_pairs,
+        context_strengths=context_strengths,
+        random_orthogonal_directions=random_orthogonal_directions,
+        trace_layers=trace_layers,
+    )
+    typer.echo(f"E01B-2 run complete: {run_dir}")
+
+
+@app.command()
 def extract(
     base: Path | None = None,
     model: Path | None = None,
