@@ -443,9 +443,8 @@ def run_e14(
             probe_rows = pd.read_parquet(
                 _frozen_native_source / "probe_metrics.parquet"
             ).to_dict(orient="records")
-        if profile == "full":
-            if _frozen_native_source is None:
-                _save_native_probe_reference(run_dir, fits, native_directions)
+        if profile == "full" and _frozen_native_source is None:
+            _save_native_probe_reference(run_dir, fits, native_directions)
 
         validation_ids = frame.loc[frame["split"] == "validation", "sample_id"].astype(str).tolist()
         validation_labels = np.asarray([labels[sid] for sid in validation_ids], dtype=int)
