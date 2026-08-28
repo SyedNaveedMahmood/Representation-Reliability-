@@ -1,10 +1,12 @@
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 import torch
 
 from representation_reliability.adapters.intervention import (
     forward_resid_post_intervention,
+    forward_selected_token_logits,
 )
 
 
@@ -80,3 +82,71 @@ def test_resid_post_intervention_applies_exact_delta_and_propagates():
     final = expected_l1 + 3.0
     expected_logits = np.array([final[0] + final[1], final[1] + final[2]])
     np.testing.assert_allclose(result["selected_logits"][0], expected_logits)
+
+
+def test_zero_edit_matches_unhooked_forward_and_hooks_do_not_leak():
+    adapter = DummyAdapter()
+    baseline = forward_selected_token_logits(
+        adapter,
+        ["a", "b"],
+        token_indices=[0, 2],
+        output_token_ids=[3, 4],
+    )
+    zero = forward_resid_post_intervention(
+        adapter,
+        ["a", "b"],
+        layer=1,
+        token_indices=[0, 2],
+        deltas=np.zeros((2, 3), dtype=np.float32),
+        output_token_ids=[3, 4],
+        capture_layers=[1],
+    )
+    np.testing.assert_allclose(zero["selected_logits"], baseline)
+
+    forward_resid_post_intervention(
+        adapter,
+        ["a", "b"],
+        layer=1,
+        token_indices=[0, 2],
+        deltas=np.ones((2, 3), dtype=np.float32),
+        output_token_ids=[3, 4],
+    )
+    after = forward_selected_token_logits(
+        adapter,
+        ["a", "b"],
+        token_indices=[0, 2],
+        output_token_ids=[3, 4],
+    )
+    np.testing.assert_allclose(after, baseline)
+
+
+def test_sample_specific_indices_reject_a_right_padding_position():
+    adapter = DummyAdapter()
+
+    def padded_tokenize(_prompts):
+        ids = torch.tensor([[0, 1, 0], [0, 1, 2]], dtype=torch.long)
+        mask = torch.tensor([[1, 1, 0], [1, 1, 1]], dtype=torch.long)
+        return {"input_ids": ids, "attention_mask": mask}
+
+    adapter.tokenize = padded_tokenize
+    with pytest.raises(ValueError, match="outside prompt length"):
+        forward_resid_post_intervention(
+            adapter,
+            ["short", "long"],
+            layer=1,
+            token_indices=[2, 2],
+            deltas=np.ones((2, 3), dtype=np.float32),
+            output_token_ids=[3, 4],
+        )
+
+    result = forward_resid_post_intervention(
+        adapter,
+        ["short", "long"],
+        layer=1,
+        token_indices=[1, 2],
+        deltas=np.array([[1.0, 0.0, 0.0], [0.0, 2.0, 0.0]]),
+        output_token_ids=[3, 4],
+        capture_layers=[1],
+    )
+    np.testing.assert_allclose(result["captured"][1][0], [4.0, 4.0, 3.0])
+    np.testing.assert_allclose(result["captured"][1][1], [3.0, 5.0, 4.0])

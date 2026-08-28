@@ -16,8 +16,45 @@ if TYPE_CHECKING:
     from .hf import HFAdapter
 
 
+def forward_selected_token_logits(
+    adapter: HFAdapter,
+    prompts: Sequence[str],
+    *,
+    token_indices: Sequence[int],
+    output_token_ids: Sequence[int],
+) -> np.ndarray:
+    """Run an unhooked forward and return selected next-token logits."""
+    if adapter.model is None or adapter.tokenizer is None:
+        raise RuntimeError("adapter.load() must be called before forward")
+    n = len(prompts)
+    if n == 0 or len(token_indices) != n:
+        raise ValueError("prompts must be non-empty with one token index per row")
+    if not output_token_ids:
+        raise ValueError("output_token_ids may not be empty")
+    batch = adapter.tokenize(prompts)
+    input_ids = batch["input_ids"].to(adapter.device)
+    attention_mask = batch["attention_mask"].to(adapter.device)
+    idx = torch.as_tensor(
+        list(map(int, token_indices)), dtype=torch.long, device=adapter.device
+    )
+    lengths = attention_mask.sum(dim=1).to(dtype=torch.long)
+    if torch.any(idx < 0) or torch.any(idx >= lengths):
+        raise ValueError("one or more token indices are outside prompt length")
+    with torch.inference_mode():
+        outputs = adapter.model(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+        )
+    row_ids = torch.arange(n, device=adapter.device)
+    logits = outputs.logits[row_ids, idx]
+    token_ids = torch.as_tensor(
+        list(map(int, output_token_ids)), dtype=torch.long, device=adapter.device
+    )
+    return logits.index_select(-1, token_ids).detach().float().cpu().numpy()
+
+
 def forward_resid_post_intervention(
-    adapter: "HFAdapter",
+    adapter: HFAdapter,
     prompts: Sequence[str],
     *,
     layer: int,

@@ -27,6 +27,7 @@ from ..interventions.truth_coordinate import (
 )
 from ..metrics.causal import (
     aggregate_intervention_rows,
+    counterfactual_outcome,
     dose_response_summary,
     margin_toward_label,
     paired_control_contrast,
@@ -34,25 +35,68 @@ from ..metrics.causal import (
 from ..metrics.decoding import classification_metrics
 from ..probes.linear import fit_probe, raw_probe_direction, transform_features
 from ..reporting.tables import save_json, save_table
-from ..runtime.manifest import RunManifest, dataset_split_hash
+from ..runtime.manifest import RunManifest, dataset_split_hash, prompt_hash
 from ..runtime.run_id import allocate_run_dir, make_run_id
-from ..runtime.status import StatusFile
+from ..runtime.status import StatusFile, atomic_write_json
 from .e00c import _generate_dataset, candidate_token_id_lists
-from .extract import load_adapter
 from .e01a_support import (
     alpha_profile,
     build_source_plans,
     deterministic_subset_pair_ids,
     extract_resid_post_layers,
+    intervention_base_activations,
+    load_activation_snapshot,
     parse_trace_layers,
     run_intervention_batches,
+    run_unintervened_batches,
+    save_activation_snapshot,
 )
+from .e01a_support import (
+    select_same_label_sources as _select_same_label_sources,
+)
+from .e01a_support import (
+    select_shuffled_opposite_sources as _select_shuffled_opposite_sources,
+)
+from .extract import load_adapter
 
 logger = logging.getLogger(__name__)
 
-E01A_VERSION = "e01a-causal-conversion-v1"
+E01A_VERSION = "e01a-causal-conversion-v3"
 SITE = "resid_post"
 SELECTOR = "last_prompt"
+
+# Stable helper names retained for the existing runner/test contract.
+alpha_values = alpha_profile
+
+
+def select_same_label_sources(rows: pd.DataFrame) -> dict[str, str]:
+    return _select_same_label_sources(rows)
+
+
+def select_shuffled_opposite_sources(
+    rows: pd.DataFrame, *, seed: int
+) -> dict[str, str]:
+    return _select_shuffled_opposite_sources(rows, seed=seed)
+
+
+def _allocate_or_resume_run_dir(
+    output_root: Path, run_id: str, *, resume: bool
+) -> tuple[Path, bool]:
+    """Resume the newest incomplete identical run, else allocate safely."""
+    experiment_root = output_root / "E01A"
+    candidates = []
+    canonical = experiment_root / run_id
+    if canonical.exists():
+        candidates.append(canonical)
+    reruns = list(experiment_root.glob(f"{run_id}-r*"))
+    reruns.sort(key=lambda path: int(path.name.rsplit("-r", 1)[1]))
+    candidates.extend(reruns)
+    if resume:
+        for candidate in reversed(candidates):
+            status = StatusFile.load(candidate)
+            if status is not None and not status.is_complete():
+                return candidate, True
+    return allocate_run_dir(output_root, "E01A", run_id), False
 
 
 def _profile_limits(
@@ -116,7 +160,7 @@ def _layer_probe(
             "site": SITE,
             "token_selector": SELECTOR,
             "chosen_C": float(fit["chosen_C"]),
-            "n_discovery_test": int(len(yte)),
+            "n_discovery_test": len(yte),
             "sample_ids_digest": hashlib.sha256("\n".join(test_ids).encode()).hexdigest(),
         }
     )
@@ -167,7 +211,11 @@ Intervention-layer discovery AUROC: `{summary['intervention_layer_probe_auroc']:
 
 - max alpha=0 selected-logit deviation from clean baseline: `{summary['alpha0_max_logit_deviation']:.6g}`
 - max target-layer intervention fidelity deviation: `{summary['target_fidelity_max_abs']:.6g}`
+- max target-layer relative L2 deviation: `{summary['target_fidelity_max_relative_l2']:.6g}`
+- max truth-coordinate projection relative deviation: `{summary['truth_projection_max_relative_deviation']:.6g}`
+- max truth-coordinate orthogonal relative deviation: `{summary['truth_orthogonal_max_relative_deviation']:.6g}`
 - max random/orthogonal norm mismatch: `{summary['control_norm_match_max_abs']:.6g}`
+- max post-forward hook-leakage logit deviation: `{summary['hook_leakage_max_logit_deviation']:.6g}`
 
 ## Pilot/discovery effect snapshot
 
@@ -230,15 +278,15 @@ def run_e01a(
     traces = parse_trace_layers(
         trace_layers, intervention_layer=int(layer), num_layers=adapter.num_layers
     )
-    needed_layers = sorted(set([int(layer), *traces]))
+    needed_layers = sorted({int(layer), *traces})
 
     candidates = list(cfg.behavior.candidates_primary)
     if len(candidates) != 2:
         raise ValueError("E01A requires exactly two primary behavior candidates")
     candidate_lists = candidate_token_id_lists(adapter, candidates)
-    output_token_ids = [int(ids[0]) for ids in candidate_lists]
     if any(len(ids) == 0 for ids in candidate_lists):
         raise RuntimeError("empty answer candidate tokenization")
+    output_token_ids = [int(ids[0]) for ids in candidate_lists]
 
     revisions = adapter.resolved_revisions()
     resolved_revision = revisions.get("model_sha")
@@ -266,7 +314,11 @@ def run_e01a(
         dataset_split_hash=split_hash,
     )
     repo_root = Path(__file__).resolve().parents[3]
-    run_dir = allocate_run_dir(repo_root / cfg.project.output_root, "E01A", run_id)
+    run_dir, resumed = _allocate_or_resume_run_dir(
+        repo_root / cfg.project.output_root,
+        run_id,
+        resume=bool(cfg.runtime.resume),
+    )
     (run_dir / "logs").mkdir(parents=True, exist_ok=True)
     save_resolved_config(
         cfg,
@@ -277,17 +329,26 @@ def run_e01a(
             "e01a_shape": json.loads(shape_payload),
         },
     )
-    status = StatusFile.create(run_dir, run_id, "E01A")
     manifest = RunManifest(run_dir)
-    manifest.set_start(
-        resolved_hash,
-        {
-            **provenance,
-            "e01a_version": E01A_VERSION,
-            "e01a_shape": json.loads(shape_payload),
-        },
-        cfg.effective_seeds(),
-    )
+    if resumed:
+        status = StatusFile.load(run_dir)
+        if status is None:
+            raise RuntimeError("resumable E01A run has no status file")
+        status.update(state="running", message="resuming E01A run")
+        if not manifest.path.exists():
+            raise RuntimeError("resumable E01A run has no manifest")
+        manifest.manifest = json.loads(manifest.path.read_text(encoding="utf-8"))
+    else:
+        status = StatusFile.create(run_dir, run_id, "E01A")
+        manifest.set_start(
+            resolved_hash,
+            {
+                **provenance,
+                "e01a_version": E01A_VERSION,
+                "e01a_shape": json.loads(shape_payload),
+            },
+            cfg.effective_seeds(),
+        )
     manifest.update_model_info(
         id=cfg.model.id,
         revision=cfg.model.revision,
@@ -296,22 +357,46 @@ def run_e01a(
         tokenizer_revision=revisions.get("tokenizer_sha"),
         num_layers=adapter.num_layers,
         hidden_size=adapter.hidden_size,
+        resolved_native_modules={
+            f"{SITE}:{int(layer)}": adapter.resolve_site(
+                SITE, int(layer)
+            ).native_module_name
+        },
         notes={"revision_resolution": revisions},
     )
-    manifest.update_dataset_info(split_hash=split_hash)
+    manifest.update_dataset_info(
+        split_hash=split_hash,
+        prompt_hash_sample=prompt_hash(discovery_df.iloc[0]["prompt"]),
+    )
 
     try:
         discovery_samples = [
             samples_by_id[sid]
             for sid in discovery_df["sample_id"].astype(str).tolist()
         ]
-        activations, token_indices = extract_resid_post_layers(
-            adapter,
-            discovery_samples,
-            layers=needed_layers,
-            token_selector=SELECTOR,
-            batch_size=int(cfg.runtime.batch_size),
+        discovery_sample_ids = [str(sample.sample_id) for sample in discovery_samples]
+        activation_snapshot = load_activation_snapshot(
+            run_dir,
+            expected_sample_ids=discovery_sample_ids,
+            expected_layers=needed_layers,
         )
+        if activation_snapshot is None:
+            activations, token_indices, token_sites = extract_resid_post_layers(
+                adapter,
+                discovery_samples,
+                layers=needed_layers,
+                token_selector=SELECTOR,
+                batch_size=int(cfg.runtime.batch_size),
+            )
+            save_activation_snapshot(
+                run_dir,
+                activations,
+                sample_ids=discovery_sample_ids,
+                token_indices=token_indices,
+                token_sites=token_sites,
+            )
+        else:
+            activations, token_indices, token_sites = activation_snapshot
 
         probe_dirs: dict[int, np.ndarray] = {}
         probe_metrics: list[dict[str, Any]] = []
@@ -373,9 +458,26 @@ def run_e01a(
             capture_layers=traces,
             batch_size=int(cfg.runtime.batch_size),
         )
+        unhooked_clean = run_unintervened_batches(
+            adapter,
+            samples_by_id,
+            base_ids,
+            token_indices=token_indices,
+            output_token_ids=output_token_ids,
+            batch_size=int(cfg.runtime.batch_size),
+        )
         clean_margin = {
             sid: _selected_margin(clean[sid]["selected_logits"]) for sid in base_ids
         }
+        intervention_bases = intervention_base_activations(
+            clean,
+            base_ids,
+            layer=int(layer),
+        )
+        alpha0_max_logit_dev = max(
+            abs(clean_margin[sid] - _selected_margin(unhooked_clean[sid]))
+            for sid in base_ids
+        )
         clean_trace_native: dict[int, dict[str, float]] = {
             tl: {} for tl in traces
         }
@@ -396,8 +498,11 @@ def run_e01a(
         raw_rows: list[dict[str, Any]] = []
         trace_rows: list[dict[str, Any]] = []
         max_fidelity = 0.0
+        max_fidelity_relative = 0.0
+        max_projection_relative = 0.0
+        max_orthogonal_relative = 0.0
         max_norm_mismatch = 0.0
-        alpha0_max_logit_dev = 0.0
+        max_norm_mismatch_relative = 0.0
 
         def evaluate_condition(
             *,
@@ -406,8 +511,12 @@ def run_e01a(
             deltas: dict[str, np.ndarray],
             source_ids: dict[str, str],
             direction_seed: int | None = None,
+            direction_index: int | None = None,
         ) -> None:
-            nonlocal max_fidelity, max_norm_mismatch, alpha0_max_logit_dev
+            nonlocal max_fidelity, max_fidelity_relative
+            nonlocal max_projection_relative, max_orthogonal_relative
+            nonlocal max_norm_mismatch, max_norm_mismatch_relative
+            nonlocal alpha0_max_logit_dev
             if float(alpha) == 0.0:
                 results = clean
             else:
@@ -441,7 +550,7 @@ def run_e01a(
                 expected_label = int(sample.expected_counterfactual_label)
                 if expected_label != int(label_map[matched_id]):
                     raise RuntimeError(f"counterfactual label mismatch for {sid}")
-                h_base = activations[int(layer)][sid]
+                h_base = intervention_bases[sid]
                 h_matched = activations[int(layer)][matched_id]
                 delta = np.asarray(deltas[sid], dtype=np.float64)
                 activation_norm = float(np.linalg.norm(h_base))
@@ -452,9 +561,39 @@ def run_e01a(
                     results[sid]["captured"][int(layer)], dtype=np.float64
                 )
                 expected_target = h_base + delta
-                fidelity = float(np.max(np.abs(captured_target - expected_target)))
+                fidelity_diff = captured_target - expected_target
+                fidelity = float(np.max(np.abs(fidelity_diff)))
+                fidelity_relative = float(
+                    np.linalg.norm(fidelity_diff)
+                    / max(float(np.linalg.norm(expected_target)), 1e-12)
+                )
                 max_fidelity = max(max_fidelity, fidelity)
+                max_fidelity_relative = max(
+                    max_fidelity_relative, fidelity_relative
+                )
                 q_after = coordinate_value(captured_target, u)
+                projection_relative = float("nan")
+                orthogonal_relative = float("nan")
+                if condition == "truth_coordinate":
+                    expected_q = (
+                        (1.0 - float(alpha)) * q_base
+                        + float(alpha) * q_matched
+                    )
+                    projection_relative = abs(q_after - expected_q) / max(
+                        abs(q_base), abs(q_matched), abs(expected_q), 1.0
+                    )
+                    base_orthogonal = h_base - q_base * u
+                    after_orthogonal = captured_target - q_after * u
+                    orthogonal_relative = float(
+                        np.linalg.norm(after_orthogonal - base_orthogonal)
+                        / max(float(np.linalg.norm(base_orthogonal)), 1.0)
+                    )
+                    max_projection_relative = max(
+                        max_projection_relative, projection_relative
+                    )
+                    max_orthogonal_relative = max(
+                        max_orthogonal_relative, orthogonal_relative
+                    )
                 margin_before = clean_margin[sid]
                 margin_after = _selected_margin(results[sid]["selected_logits"])
                 if float(alpha) == 0.0:
@@ -468,6 +607,9 @@ def run_e01a(
                 oriented_delta = oriented_after - oriented_before
                 pred_before = _prediction(margin_before)
                 pred_after = _prediction(margin_after)
+                outcome = counterfactual_outcome(
+                    pred_before, pred_after, expected_label
+                )
                 dq = q_after - q_base
                 kappa = (
                     float(oriented_delta / max(abs(dq), 1e-12))
@@ -482,9 +624,27 @@ def run_e01a(
                     )
                 )
                 if condition in {"random_direction", "orthogonal_random"}:
-                    max_norm_mismatch = max(
-                        max_norm_mismatch, abs(delta_norm - truth_delta_norm)
-                    )
+                    mismatch = abs(delta_norm - truth_delta_norm)
+                    max_norm_mismatch = max(max_norm_mismatch, mismatch)
+                    if truth_delta_norm > 1e-12:
+                        max_norm_mismatch_relative = max(
+                            max_norm_mismatch_relative,
+                            mismatch / truth_delta_norm,
+                        )
+                source_sample_id = (
+                    None
+                    if condition in {"random_direction", "orthogonal_random"}
+                    else source_id
+                )
+                control_source_id = (
+                    source_id
+                    if condition in {"same_label_coordinate", "shuffled_coordinate"}
+                    else None
+                )
+                source_relation = str(
+                    samples_by_id[source_id].metadata.get("relation")
+                )
+                token_site = token_sites[sid]
                 raw_rows.append(
                     {
                         "model_id": cfg.model.id,
@@ -494,18 +654,37 @@ def run_e01a(
                         "pair_id": str(sample.pair_id),
                         "relation_family": str(sample.metadata.get("relation")),
                         "gold_label": int(label_map[sid]),
+                        "counterfactual_label": expected_label,
                         "expected_label": expected_label,
                         "matched_source_id": matched_id,
-                        "source_sample_id": source_id,
+                        "source_sample_id": source_sample_id,
+                        "control_source_id": control_source_id,
+                        "norm_reference_source_id": matched_id,
+                        "source_relation_family": source_relation,
                         "same_label_source_id": plan.same_label_source_id,
                         "shuffled_source_id": plan.shuffled_source_id,
                         "source_selection_seed": int(plan.selection_seed),
                         "site": SITE,
+                        "native_module_name": adapter.resolve_site(
+                            SITE, int(layer)
+                        ).native_module_name,
                         "layer": int(layer),
                         "token_selector": SELECTOR,
                         "token_index": int(token_indices[sid]),
+                        "token_id": int(token_site["token_id"]),
+                        "token_text": str(token_site["token_text"]),
+                        "token_char_start": token_site["char_start"],
+                        "token_char_end": token_site["char_end"],
+                        "prompt_sequence_length": int(
+                            token_site["sequence_length"]
+                        ),
+                        "raw_text": sample.prompt,
+                        "chat_template_used": bool(
+                            token_site["chat_template_used"]
+                        ),
                         "condition": condition,
                         "direction_seed": direction_seed,
+                        "random_direction_index": direction_index,
                         "alpha": float(alpha),
                         "base_truth_coordinate": q_base,
                         "source_truth_coordinate": coordinate_value(
@@ -520,14 +699,23 @@ def run_e01a(
                         "margin_toward_expected_before": oriented_before,
                         "margin_toward_expected_after": oriented_after,
                         "delta_margin_toward_expected": oriented_delta,
+                        "counterfactual_oriented_margin_before": oriented_before,
+                        "counterfactual_oriented_margin_after": oriented_after,
+                        "counterfactual_oriented_delta_margin": oriented_delta,
                         "activation_norm": activation_norm,
                         "delta_norm": delta_norm,
                         "delta_norm_ratio": delta_norm / max(activation_norm, 1e-12),
                         "truth_reference_delta_norm": truth_delta_norm,
                         "target_fidelity_max_abs": fidelity,
+                        "target_fidelity_relative_l2": fidelity_relative,
+                        "truth_projection_relative_deviation": projection_relative,
+                        "truth_orthogonal_relative_deviation": orthogonal_relative,
                         "prediction_before": pred_before,
                         "prediction_after": pred_after,
-                        "counterfactual_flip": int(pred_after == expected_label),
+                        "base_prediction": pred_before,
+                        "intervened_prediction": pred_after,
+                        "expected_label_after": outcome["expected_label_after"],
+                        "counterfactual_flip": outcome["counterfactual_flip"],
                         "kappa": kappa,
                         "yes_token_id": int(output_token_ids[0]),
                         "no_token_id": int(output_token_ids[1]),
@@ -572,7 +760,41 @@ def run_e01a(
                         }
                     )
 
-        for alpha in alphas:
+        evidence_dir = run_dir / "evidence_shards"
+        evidence_dir.mkdir(parents=True, exist_ok=True)
+        completed_alpha_indices: set[int] = set()
+        expected_raw_rows_per_alpha = len(base_ids) * (4 + 2 * n_random)
+        expected_trace_rows_per_alpha = expected_raw_rows_per_alpha * len(traces)
+        for alpha_index, alpha in enumerate(alphas):
+            marker_path = evidence_dir / f"alpha_{alpha_index:02d}.json"
+            if not marker_path.exists():
+                continue
+            marker = json.loads(marker_path.read_text(encoding="utf-8"))
+            raw_shard = pd.read_parquet(
+                evidence_dir / f"alpha_{alpha_index:02d}_interventions.parquet"
+            )
+            trace_shard = pd.read_parquet(
+                evidence_dir / f"alpha_{alpha_index:02d}_traces.parquet"
+            )
+            if (
+                marker.get("version") != E01A_VERSION
+                or not np.isclose(float(marker.get("alpha")), float(alpha))
+                or len(raw_shard) != expected_raw_rows_per_alpha
+                or len(trace_shard) != expected_trace_rows_per_alpha
+                or not np.allclose(raw_shard["alpha"].to_numpy(float), float(alpha))
+            ):
+                raise RuntimeError(
+                    f"invalid E01A evidence shard for alpha index {alpha_index}"
+                )
+            raw_rows.extend(raw_shard.to_dict(orient="records"))
+            trace_rows.extend(trace_shard.to_dict(orient="records"))
+            completed_alpha_indices.add(alpha_index)
+
+        for alpha_index, alpha in enumerate(alphas):
+            if alpha_index in completed_alpha_indices:
+                continue
+            raw_start = len(raw_rows)
+            trace_start = len(trace_rows)
             truth_deltas: dict[str, np.ndarray] = {}
             same_deltas: dict[str, np.ndarray] = {}
             shuffled_deltas: dict[str, np.ndarray] = {}
@@ -582,7 +804,7 @@ def run_e01a(
             shuffled_sources: dict[str, str] = {}
             for sid in base_ids:
                 plan = plans[sid]
-                h_base = activations[int(layer)][sid]
+                h_base = intervention_bases[sid]
                 h_match = activations[int(layer)][plan.matched_source_id]
                 h_same = activations[int(layer)][plan.same_label_source_id]
                 h_shuf = activations[int(layer)][plan.shuffled_source_id]
@@ -627,11 +849,13 @@ def run_e01a(
                 source_ids=matched_sources,
             )
 
-            for direction_seed, v in random_dirs.items():
+            for direction_index, (direction_seed, v) in enumerate(
+                random_dirs.items()
+            ):
                 deltas = {}
                 for sid in base_ids:
                     plan = plans[sid]
-                    h_base = activations[int(layer)][sid]
+                    h_base = intervention_bases[sid]
                     h_match = activations[int(layer)][plan.matched_source_id]
                     q_gap = coordinate_value(h_match, u) - coordinate_value(
                         h_base, u
@@ -643,12 +867,15 @@ def run_e01a(
                     deltas=deltas,
                     source_ids=matched_sources,
                     direction_seed=int(direction_seed),
+                    direction_index=int(direction_index),
                 )
-            for direction_seed, v in ortho_dirs.items():
+            for direction_index, (direction_seed, v) in enumerate(
+                ortho_dirs.items()
+            ):
                 deltas = {}
                 for sid in base_ids:
                     plan = plans[sid]
-                    h_base = activations[int(layer)][sid]
+                    h_base = intervention_bases[sid]
                     h_match = activations[int(layer)][plan.matched_source_id]
                     q_gap = coordinate_value(h_match, u) - coordinate_value(
                         h_base, u
@@ -660,8 +887,36 @@ def run_e01a(
                     deltas=deltas,
                     source_ids=matched_sources,
                     direction_seed=int(direction_seed),
+                    direction_index=int(direction_index),
                 )
 
+            raw_shard = pd.DataFrame(raw_rows[raw_start:])
+            trace_shard = pd.DataFrame(trace_rows[trace_start:])
+            if (
+                len(raw_shard) != expected_raw_rows_per_alpha
+                or len(trace_shard) != expected_trace_rows_per_alpha
+            ):
+                raise RuntimeError(
+                    f"E01A alpha {alpha} produced an incomplete evidence shard"
+                )
+            save_table(
+                raw_shard,
+                evidence_dir / f"alpha_{alpha_index:02d}_interventions.parquet",
+            )
+            save_table(
+                trace_shard,
+                evidence_dir / f"alpha_{alpha_index:02d}_traces.parquet",
+            )
+            atomic_write_json(
+                evidence_dir / f"alpha_{alpha_index:02d}.json",
+                {
+                    "complete": True,
+                    "version": E01A_VERSION,
+                    "alpha": float(alpha),
+                    "n_raw_rows": len(raw_shard),
+                    "n_trace_rows": len(trace_shard),
+                },
+            )
             status.update(
                 progress={
                     "completed_alpha": float(alpha),
@@ -672,6 +927,96 @@ def run_e01a(
 
         raw_df = pd.DataFrame(raw_rows)
         trace_df = pd.DataFrame(trace_rows)
+        max_fidelity = float(raw_df["target_fidelity_max_abs"].max())
+        max_fidelity_relative = float(
+            raw_df["target_fidelity_relative_l2"].max()
+        )
+        truth_rows = raw_df[raw_df["condition"] == "truth_coordinate"]
+        max_projection_relative = float(
+            truth_rows["truth_projection_relative_deviation"].max()
+        )
+        max_orthogonal_relative = float(
+            truth_rows["truth_orthogonal_relative_deviation"].max()
+        )
+        random_rows = raw_df[
+            raw_df["condition"].isin(["random_direction", "orthogonal_random"])
+        ]
+        norm_mismatch = np.abs(
+            random_rows["delta_norm"].to_numpy(float)
+            - random_rows["truth_reference_delta_norm"].to_numpy(float)
+        )
+        max_norm_mismatch = float(np.max(norm_mismatch))
+        nonzero_reference = (
+            random_rows["truth_reference_delta_norm"].to_numpy(float) > 1e-12
+        )
+        max_norm_mismatch_relative = (
+            float(
+                np.max(
+                    norm_mismatch[nonzero_reference]
+                    / random_rows.loc[
+                        nonzero_reference, "truth_reference_delta_norm"
+                    ].to_numpy(float)
+                )
+            )
+            if np.any(nonzero_reference)
+            else 0.0
+        )
+        post_intervention_clean = run_unintervened_batches(
+            adapter,
+            samples_by_id,
+            base_ids,
+            token_indices=token_indices,
+            output_token_ids=output_token_ids,
+            batch_size=int(cfg.runtime.batch_size),
+        )
+        hook_leakage_max_logit_dev = max(
+            float(
+                np.max(
+                    np.abs(post_intervention_clean[sid] - unhooked_clean[sid])
+                )
+            )
+            for sid in base_ids
+        )
+        if alpha0_max_logit_dev > 1e-6:
+            raise RuntimeError(
+                "alpha=0 intervention changed selected logits: "
+                f"max deviation={alpha0_max_logit_dev}"
+            )
+        if hook_leakage_max_logit_dev > 1e-6:
+            raise RuntimeError(
+                "intervention hook leaked after its forward: "
+                f"max deviation={hook_leakage_max_logit_dev}"
+            )
+        if max_fidelity_relative > 0.02:
+            raise RuntimeError(
+                "target-layer intervention fidelity exceeded dtype-aware "
+                f"tolerance: relative L2={max_fidelity_relative}"
+            )
+        if max_projection_relative > 0.02 or max_orthogonal_relative > 0.02:
+            raise RuntimeError(
+                "truth-coordinate projection identity failed: "
+                f"projection={max_projection_relative}, "
+                f"orthogonal={max_orthogonal_relative}"
+            )
+        if max_norm_mismatch_relative > 1e-10:
+            raise RuntimeError(
+                "random-control per-sample norm matching failed: "
+                f"relative deviation={max_norm_mismatch_relative}"
+            )
+        finite_columns = [
+            "base_truth_coordinate",
+            "source_truth_coordinate",
+            "intervened_truth_coordinate",
+            "delta_truth_coordinate",
+            "base_yes_no_margin",
+            "intervened_yes_no_margin",
+            "counterfactual_oriented_delta_margin",
+            "activation_norm",
+            "delta_norm",
+            "delta_norm_ratio",
+        ]
+        if not np.isfinite(raw_df[finite_columns].to_numpy(float)).all():
+            raise RuntimeError("non-finite value found in required intervention evidence")
         save_table(raw_df, run_dir / "intervention_rows.parquet")
         save_table(trace_df, run_dir / "trace_rows.parquet")
 
@@ -750,8 +1095,8 @@ def run_e01a(
             "trace_layers": traces,
             "alphas": list(map(float, alphas)),
             "random_directions": int(n_random),
-            "n_pairs": int(len(selected_pair_ids)),
-            "n_base_examples": int(len(base_ids)),
+            "n_pairs": len(selected_pair_ids),
+            "n_base_examples": len(base_ids),
             "intervention_layer_probe_auroc": float(
                 intervention_probe.get("auroc")
             ),
@@ -760,8 +1105,22 @@ def run_e01a(
                 len(candidate_lists[0]) != 1 or len(candidate_lists[1]) != 1
             ),
             "alpha0_max_logit_deviation": float(alpha0_max_logit_dev),
+            "hook_leakage_max_logit_deviation": float(
+                hook_leakage_max_logit_dev
+            ),
             "target_fidelity_max_abs": float(max_fidelity),
+            "target_fidelity_max_relative_l2": float(max_fidelity_relative),
+            "truth_projection_max_relative_deviation": float(
+                max_projection_relative
+            ),
+            "truth_orthogonal_max_relative_deviation": float(
+                max_orthogonal_relative
+            ),
             "control_norm_match_max_abs": float(max_norm_mismatch),
+            "control_norm_match_max_relative": float(
+                max_norm_mismatch_relative
+            ),
+            "nan_inf_check": "pass",
             "truth_alpha1_mean_effect": truth_alpha1_effect,
             "truth_dose_response": truth_dose,
             "confirmation_accessed": False,
@@ -773,8 +1132,8 @@ def run_e01a(
             runs_summary=[
                 {
                     "profile": str(profile),
-                    "n_pairs": int(len(selected_pair_ids)),
-                    "n_rows": int(len(raw_df)),
+                    "n_pairs": len(selected_pair_ids),
+                    "n_rows": len(raw_df),
                     "truth_alpha1_mean_effect": truth_alpha1_effect,
                 }
             ]

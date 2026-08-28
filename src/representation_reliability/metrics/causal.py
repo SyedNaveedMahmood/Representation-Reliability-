@@ -21,6 +21,24 @@ def margin_toward_label(margin_yes_minus_no: float, label: int) -> float:
     return float(margin_yes_minus_no) if int(label) == 1 else -float(margin_yes_minus_no)
 
 
+def counterfactual_outcome(
+    prediction_before: int, prediction_after: int, expected_label: int
+) -> dict[str, int]:
+    """Distinguish target accuracy after intervention from an actual flip."""
+    values = (prediction_before, prediction_after, expected_label)
+    if any(int(value) not in (0, 1) for value in values):
+        raise ValueError("predictions and expected_label must be binary")
+    hit_after = int(int(prediction_after) == int(expected_label))
+    flip = int(
+        int(prediction_before) != int(expected_label)
+        and int(prediction_after) == int(expected_label)
+    )
+    return {
+        "expected_label_after": hit_after,
+        "counterfactual_flip": flip,
+    }
+
+
 def cluster_bootstrap_mean_ci(
     values: Sequence[float],
     cluster_ids: Sequence[str],
@@ -51,8 +69,8 @@ def cluster_bootstrap_mean_ci(
         "mean": float(x.mean()),
         "ci_low": float(lo),
         "ci_high": float(hi),
-        "n_rows": int(len(x)),
-        "n_clusters": int(len(unique)),
+        "n_rows": len(x),
+        "n_clusters": len(unique),
     }
 
 
@@ -71,6 +89,7 @@ def aggregate_intervention_rows(
         "delta_margin_toward_expected",
         "expected_label",
         "prediction_after",
+        "counterfactual_flip",
         "delta_norm",
         "activation_norm",
     }
@@ -103,6 +122,13 @@ def aggregate_intervention_rows(
             confidence_level=confidence_level,
             seed=int(seed) + gi * 17 + 1,
         )
+        actual_flip_ci = cluster_bootstrap_mean_ci(
+            block["counterfactual_flip"].to_numpy(float),
+            block["pair_id"].astype(str).tolist(),
+            n_bootstraps=n_bootstraps,
+            confidence_level=confidence_level,
+            seed=int(seed) + gi * 17 + 2,
+        )
         ratios = block["delta_norm"].to_numpy(float) / np.maximum(
             block["activation_norm"].to_numpy(float), 1e-12
         )
@@ -113,11 +139,14 @@ def aggregate_intervention_rows(
                 "effect_ci_low": effect["ci_low"],
                 "effect_ci_high": effect["ci_high"],
                 "expected_label_rate_after": flip_ci["mean"],
-                "flip_ci_low": flip_ci["ci_low"],
-                "flip_ci_high": flip_ci["ci_high"],
+                "expected_label_rate_after_ci_low": flip_ci["ci_low"],
+                "expected_label_rate_after_ci_high": flip_ci["ci_high"],
+                "counterfactual_flip_rate": actual_flip_ci["mean"],
+                "counterfactual_flip_ci_low": actual_flip_ci["ci_low"],
+                "counterfactual_flip_ci_high": actual_flip_ci["ci_high"],
                 "mean_delta_norm": float(block["delta_norm"].mean()),
                 "mean_delta_over_activation_norm": float(ratios.mean()),
-                "n_rows": int(len(block)),
+                "n_rows": len(block),
                 "n_pairs": int(block["pair_id"].nunique()),
             }
         )

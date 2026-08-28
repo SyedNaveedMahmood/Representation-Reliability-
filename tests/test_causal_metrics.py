@@ -3,6 +3,7 @@ import pandas as pd
 
 from representation_reliability.metrics.causal import (
     aggregate_intervention_rows,
+    counterfactual_outcome,
     margin_toward_label,
     paired_control_contrast,
 )
@@ -11,6 +12,21 @@ from representation_reliability.metrics.causal import (
 def test_margin_orientation():
     assert margin_toward_label(2.0, 1) == 2.0
     assert margin_toward_label(2.0, 0) == -2.0
+
+
+def test_counterfactual_flip_is_a_transition_for_both_target_labels():
+    assert counterfactual_outcome(0, 1, 1) == {
+        "expected_label_after": 1,
+        "counterfactual_flip": 1,
+    }
+    assert counterfactual_outcome(1, 0, 0) == {
+        "expected_label_after": 1,
+        "counterfactual_flip": 1,
+    }
+    assert counterfactual_outcome(1, 1, 1) == {
+        "expected_label_after": 1,
+        "counterfactual_flip": 0,
+    }
 
 
 def test_clustered_aggregate_and_seed_averaged_contrast():
@@ -27,6 +43,7 @@ def test_clustered_aggregate_and_seed_averaged_contrast():
                     "delta_margin_toward_expected": 2.0,
                     "expected_label": 1,
                     "prediction_after": 1,
+                    "counterfactual_flip": 1,
                     "delta_norm": 1.0,
                     "activation_norm": 10.0,
                 }
@@ -42,14 +59,13 @@ def test_clustered_aggregate_and_seed_averaged_contrast():
                         "delta_margin_toward_expected": effect,
                         "expected_label": 1,
                         "prediction_after": 0,
+                        "counterfactual_flip": 0,
                         "delta_norm": 1.0,
                         "activation_norm": 10.0,
                     }
                 )
     df = pd.DataFrame(rows)
-    agg = aggregate_intervention_rows(
-        df, n_bootstraps=50, confidence_level=0.95, seed=3
-    )
+    agg = aggregate_intervention_rows(df, n_bootstraps=50, confidence_level=0.95, seed=3)
     truth = agg[agg["condition"] == "truth_coordinate"].iloc[0]
     assert np.isclose(truth["mean_delta_margin_toward_expected"], 2.0)
     assert int(truth["n_pairs"]) == 2
