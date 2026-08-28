@@ -69,6 +69,8 @@ def paired_precision_changes(
 
 def trace_summary(run_dir: Path) -> pd.DataFrame:
     rows = pd.read_parquet(run_dir / "trace_rows.parquet")
+    if "lambda_context" in rows:
+        rows = rows[np.isclose(rows["lambda_context"].to_numpy(float), 1.0)].copy()
     metrics = json.loads((run_dir / "precision_metrics.json").read_text(encoding="utf-8"))
     target_labels = (
         pd.read_parquet(run_dir / "factorial_rows.parquet")

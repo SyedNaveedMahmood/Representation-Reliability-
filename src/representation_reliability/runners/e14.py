@@ -26,6 +26,7 @@ from ..interventions.orthogonal_context import (
 from ..interventions.setpoint import source_free_setpoint_delta
 from ..interventions.truth_coordinate import coordinate_value, random_unit_direction
 from ..metrics.decoding import classification_metrics
+from ..metrics.general_quality import score_hellaswag, score_wikitext
 from ..metrics.quantization import evidence_is_finite, factorial_components, summarize_factorial
 from ..metrics.setpoint import validation_setpoint_targets
 from ..probes.linear import fit_probe, raw_probe_direction, transform_features
@@ -53,19 +54,20 @@ from .extract import load_adapter
 
 logger = logging.getLogger(__name__)
 
-E14_VERSION = "e14-bounded-dqag-v1"
+E14_VERSION = "e14-full-dqag-v2"
 SITE = "resid_post"
 SELECTOR = "last_prompt"
-RANDOM_SEEDS = (1729, 1730, 1731)
+RANDOM_SEEDS = tuple(range(1729, 1739))
 
 
 def e14_profile(profile: str, max_pairs: int | None) -> tuple[int, int, int]:
     name = str(profile).strip().lower()
-    if name not in {"smoke", "pilot"}:
-        raise ValueError("E14 authorizes only smoke and pilot profiles")
+    if name not in {"smoke", "pilot", "full"}:
+        raise ValueError("E14 profile must be smoke, pilot, or full")
     default_pairs, random_count, bootstraps = {
         "smoke": (25, 1, 200),
         "pilot": (75, 3, 500),
+        "full": (150, 10, 2000),
     }[name]
     pairs = default_pairs if max_pairs is None else int(max_pairs)
     if pairs <= 0 or pairs > default_pairs:
@@ -123,6 +125,21 @@ def _save_bf16_reference(
         payload[f"direction_{layer}"] = np.asarray(directions[layer], dtype=np.float64)
     np.savez(run_dir / "bf16_probe_reference.npz", **payload)
     save_json({"targets": targets, "identity": identity}, run_dir / "bf16_reference.json")
+
+
+def _save_native_probe_reference(
+    run_dir: Path,
+    fits: dict[int, dict[str, Any]],
+    directions: dict[int, np.ndarray],
+) -> None:
+    payload: dict[str, Any] = {}
+    for layer, fit in fits.items():
+        payload[f"coef_{layer}"] = np.asarray(fit["classifier"].coef_[0], dtype=np.float64)
+        payload[f"intercept_{layer}"] = np.asarray(fit["classifier"].intercept_, dtype=np.float64)
+        payload[f"mean_{layer}"] = np.asarray(fit["scaler_mean"], dtype=np.float64)
+        payload[f"scale_{layer}"] = np.asarray(fit["scaler_scale"], dtype=np.float64)
+        payload[f"direction_{layer}"] = np.asarray(directions[layer], dtype=np.float64)
+    np.savez(run_dir / "native_probe_reference.npz", **payload)
 
 
 def _find_bf16_reference(repo_root: Path, profile: str, split_hash: str) -> Path:
@@ -366,6 +383,8 @@ def run_e14(
             fits[trace] = fit
             native_directions[trace] = _unit(raw_probe_direction(fit))
             probe_rows.append(row)
+        if profile == "full":
+            _save_native_probe_reference(run_dir, fits, native_directions)
 
         validation_ids = frame.loc[frame["split"] == "validation", "sample_id"].astype(str).tolist()
         validation_labels = np.asarray([labels[sid] for sid in validation_ids], dtype=int)
@@ -433,8 +452,9 @@ def run_e14(
             & frame["pair_id"].astype(str).isin(selected_pairs)
         ].copy()
         base_ids = base_df["sample_id"].astype(str).tolist()
-        if len(base_ids) > (50 if profile == "smoke" else 150):
-            raise RuntimeError("E14 bounded profile exceeded its directed-example limit")
+        directed_limit = {"smoke": 50, "pilot": 150, "full": 300}[profile]
+        if len(base_ids) > directed_limit:
+            raise RuntimeError("E14 profile exceeded its directed-example limit")
         if any(
             token_indices[sid] != int(token_sites[sid]["sequence_length"]) - 1
             for sid in base_ids
@@ -582,6 +602,18 @@ def run_e14(
             contexts.append(("random", direction_seed, by_id))
             context_diagnostics[("random", direction_seed)] = diagnostics_by_id
 
+        context_strengths = (0.5, 1.0) if profile == "full" else (1.0,)
+        expanded_contexts = [
+            (
+                context_name,
+                direction_seed,
+                strength,
+                {sid: strength * vector for sid, vector in vectors.items()},
+            )
+            for context_name, direction_seed, vectors in contexts
+            for strength in context_strengths
+        ]
+
         clean_q, clean_trace_margin = _trace_values(
             adapter, clean, base_ids, traces, reference_directions, token_ids
         )
@@ -596,7 +628,7 @@ def run_e14(
         max_target_error = 0.0
         max_context_dot = 0.0
         max_norm_error = 0.0
-        for context_name, direction_seed, vectors in contexts:
+        for context_name, direction_seed, context_strength, vectors in expanded_contexts:
             y01 = run_intervention_batches(
                 adapter,
                 samples_by_id,
@@ -661,6 +693,7 @@ def run_e14(
                         "gold_label": int(labels[sid]),
                         "target_label": target_label,
                         "context": context_name,
+                        "lambda_context": context_strength,
                         "direction_seed": direction_seed,
                         "context_source_id": (
                             plans[sid].matched_source_id if context_name == "matched" else None
@@ -702,6 +735,7 @@ def run_e14(
                             "base_sample_id": sid,
                             "pair_id": str(samples_by_id[sid].pair_id),
                             "context": context_name,
+                            "lambda_context": context_strength,
                             "direction_seed": direction_seed,
                             "trace_layer": trace,
                             "q00": clean_q[trace][sid],
@@ -724,13 +758,29 @@ def run_e14(
         trace_df = pd.DataFrame(trace_rows)
         save_table(factorial_df, run_dir / "factorial_rows.parquet")
         save_table(trace_df, run_dir / "trace_rows.parquet")
+        primary_factorial = factorial_df[
+            np.isclose(factorial_df["lambda_context"].to_numpy(float), 1.0)
+        ].copy()
         aggregate, contrasts = summarize_factorial(
-            factorial_df,
+            primary_factorial,
             n_bootstraps=n_bootstraps,
             confidence_level=float(cfg.statistics.confidence_level),
             seed=int(cfg.reproducibility.bootstrap_seed),
         )
         save_table(aggregate, run_dir / "factorial_metrics.parquet")
+        if profile == "full":
+            secondary_factorial = factorial_df[
+                np.isclose(factorial_df["lambda_context"].to_numpy(float), 0.5)
+            ].copy()
+            secondary_aggregate, secondary_contrasts = summarize_factorial(
+                secondary_factorial,
+                n_bootstraps=n_bootstraps,
+                confidence_level=float(cfg.statistics.confidence_level),
+                seed=int(cfg.reproducibility.bootstrap_seed) + 5000,
+            )
+            save_table(secondary_aggregate, run_dir / "factorial_metrics_lambda_0.5.parquet")
+        else:
+            secondary_contrasts = None
 
         nll = _prompt_nll(adapter, samples_by_id, base_ids, int(cfg.runtime.batch_size))
         behavior_rows = pd.DataFrame(
@@ -755,7 +805,20 @@ def run_e14(
         save_table(behavior_rows, run_dir / "behavior_rows.parquet")
         b_metrics = classification_metrics(y_eval, behavior_rows["yes_no_margin"].to_numpy(float))
         prompt_nll = float(behavior_rows["prompt_nll"].mean())
-        q0 = float(factorial_df.groupby("base_sample_id")["Q0"].first().mean())
+        q0 = float(primary_factorial.groupby("base_sample_id")["Q0"].first().mean())
+        if profile == "full":
+            wikitext = score_wikitext(adapter)
+            hellaswag, hellaswag_rows = score_hellaswag(
+                adapter, batch_size=int(cfg.runtime.batch_size)
+            )
+            save_table(hellaswag_rows, run_dir / "hellaswag_rows.parquet")
+            save_json(
+                {"wikitext": wikitext, "hellaswag": hellaswag},
+                run_dir / "general_quality.json",
+            )
+        else:
+            wikitext = None
+            hellaswag = None
         metrics = {
             "version": E14_VERSION,
             "status": "complete",
@@ -770,10 +833,13 @@ def run_e14(
             "general_quality": {
                 "mean_prompt_nll": prompt_nll,
                 "prompt_perplexity": float(math.exp(min(prompt_nll, 50.0))),
+                "wikitext": wikitext,
+                "hellaswag": hellaswag,
             },
             "Q0": q0,
             "factorial_metrics": aggregate.to_dict(orient="records"),
             "factorial_contrasts": contrasts,
+            "factorial_contrasts_lambda_0.5": secondary_contrasts,
             "validation_references": {str(key): value for key, value in validation_references.items()},
             "integrity": {
                 "no_op_max_abs_logit_deviation": no_op_max,

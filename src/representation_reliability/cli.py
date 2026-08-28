@@ -299,7 +299,7 @@ def e14(
     model: Path | None = None,
     experiment: Path | None = None,
     precision: str = typer.Option(..., "--precision", help="bf16, int8, or int4"),
-    profile: str = typer.Option(..., "--profile", help="authorized: smoke or pilot"),
+    profile: str = typer.Option(..., "--profile", help="smoke, pilot, or authorized full"),
     max_pairs: int | None = typer.Option(
         None, "--max-pairs", help="optional cap within the frozen bounded profile"
     ),

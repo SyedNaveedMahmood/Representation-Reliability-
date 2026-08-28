@@ -71,8 +71,7 @@ def test_factorial_summary_uses_pair_cluster_bootstrap_and_paired_contrast():
 def test_profiles_and_precision_scope_are_fail_closed():
     assert e14_profile("smoke", None) == (25, 1, 200)
     assert e14_profile("pilot", None) == (75, 3, 500)
-    with pytest.raises(ValueError):
-        e14_profile("full", None)
+    assert e14_profile("full", None) == (150, 10, 2000)
     with pytest.raises(ValueError):
         e14_profile("smoke", 26)
     assert normalize_precision("INT4") == "int4"
