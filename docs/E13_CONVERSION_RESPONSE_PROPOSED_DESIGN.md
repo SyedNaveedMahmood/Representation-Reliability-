@@ -1,7 +1,8 @@
 # Proposed E13-D Conversion-Response Distillation
 
-Status: **scientifically triggered by the bounded pilot; not authorized for
-implementation or execution**.
+Status: **superseded by the frozen authorized full protocol after the E13
+multi-seed gate passed on 2026-08-28**. See
+`docs/E13_CONVERSION_RESPONSE_FULL_PROTOCOL.md`.
 
 The one-seed E13 pilot found saturated D and perfect B after ordinary SFT/KD,
 but scalar Q remained student-like under logit KD and causal A/G did not jointly

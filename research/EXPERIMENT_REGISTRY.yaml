@@ -344,7 +344,7 @@ experiments:
       does knowledge distillation transfer the teacher's ability to use it, or
       can representation and causal conversion remain dissociated after distillation?
     priority: P0
-    status: multiseed_discovery_authorized_confirmation_locked
+    status: multiseed_baselines_complete_conversion_response_authorized
     depends_on: [E01B]
     dimensions: [D, C, R]
     refs: [logit_kd, hidden_state_kd, trajectory_kd, source_free_setpoints]
@@ -394,6 +394,27 @@ experiments:
       checkpoint_selection: validation_B_closest_to_teacher_earliest_tie
       quality_controls: [wikitext2_10000_tokens, hellaswag_fixed_500]
       conversion_response_status: conditional_on_frozen_discovery_gate
+    multiseed_result:
+      campaign: E13MS_04daa7fcc66c
+      baseline_regimes_complete: [R0, R1, R2, R3]
+      training_seeds_complete: [20261305, 20261315, 20261325]
+      confirmation_accessed: false
+      gate: {A: true, B: true, C: true, D: true, E: true}
+      joint_gate_passes: {R2: 3, R3: 3}
+      conversion_response_authorized: true
+      report: E13_MULTI_SEED_DISCOVERY_SUMMARY.md
+    conversion_response_preregistration:
+      status: authorized
+      protocol: docs/E13_CONVERSION_RESPONSE_FULL_PROTOCOL.md
+      protocol_sha256: 3f3dd9a65347fc9ba6a20c29686aba11bd578f52b28d87818c399b422325846b
+      regimes: [R4_scalar_CRD, R5_factorial_CRD, R6_random_response, R2_C_compute_control]
+      training_seeds: [20261305, 20261315, 20261325]
+      optimizer_steps: 100
+      checkpoint_steps: [0, 10, 25, 50, 100]
+      response_coefficient: 1.0
+      factorial_weights: {Q: 1.0, A: 1.0, G: 1.0}
+      random_response_seed: 20261307
+      confirmation_accessed: false
     bounded_preregistration:
       protocol: docs/E13_DISTILLATION_FULL_PROTOCOL.md
       protocol_sha256: eafe0eb3a5aef011e24906bc505f525349ab6be10aa33d26916d7b86b1f6e685

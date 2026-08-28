@@ -146,10 +146,10 @@ branch; it does not authorize reopening E14 or testing a new quantizer.
 
 ### C1. E13 distillation reliability — gated on E01B
 
-Status: **three-seed R0/R1/R2/R3 full discovery authorized and
-preregistered** under `docs/E13_MULTI_SEED_CAUSAL_TRANSFER_PROTOCOL.md`. E13
-confirmation remains locked and unmaterialized. Conversion-response training is
-conditional on the frozen post-baseline discovery gate.
+Status: **three-seed R0/R1/R2/R3 full discovery complete; conversion-response
+methods authorized**. All frozen Gates A-E passed, jointly in 3/3 R2 seeds and
+3/3 R3 seeds. E13 confirmation remains locked and unmaterialized. R4/R5/R6/R2-C
+are preregistered under `docs/E13_CONVERSION_RESPONSE_FULL_PROTOCOL.md`.
 
 Pilot result: D was saturated throughout and both SFT/KD reached B=1.0, but Q
 remained weak—especially under KD—while A/G changed strongly and differently by
@@ -190,7 +190,8 @@ or hidden-state similarity improves without corresponding C transfer.
 
 ### C2. conversion-response distillation — method trigger only
 
-Do not execute before the frozen multi-seed gate.
+The frozen multi-seed gate passed; execute only the preregistered R4/R5/R6/R2-C
+campaign before considering confirmation.
 
 Trigger only if R2 or R3 achieves teacher-like validation behavior in at least
 two seeds while a preregistered standardized causal-organization gap remains and
@@ -251,7 +252,7 @@ Current recommended ordering:
 | 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
 | 3 | E01B-3 | strong confirmation complete; mechanism frozen |
 | 4 | E14 | strong confirmation complete; mixed actionability/general degradation |
-| 5 | E13 | multi-seed R0/R1/R2/R3 discovery authorized; confirmation locked |
+| 5 | E13 | baseline gate passed; conversion-response discovery authorized |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
 | 7 | E15 | highest long-horizon conceptual upside; not authorized |
 
