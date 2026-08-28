@@ -87,7 +87,7 @@ experiments:
       identity or nuisance matching matter when orthogonal source context is
       given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
-    status: e01b1_full_discovery_complete_e01b2_proposed_not_authorized
+    status: e01b1_full_discovery_complete_e01b2_bounded_pilot_in_progress
     depends_on: [E01A]
     dimensions: [C, R]
     refs: [internal_intervention_adapter, source_free_setpoints, orthogonal_context_controls]
@@ -117,13 +117,26 @@ experiments:
     e01b1_runs:
       qwen3_0_6b: E01B1_e1169f3ffe11
       qwen3_1_7b: E01B1_5b9d70c8cffe
+    e01b2_pilot_hypothesis:
+      recorded_before_1_7b_pilot: true
+      observation: >
+        In the frozen 0.6B pilot, matched and same-family orthogonal contexts
+        produced substantially larger context increments than norm-matched
+        random orthogonal context at the same scalar target; different-family
+        context was positive but smaller. All numerical gates passed.
+      hypothesis: >
+        Orthogonal structured context gates utilization of a fixed decoded
+        truth coordinate, with possible relation-family specificity. Evaluate
+        this unchanged hypothesis in the already-authorized 1.7B bounded pilot;
+        do not tune conditions, lambdas, normalization, or metrics.
     next_recommendation: >
       Predeclare E01B-2 orthogonal-context modulation at the frozen source-free
       scalar target, without accessing confirmation.
     execution_policy: >
-      E01B-1 full discovery is complete. E01B-2 remains proposed and is not
-      authorized. Do not run E01B-2, confirmation, E13, E14, E15, E16, or E02
-      without a new explicit authorization.
+      E01B-1 full discovery is complete. E01B-2 smoke and pilot validation is
+      explicitly authorized; full E01B-2 discovery is not authorized. Do not
+      access confirmation or run E13, E14, E15, E16, or E02 without a new
+      explicit authorization.
 
   - id: E02
     name: decode_steer_gap
