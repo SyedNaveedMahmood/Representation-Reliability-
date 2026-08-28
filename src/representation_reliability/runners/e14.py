@@ -26,7 +26,7 @@ from ..interventions.orthogonal_context import (
 from ..interventions.setpoint import source_free_setpoint_delta
 from ..interventions.truth_coordinate import coordinate_value, random_unit_direction
 from ..metrics.decoding import classification_metrics
-from ..metrics.quantization import factorial_components, summarize_factorial
+from ..metrics.quantization import evidence_is_finite, factorial_components, summarize_factorial
 from ..metrics.setpoint import validation_setpoint_targets
 from ..probes.linear import fit_probe, raw_probe_direction, transform_features
 from ..reporting.tables import save_json, save_table
@@ -782,8 +782,7 @@ def run_e14(
                 "max_context_dot_u": max_context_dot,
                 "max_context_norm_relative_error": max_norm_error,
                 "finite": bool(
-                    np.isfinite(factorial_df.select_dtypes(include=[np.number])).all().all()
-                    and np.isfinite(trace_df.select_dtypes(include=[np.number])).all().all()
+                    evidence_is_finite(factorial_df, trace_df)
                 ),
                 "trace_rows": len(trace_df),
                 "runtime_residual_dtype": "bfloat16",

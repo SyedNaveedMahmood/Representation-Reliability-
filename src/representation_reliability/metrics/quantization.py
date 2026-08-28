@@ -9,6 +9,37 @@ import pandas as pd
 
 from .causal import cluster_bootstrap_mean_ci
 
+FACTORIAL_EVIDENCE_COLUMNS = (
+    "q_base",
+    "q_target",
+    "q_after_y01",
+    "q_after_y11",
+    "context_norm",
+    "context_dot_u",
+    "Y00",
+    "Y10",
+    "Y01",
+    "Y11",
+    "Q0",
+    "A",
+    "Q_context",
+    "G",
+)
+TRACE_EVIDENCE_COLUMNS = (
+    "q00",
+    "q10",
+    "q01",
+    "q11",
+    "m00",
+    "m10",
+    "m01",
+    "m11",
+    "A_q_z",
+    "G_q_z",
+    "A_margin_z",
+    "G_margin_z",
+)
+
 
 def factorial_components(y00, y10, y01, y11) -> dict[str, np.ndarray]:
     arrays = [np.asarray(value, dtype=np.float64) for value in (y00, y10, y01, y11)]
@@ -96,3 +127,21 @@ def percent_change(value: float, reference: float, *, epsilon: float = 1e-12) ->
     if abs(float(reference)) <= float(epsilon):
         return None
     return 100.0 * (float(value) - float(reference)) / abs(float(reference))
+
+
+def evidence_is_finite(
+    factorial_rows: pd.DataFrame,
+    trace_rows: pd.DataFrame,
+) -> bool:
+    """Check measured evidence while allowing null provenance identifiers."""
+    missing_factorial = set(FACTORIAL_EVIDENCE_COLUMNS) - set(factorial_rows.columns)
+    missing_trace = set(TRACE_EVIDENCE_COLUMNS) - set(trace_rows.columns)
+    if missing_factorial or missing_trace:
+        raise ValueError(
+            f"missing finite-evidence columns: factorial={sorted(missing_factorial)}, "
+            f"trace={sorted(missing_trace)}"
+        )
+    return bool(
+        np.isfinite(factorial_rows[list(FACTORIAL_EVIDENCE_COLUMNS)].to_numpy(float)).all()
+        and np.isfinite(trace_rows[list(TRACE_EVIDENCE_COLUMNS)].to_numpy(float)).all()
+    )

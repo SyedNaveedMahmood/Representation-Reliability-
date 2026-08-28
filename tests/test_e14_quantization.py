@@ -11,6 +11,7 @@ from representation_reliability.adapters.quantization import (
 )
 from representation_reliability.metrics.quantization import (
     average_random_contexts,
+    evidence_is_finite,
     factorial_components,
     percent_change,
     summarize_factorial,
@@ -87,6 +88,29 @@ def test_bf16_backend_is_nonmutating_and_percent_change_is_guarded():
     assert torch.equal(model.weight, before)
     assert percent_change(2.0, 1.0) == 100.0
     assert percent_change(1.0, 0.0) is None
+
+
+def test_finite_guard_allows_null_provenance_seed_but_rejects_nan_evidence():
+    factorial = pd.DataFrame(
+        [{
+            "direction_seed": np.nan,
+            "q_base": 0.0, "q_target": 1.0, "q_after_y01": 0.0, "q_after_y11": 1.0,
+            "context_norm": 2.0, "context_dot_u": 0.0,
+            "Y00": 0.0, "Y10": 1.0, "Y01": 2.0, "Y11": 3.0,
+            "Q0": 1.0, "A": 2.0, "Q_context": 1.0, "G": 0.0,
+        }]
+    )
+    trace = pd.DataFrame(
+        [{
+            "direction_seed": np.nan,
+            "q00": 0.0, "q10": 1.0, "q01": 0.0, "q11": 1.0,
+            "m00": 0.0, "m10": 1.0, "m01": 2.0, "m11": 3.0,
+            "A_q_z": 0.0, "G_q_z": 0.0, "A_margin_z": 2.0, "G_margin_z": 0.0,
+        }]
+    )
+    assert evidence_is_finite(factorial, trace)
+    factorial.loc[0, "Q0"] = np.nan
+    assert not evidence_is_finite(factorial, trace)
 
 
 def test_quanto_int8_contract_on_tiny_linear():
