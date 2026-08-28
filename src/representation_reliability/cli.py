@@ -106,9 +106,7 @@ def e01a(
     model: Path | None = None,
     experiment: Path | None = None,
     layer: int = typer.Option(17, "--layer", help="0-indexed resid_post intervention layer"),
-    profile: str = typer.Option(
-        "full", "--profile", help="alpha profile: smoke, pilot, or full"
-    ),
+    profile: str = typer.Option("full", "--profile", help="alpha profile: smoke, pilot, or full"),
     max_pairs: int | None = typer.Option(
         None, "--max-pairs", help="optional deterministic cap on discovery-test pairs"
     ),
@@ -146,9 +144,7 @@ def e01b(
     model: Path | None = None,
     experiment: Path | None = None,
     layer: int = typer.Option(17, "--layer", help="0-indexed resid_post intervention layer"),
-    profile: str = typer.Option(
-        "full", "--profile", help="bounded profile: smoke, pilot, or full"
-    ),
+    profile: str = typer.Option("full", "--profile", help="bounded profile: smoke, pilot, or full"),
     max_pairs: int | None = typer.Option(
         None, "--max-pairs", help="optional deterministic discovery-test pair cap"
     ),
@@ -193,9 +189,7 @@ def e01b2(
     model: Path | None = None,
     experiment: Path | None = None,
     layer: int = typer.Option(17, "--layer", help="frozen resid_post layer"),
-    profile: str = typer.Option(
-        "full", "--profile", help="bounded profile: smoke, pilot, or full"
-    ),
+    profile: str = typer.Option("full", "--profile", help="bounded profile: smoke, pilot, or full"),
     max_pairs: int | None = typer.Option(
         None, "--max-pairs", help="optional deterministic discovery pair cap"
     ),
@@ -237,6 +231,53 @@ def e01b2(
 
 
 @app.command()
+def e01b3(
+    base: Path | None = None,
+    model: Path | None = None,
+    experiment: Path | None = None,
+    layer: int = typer.Option(17, "--layer", help="frozen resid_post layer"),
+    profile: str = typer.Option("full", "--profile", help="bounded profile: smoke, pilot, or full"),
+    max_pairs: int | None = typer.Option(
+        None, "--max-pairs", help="optional deterministic discovery pair cap"
+    ),
+    context_strengths: str = typer.Option(
+        "0.5,1.0",
+        "--context-strengths",
+        help="frozen comma-separated orthogonal context strengths",
+    ),
+    random_orthogonal_directions: int = typer.Option(
+        10,
+        "--random-orthogonal-directions",
+        min=1,
+        help="number of frozen E01B-2 random orthogonal contexts",
+    ),
+    trace_layers: str = typer.Option(
+        "17,20,23,27",
+        "--trace-layers",
+        help="frozen intervened-forward trace layers",
+    ),
+    overrides: list[str] = typer.Option(None, "--set", help="dot-path overrides"),
+) -> None:
+    """Run E01B-3 additive-vs-gating factorial decomposition."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e01b3 import run_e01b3
+
+    run_dir = run_e01b3(
+        base,
+        model,
+        experiment,
+        tuple(overrides or ()),
+        layer=layer,
+        profile=profile,
+        max_pairs=max_pairs,
+        context_strengths=context_strengths,
+        random_orthogonal_directions=random_orthogonal_directions,
+        trace_layers=trace_layers,
+    )
+    typer.echo(f"E01B-3 run complete: {run_dir}")
+
+
+@app.command()
 def extract(
     base: Path | None = None,
     model: Path | None = None,
@@ -252,17 +293,13 @@ def extract(
 
 @app.command()
 def probe() -> None:
-    raise typer.Exit(
-        "standalone probe is exercised inside `rr e00` in Phase 0A"
-    )
+    raise typer.Exit("standalone probe is exercised inside `rr e00` in Phase 0A")
 
 
 @app.command()
 def intervene() -> None:
     """Legacy placeholder; E01A now provides the first bounded causal runner."""
-    raise typer.Exit(
-        "use `rr e01a` for the bounded E01A truth-coordinate intervention"
-    )
+    raise typer.Exit("use `rr e01a` for the bounded E01A truth-coordinate intervention")
 
 
 @app.command()
