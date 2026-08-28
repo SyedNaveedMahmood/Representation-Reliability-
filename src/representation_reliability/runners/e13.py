@@ -199,6 +199,12 @@ def teacher_gap_closure(value: float, baseline: float, teacher: float) -> float 
     return float((float(value) - float(baseline)) / denominator)
 
 
+def factorial_evidence_is_finite(rows: pd.DataFrame) -> bool:
+    """Check scientific values while allowing nullable random-seed metadata."""
+    columns = ("Y00", "Y10", "Y01", "Y11", "Q0", "A", "Q_context", "G")
+    return bool(np.isfinite(rows[list(columns)].to_numpy(float)).all())
+
+
 def _last_positions(attention_mask: torch.Tensor) -> torch.Tensor:
     positions = torch.arange(attention_mask.shape[1], device=attention_mask.device)
     return torch.where(attention_mask.bool(), positions[None, :], -1).max(dim=1).values
@@ -444,7 +450,7 @@ def _evaluate_checkpoint(
             "no_op_max_abs_logit_deviation": no_op,
             "max_setpoint_deviation": max_q_error,
             "max_context_dot_u": max_context_dot,
-            "finite": bool(np.isfinite(factorial.select_dtypes(include=[np.number])).all().all()),
+            "finite": factorial_evidence_is_finite(factorial),
             "n_eval": len(eval_ids),
         },
         "confirmation_accessed": False,

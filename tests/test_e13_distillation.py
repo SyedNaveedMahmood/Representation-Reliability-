@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 import torch
 
@@ -5,6 +6,7 @@ from representation_reliability.config import resolve_config
 from representation_reliability.runners.e13 import (
     build_e13_open_corpus,
     distillation_loss,
+    factorial_evidence_is_finite,
     learning_rate_for_step,
     teacher_gap_closure,
 )
@@ -52,3 +54,18 @@ def test_e13_frozen_config_resolves():
     )
     assert cfg.experiment.id == "E13"
     assert cfg.experiment.mode == "discovery"
+
+
+def test_nullable_direction_seed_is_not_treated_as_nonfinite_evidence():
+    rows = pd.DataFrame(
+        {
+            "direction_seed": [None, 2130],
+            **{
+                name: [0.0, 1.0]
+                for name in ("Y00", "Y10", "Y01", "Y11", "Q0", "A", "Q_context", "G")
+            },
+        }
+    )
+    assert factorial_evidence_is_finite(rows)
+    rows.loc[0, "G"] = float("nan")
+    assert not factorial_evidence_is_finite(rows)
