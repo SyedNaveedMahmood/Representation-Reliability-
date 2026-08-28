@@ -81,8 +81,8 @@ equivalence claim.
 
 ### B1. E14 quantization reliability — default first extension
 
-Status: **full discovery complete; E14-specific confirmation authorized once
-and locked** under `docs/E14_FULL_DISCOVERY_AND_CONFIRMATION_PROTOCOL.md`.
+Status: **strong E14 confirmation complete; mechanism frozen** under
+`docs/E14_FULL_DISCOVERY_AND_CONFIRMATION_PROTOCOL.md`.
 
 Goal: test whether representational availability survives compression better than causal utilization.
 
@@ -133,6 +133,14 @@ while HellaSwag accuracy fell by 0.07. Consequently, confirmation is authorized
 but any positive result must be described as mixed actionability and general
 degradation rather than selective semantic damage. See
 `E14_FULL_DISCOVERY_SUMMARY.md`.
+
+The single E14 confirmation then passed H14.1-H14.3 after Holm correction:
+native INT4 D remained 1.0, while structured-minus-random A and G were both
+lower than BF16 with directional paired CIs excluding zero. Because WikiText
+PPL again crossed the generic-damage flag, freeze the claim as mixed
+actionability plus general degradation. The E14 holdout is consumed. This strong
+confirmation unlocks the separately preregistered bounded E13 distillation
+branch; it does not authorize reopening E14 or testing a new quantizer.
 
 ## Phase C — test transfer and learnability
 
@@ -224,8 +232,8 @@ Current recommended ordering:
 | 1 | E01B-1 | complete: establishes donor-free causal object |
 | 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
 | 3 | E01B-3 | strong confirmation complete; mechanism frozen |
-| 4 | E14 | full discovery gate passed; single locked confirmation authorized |
-| 5 | E13 | highest transfer/method upside; not authorized |
+| 4 | E14 | strong confirmation complete; mixed actionability/general degradation |
+| 5 | E13 | bounded distillation implementation/pilot authorized by E14 gate |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
 | 7 | E15 | highest long-horizon conceptual upside; not authorized |
 

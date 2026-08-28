@@ -4,8 +4,9 @@ Status date: 2026-08-28. Phase 0A.2, E01A/E01B discovery, the exploratory
 E01A trace-mechanism analysis, and the single preregistered E01 confirmation
 are complete. All four primary confirmation hypotheses passed Holm correction;
 the core E01 mechanism is frozen. The separately preregistered E14 bounded pilot
-and full BF16/INT8/INT4 discovery on Qwen3-1.7B are also complete; the single new
-E14 confirmation is authorized but has not yet been accessed.
+and full BF16/INT8/INT4 discovery on Qwen3-1.7B are also complete. The single
+new E14 confirmation passed all three Holm-corrected primary hypotheses and is
+now consumed.
 
 ## Mission and claim boundary
 
@@ -317,12 +318,15 @@ D (0.99991 AUROC), reduced frozen-axis D (0.94547), reduced additive A by 26.0%,
 and reduced structured interaction G by 53.9%, while scalar Q increased 17.7%.
 The paired A/G CIs excluded zero and the frozen E14 confirmation gate passed.
 
-The claim boundary is important: INT4 also raised frozen WikiText-2 perplexity
+The E14-specific confirmation strongly replicated the pattern: native INT4 D
+was 1.0, while BF16-minus-INT4 structured G was 0.1111 (CI [0.0797, 0.1422])
+and A was 0.8971 (CI [0.5221, 1.2825]); H14.1-H14.3 all passed Holm. The claim
+boundary is important: INT4 also raised frozen WikiText-2 perplexity
 by 65.2%, crossing the preregistered generic-damage flag, while HellaSwag
 accuracy fell by 0.07. Thus discovery supports mixed actionability and general
 degradation, not selective semantic damage. The new E14-specific holdout may now
-be accessed once under the locked protocol. The consumed E01 confirmation split
-must not be reused.
+has now been accessed exactly once and is consumed. Neither the E01 nor E14
+confirmation split may be reused.
 
 See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
 `E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-discovery results, and
@@ -333,3 +337,4 @@ causality and its claim boundaries. See `E01B3_FULL_DISCOVERY_SUMMARY.md` for
 the additive-versus-gating factorial decomposition. See
 `E14_BOUNDED_PILOT_SUMMARY.md` for the bounded quantization result and
 `E14_FULL_DISCOVERY_SUMMARY.md` for the frozen full study and confirmation gate.
+See `E14_CONFIRMATION_SUMMARY.md` for the final quantization claim.

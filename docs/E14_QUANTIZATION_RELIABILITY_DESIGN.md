@@ -1,9 +1,13 @@
 # E14 — Quantization Reliability of Distributed Actionability
 
-Status: bounded Stage 0/1 and frozen full discovery complete. The new
-E14-specific confirmation passed its discovery entry gate, is preregistered, and remains locked under
+Status: bounded Stage 0/1, frozen full discovery, and the single locked
+E14-specific confirmation are complete. The confirmation protocol is frozen under
 `docs/E14_FULL_DISCOVERY_AND_CONFIRMATION_PROTOCOL.md`. The consumed E01
 confirmation remains prohibited.
+
+The E14 confirmation strongly passed H14.1-H14.3. The final claim is mixed
+actionability plus general degradation because the frozen WikiText catastrophe
+flag fired. Both E01 and E14 holdouts are consumed and inaccessible.
 
 ## 1. Question and frozen mechanism
 

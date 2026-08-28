@@ -99,7 +99,11 @@ The high-value signature is `D` saturating before `C`, or KD changing `C` while 
 
 Experiment family: **E14 — Quantization Reliability**.
 
-The high-value signature is a bit-width regime where `D` remains high but `C` or downstream readout conversion drops sharply.
+The preregistered E14 discovery and single confirmation now establish that
+signature for Optimum-Quanto INT4 on Qwen3-1.7B: precision-native D remains at
+ceiling while structured additive A and interaction G decline. The transformation
+also causes substantial general language-model damage, so this is evidence for
+mixed actionability/general fragility rather than selective semantic damage.
 
 ### Q4 — Temporal persistence
 
@@ -199,14 +203,16 @@ E01B-1 source-free setpoints
     -> freeze full-discovery claim
     -> one preregistered untouched confirmation (complete: strong)
     -> choose ONE high-upside extension first
-         default: E14 quantization reliability
-         second: E13 distillation reliability
+         E14 quantization reliability (strong confirmation complete)
+         E13 distillation reliability (bounded pilot next)
     -> E16 training emergence if suitable checkpoints are available
     -> E15 long-horizon causal half-life only after a clean sequential task is selected
     -> application-specific discovery/confirmation without retuning core E01
 ```
 
-E14 is the default first application/robustness extension because it is cheap, deployment-relevant, and directly asks whether functional utilization is more fragile than representation under compression.
+E14 is complete for the frozen primary ladder. It confirms that native-axis
+decodability can outlive higher-order actionability under INT4, with the explicit
+boundary that generic quality also degrades. E13 is now the active bounded branch.
 
 E13 has the highest method-development upside because a reproducible transfer gap could justify conversion-response distillation.
 

@@ -379,7 +379,7 @@ experiments:
       representation while disproportionately degrading its causal utilization
       and native-readout conversion?
     priority: P0
-    status: full_discovery_complete_confirmation_authorized_once_locked
+    status: strong_confirmation_complete_frozen
     depends_on: [E01B]
     dimensions: [D, B, Q, A, G, R]
     refs:
@@ -475,6 +475,23 @@ experiments:
         general degradation rather than selective semantic damage.
       confirmation_accessed: false
       report: E14_FULL_DISCOVERY_SUMMARY.md
+    confirmation_result:
+      campaign: E14_CONFIRMATION_54e5d6865ea9
+      first_access_timestamp: 2026-08-28T15:13:34.318147+00:00
+      access_count: 1
+      classification: strong
+      damage_classification: mixed_actionability_plus_general_degradation
+      H14_1: {estimate: 0.01, ci: [0.01, 0.01], raw_p: 0.00009999, holm_p: 0.00009999, verdict: PASS}
+      H14_2: {estimate: 0.11109375, ci: [0.0796875, 0.1422203125], raw_p: 0.0000099999, holm_p: 0.0000299997, verdict: PASS}
+      H14_3: {estimate: 0.8970625, ci: [0.522125, 1.282543], raw_p: 0.0000099999, holm_p: 0.0000299997, verdict: PASS}
+      frozen_claim: >
+        Precision-native semantic D survives INT4 while structured additive A
+        and interaction G degrade. Scalar Q is not the earliest failure.
+        WikiText PPL crosses the generic-damage flag, so the result is mixed
+        actionability plus general degradation rather than selective damage.
+      holdout_consumed: true
+      e13_entry_gate_passed: true
+      report: E14_CONFIRMATION_SUMMARY.md
 
   - id: E15
     name: temporal_causal_half_life
