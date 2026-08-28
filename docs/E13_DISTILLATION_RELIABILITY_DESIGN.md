@@ -1,10 +1,12 @@
 # E13 — Distillation Reliability Transfer
 
-Status: proposed novelty extension, not authorized for execution.
+Status: one-seed R0/R1/R2 bounded diagnostic authorized under
+`docs/E13_DISTILLATION_FULL_PROTOCOL.md`; multi-seed discovery, hidden-state KD,
+conversion-response KD, and E13 confirmation remain unauthorized.
 
-This design is intentionally downstream of E01B. The project should first
-finish the causal object it is trying to measure before asking whether
-knowledge distillation transfers it.
+The E01 mechanism and E14 quantization branch are now confirmed and frozen.
+The bounded E13 protocol retains the resolved D/Q/A/G decomposition rather than
+the earlier generic C-only measurement.
 
 ## 1. Core question
 

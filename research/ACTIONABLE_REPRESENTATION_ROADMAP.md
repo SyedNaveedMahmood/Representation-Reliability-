@@ -146,6 +146,10 @@ branch; it does not authorize reopening E14 or testing a new quantizer.
 
 ### C1. E13 distillation reliability — gated on E01B
 
+Status: **one-seed R0/R1/R2 bounded diagnostic preregistered and authorized**
+under `docs/E13_DISTILLATION_FULL_PROTOCOL.md`. E13 confirmation remains locked
+and unmaterialized.
+
 Goal: determine whether distillation transfers representation and utilization together or separately.
 
 Primary regimes:
