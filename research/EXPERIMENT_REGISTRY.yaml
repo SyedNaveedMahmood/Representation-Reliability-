@@ -87,7 +87,7 @@ experiments:
       identity or nuisance matching matter when orthogonal source context is
       given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
-    status: e01b3_full_discovery_complete_confirmation_locked
+    status: confirmation_preregistered_authorized_once
     depends_on: [E01A]
     dimensions: [C, R]
     refs: [internal_intervention_adapter, source_free_setpoints, orthogonal_context_controls]
@@ -197,15 +197,32 @@ experiments:
       only in 1.7B. Additive matched/same-family effects exceed different-family
       effects, but the G ordering reverses, so relation compatibility does not
       form a monotonic positive gating hierarchy. Confirmation was not accessed.
+    confirmation_preregistration:
+      status: confirmation_preregistered_authorized_once
+      protocol: docs/E01_CONFIRMATION_PROTOCOL.md
+      protocol_sha256: 2cde885695cb60b0082536f5e3986415d575712e170d164ef940e7d8d853bc9c
+      primary_family: [H1_scalar_actionability_both_models, H2_structured_additive_both_models, H3_structured_interaction_1_7b, H4_cross_checkpoint_interaction_difference]
+      family_wise_alpha: 0.05
+      multiplicity: Holm_across_H1_H4
+      bootstrap_unit: pair_id
+      bootstrap_draws: 10000
+      directional_randomization_draws: 100000
+      primary_lambda: 1.0
+      secondary_lambda: 0.5
+      trace_layers: [17, 20, 23, 27]
+      confirmation_campaigns_authorized: 1
+      confirmation_accessed_at_preregistration: false
+      e14_entry_gate: H1_and_H2_and_H3_pass_without_material_sign_reversal
     next_recommendation: >
-      Freeze the E01B-3 full-discovery claim and prospective confirmation rule,
-      then separately decide whether to authorize the untouched confirmation
-      split. Do not broaden the discovery claim across tasks, sites, or model
-      families.
+      Execute the single locked confirmation campaign defined in
+      docs/E01_CONFIRMATION_PROTOCOL.md. Proceed to E14 stage 0/1 only if its
+      predeclared H1/H2/H3 entry gate passes without a material sign reversal.
     execution_policy: >
-      E01B-1, E01B-2, and E01B-3 full discovery are complete. Confirmation
-      remains locked. Do not access confirmation or run E13, E14, E15, E16,
-      or E02 without a new explicit authorization.
+      E01B-1, E01B-2, and E01B-3 full discovery are complete. Exactly one
+      confirmation campaign is authorized, but it may begin only after the
+      locked protocol is committed and pushed and the no-confirmation contract
+      tests pass. E14 stage 0/1 is conditionally authorized by the frozen gate;
+      E13, E15, E16, and E02 remain unauthorized.
 
   - id: E02
     name: decode_steer_gap
