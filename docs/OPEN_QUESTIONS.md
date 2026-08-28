@@ -2,34 +2,35 @@
 
 Scores are qualitative: 1 low, 5 high.
 
-## Phase 0A.2 update (2026-08-27)
+## E01A discovery update (2026-08-27)
 
 E00-C supports a learned, cross-family decodable truth signal and a fixed
-readout mismatch for Qwen3-0.6B. The gated Qwen3-1.7B replication keeps D
-nearly unchanged while calibration and the official non-thinking chat
-interface raise behavior sharply. This promotes two bounded questions:
+readout mismatch for Qwen3-0.6B. E01A now shows that the frozen decoded
+coordinate is causally actionable relative to random, orthogonal, and
+same-label controls at both scales, with much stronger conversion in 1.7B.
+The matched and shuffled opposite-label coordinate treatments are equivalent
+across the full dose response. This promotes two bounded questions:
 
-- Is the frozen 0.6B layer-17 truth contrast causally upstream of behavior
-  under nuisance-matched replacement and complete intervention controls?
+- Is coordinate-target causality independent of matched source identity and
+  relation-family nuisance matching?
 - Which scale/post-training/interface change improves native readout alignment
   without materially changing representation strength?
 
-The first is the proposed E01 causal question; it is not yet authorized. The
-second should be diagnosed before treating the 0.6B bottleneck as general.
+The first is registered as proposed E01B and is not authorized. Confirmation
+for E01A remains locked.
 
 ## Tier A — immediate
 
-### Q1. Is the frozen 0.6B truth contrast causally actionable?
+### Q1. Why are matched and shuffled coordinate sources equivalent?
 
-At the discovery-selected layer 17 `resid_post`/last-prompt site, compare
-nuisance-matched replacement with no intervention, magnitude-matched random
-directions, shuffled sources, and multiple magnitudes. Freeze selection before
-touching confirmation data.
+At the frozen layer 17 `resid_post`/last-prompt site, predeclare multiple
+opposite-label coordinate targets per base and separate target-coordinate,
+source-identity, and relation-family effects. Do not touch confirmation data.
 
 Interesting:
-- persistent \(D \gg C\);
-- sharp onset of C with little D change;
-- different token positions showing different D/C ordering.
+- conversion depends only on requested coordinate value;
+- matched identity matters after controlling coordinate displacement;
+- source specificity differs across model scale.
 
 **Novelty 5 | Importance 5 | Compute 5 | Cleanliness 5**
 

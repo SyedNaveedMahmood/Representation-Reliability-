@@ -1,14 +1,16 @@
 # Summary So Far - Representation Reliability Harness
 
-Status date: 2026-08-27. Phase 0A.2 is complete. E01 has not started.
+Status date: 2026-08-27. Phase 0A.2 and E01A full discovery are complete.
+Confirmation remains locked.
 
 ## Mission and claim boundary
 
 The repository is a modular harness for measuring gaps among decodability (D),
 causal use (C), steerability (S), monitoring (M), robustness (R), and collateral
-safety (K). Current results establish held-out linear decodability and
-readout/behavior associations only. They do not establish that a probe
-direction is causally used by the model.
+safety (K). Current results establish held-out linear decodability,
+readout/behavior associations, and causal sensitivity to a frozen decoded
+coordinate under the E01A intervention. They do not establish that the
+unperturbed model endogenously uses exactly that one-dimensional coordinate.
 
 ## What is implemented
 
@@ -30,8 +32,14 @@ Phase 0A.2 adds:
 - paired bootstrap comparisons, five required figures, and per-example raw
   evidence for every arm.
 
-The full suite passes: **94 tests**, including GPU checks that the final fixed
-readout matches native logits and that extraction/cache contracts remain exact.
+E01A adds a discovery-only truth-coordinate intervention at a frozen canonical
+site, magnitude-matched random and orthogonal controls, same-label and shuffled
+source controls, full-residual upper bounds, exact-batch BF16 fidelity checks,
+downstream tracing, pair-cluster inference, and shard-safe resume.
+
+The full suite passes: **116 tests**, including GPU checks that the final fixed
+readout matches native logits and that extraction/cache/intervention contracts
+remain exact.
 
 ## Integrity history
 
@@ -96,6 +104,34 @@ reaches 0.927. The readout bottleneck is therefore not scale/interface
 invariant. Scale changes native-readout alignment and behavioral expression
 far more than representation strength in these conditions.
 
+## E01A full discovery
+
+The completed full runs are `E01A_c6cd215d7bf8` (Qwen3-0.6B) and
+`E01A_821138e998c7` (Qwen3-1.7B), with 300 directed discovery examples / 150
+matched pairs per model. Both used layer 17 `resid_post`, `last_prompt`, the
+full eight-alpha profile, ten random directions, and 2,000 pair-cluster
+bootstrap draws. Confirmation was not accessed.
+
+At alpha 1:
+
+| Model | truth effect | random | orthogonal | same-label | shuffled opposite | full patch | kappa |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Qwen3-0.6B | 0.0283 | 0.0031 | 0.0051 | 0.0058 | 0.0229 | 1.1504 | 0.0174 |
+| Qwen3-1.7B | 0.6621 | 0.0063 | 0.0109 | -0.0198 | 0.6617 | 4.2627 | 0.0380 |
+
+The truth treatment beats random, orthogonal, and same-label controls in both
+models with pair-cluster intervals excluding zero. It does not beat the
+shuffled opposite-label coordinate control at any non-zero alpha. Thus the
+decoded coordinate is causally actionable under intervention, but matched-twin
+source specificity is not supported.
+
+The 1.7B raw effect is 23.37 times larger and exploratory conversion efficiency
+is 2.18 times larger. Both models have the correct negative-alpha reversal and
+positive dose response. The 0.6B effect remains small/sparse (alpha-1 median
+zero), while the 1.7B alpha-1 median is 0.625. See
+`E01A_FULL_DISCOVERY_SUMMARY.md` for exact confidence intervals, integrity
+checks, dose response, and claim boundaries.
+
 ## What is and is not resolved
 
 Supported for Qwen3-0.6B:
@@ -110,23 +146,21 @@ Supported for Qwen3-0.6B:
 
 Not established:
 
-- that the decoded axis is causally upstream of behavior;
+- that the unperturbed model endogenously uses exactly the intervened axis;
+- that nuisance-matched source identity matters beyond the requested
+  opposite-label coordinate target;
 - that this is universal across model families, tasks, or scales;
 - that visible output behavior faithfully reports internal reasoning;
 - that one selected layer would confirm without untouched confirmation data.
 
 ## Exact next question
 
-The next authorized phase should ask whether a nuisance-matched intervention
-at Qwen3-0.6B layer 17, `resid_post`, last-prompt token shifts the predeclared
-Yes-minus-No counterfactual margin beyond magnitude-matched random-direction
-and shuffled-source controls across multiple magnitudes. Peak/site selection
-must remain frozen before confirmation evaluation.
-
-Because 1.7B is strongly interface/calibration sensitive, the immediate
-recommendation is **investigate interface/readout calibration further** before
-claiming the 0.6B diagnosis generalizes. Do not execute E01 without explicit
-instruction.
+E01B should test why matched and shuffled opposite-label coordinate sources
+are equivalent across the full dose response: is causal conversion determined
+only by the target coordinate, or do source identity, relation-family matching,
+and nuisance attributes matter under a more discriminating predeclared design?
+This is a registered proposal, not authorization to run E01B or touch
+confirmation.
 
 See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
-`docs/LITERATURE_POSITIONING_PHASE0A2.md` for novelty boundaries.
+`E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-discovery results.

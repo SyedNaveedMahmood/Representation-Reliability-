@@ -1,6 +1,8 @@
 # E01A — Causal Conversion of a Decoded Truth Coordinate
 
-Status: implementation ready for audit/smoke; no full discovery run has been authorized yet.
+Status: full discovery completed for Qwen3-0.6B and Qwen3-1.7B on
+2026-08-27; confirmation remains locked. See
+`../E01A_FULL_DISCOVERY_SUMMARY.md`.
 
 ## Question
 
@@ -101,6 +103,17 @@ Default current-Qwen trace: `17, 20, 23, 26, 27`, subject to model layer-count v
 
 If random/orthogonal controls match the truth-coordinate effect, the decoded axis
 is not causally specific.
+
+## Discovery outcome
+
+The truth-coordinate treatment beats random, orthogonal-random, and same-label
+controls in both checkpoints. It does not beat the shuffled opposite-label
+coordinate control at any non-zero alpha. Therefore causal actionability under
+the tested coordinate intervention is supported, while matched-source
+specificity and the stricter "beats every control" gate are not supported.
+
+Conversion is substantially stronger in Qwen3-1.7B than Qwen3-0.6B in both raw
+margin effect and exploratory kappa. These findings remain discovery-only.
 
 ## Scale interpretation
 

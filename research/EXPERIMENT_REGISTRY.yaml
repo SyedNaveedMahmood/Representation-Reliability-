@@ -19,8 +19,8 @@ experiments:
       Gate 1 passes. E00-B behavioral floor on the same task is only partial
       (forced-choice acc 0.598; margin AUROC 0.761): a Case-3-flavored B-D
       dissociation candidate. E00-C has now characterized this condition and
-      run the gated Qwen3-1.7B comparison; see E00C.outcome. E01 remains a
-      proposed, not-yet-authorized causal test.
+      run the gated Qwen3-1.7B comparison; see E00C.outcome. E01A full
+      discovery is now complete; confirmation remains locked.
 
 
 
@@ -50,20 +50,50 @@ experiments:
       0.890. The bottleneck is not scale/interface invariant. No causal claim.
     next_recommendation: investigate interface/readout calibration further
 
-  - id: E01
-    name: decode_causal_gap
+  - id: E01A
+    name: truth_coordinate_causal_conversion
     question: >
-      At frozen Qwen3-0.6B layer 17 resid_post/last_prompt, does a
-      nuisance-matched truth-contrast replacement shift the predeclared
-      Yes-minus-No counterfactual margin beyond magnitude-matched random and
-      shuffled-source controls across multiple magnitudes?
+      At frozen layer 17 resid_post/last_prompt, does changing only the decoded
+      truth coordinate shift the predeclared Yes-minus-No counterfactual margin
+      beyond magnitude-matched direction and source controls?
     priority: P0
-    status: next_candidate_not_authorized
+    status: complete_discovery_confirmation_locked
     depends_on: [E00, E00C]
     dimensions: [D, C]
-    refs: [nnsight, pyvene]
+    refs: [internal_intervention_adapter, pair_cluster_bootstrap]
     max_gpu_hours: 6
-    discovery_signal: Stable D/C ranking mismatch beyond controls.
+    discovery_signal: Stable dose response and treatment/control separation.
+    outcome: >
+      Full discovery completed on Qwen3-0.6B (E01A_c6cd215d7bf8) and
+      Qwen3-1.7B (E01A_821138e998c7), 300 directed examples / 150 pairs each.
+      At alpha=1, truth-coordinate effects are 0.0283 and 0.6621 respectively.
+      Both beat random, orthogonal-random, and same-label controls. Neither
+      beats the shuffled opposite-label coordinate control at alpha=1 or any
+      other non-zero alpha. Exploratory kappa is 0.0174 versus 0.0380. This
+      supports causal actionability of the decoded coordinate under the tested
+      intervention and stronger conversion in 1.7B, but not matched-source
+      specificity. Confirmation was not accessed.
+    next_recommendation: test coordinate-target versus source-identity specificity
+
+  - id: E01B
+    name: coordinate_target_source_specificity
+    question: >
+      Is E01A causal conversion determined by the requested opposite-label
+      coordinate target rather than matched source identity, relation-family
+      matching, or other nuisance attributes?
+    priority: P0
+    status: proposed_not_authorized
+    depends_on: [E01A]
+    dimensions: [C, R]
+    refs: [internal_intervention_adapter, matched_source_controls]
+    max_gpu_hours: 4
+    discovery_signal: >
+      Predeclared multi-source comparisons separate coordinate-target effects
+      from source-identity and relation-family effects.
+    rationale: >
+      Unexpected E01A result: matched and shuffled opposite-label coordinate
+      treatments are statistically indistinguishable across every non-zero
+      alpha in both model scales. Register before any additional scaling.
 
   - id: E02
     name: decode_steer_gap
@@ -80,7 +110,7 @@ experiments:
     question: Can a representation be causal but resistant to simple steering?
     priority: P0
     status: planned
-    depends_on: [E01, E02]
+    depends_on: [E01A, E02]
     dimensions: [C, S, K]
     refs: [pyvene, activation_steering, selective_steering, pyreft]
     max_gpu_hours: 4

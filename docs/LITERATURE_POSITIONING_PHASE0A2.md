@@ -1,5 +1,9 @@
 # Literature Positioning — Phase 0A.2
 
+Update (2026-08-27): E01A full discovery is now complete. Statements below
+describing E01 as pending are retained as the historical Phase 0A.2 boundary;
+see `../E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-intervention result.
+
 Purpose: state what the cited recent work already establishes, where our
 current E00/E00-B result overlaps, what would be genuinely additional, and
 which claims we must not make. Sources were retrieved from arXiv on
