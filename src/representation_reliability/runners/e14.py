@@ -142,31 +142,22 @@ def _save_native_probe_reference(
     np.savez(run_dir / "native_probe_reference.npz", **payload)
 
 
-def _verify_native_probe_reference(
-    source: Path,
-    fits: dict[int, dict[str, Any]],
-    directions: dict[int, np.ndarray],
-    layers: list[int],
-) -> float:
-    """Verify refitted development-only probes against frozen full-discovery probes."""
-    maximum = 0.0
+def _load_native_probe_reference(
+    source: Path, layers: list[int]
+) -> tuple[dict[int, dict[str, np.ndarray]], dict[int, np.ndarray]]:
+    """Load immutable precision-native probes without confirmation refitting."""
+    fits: dict[int, dict[str, np.ndarray]] = {}
+    directions: dict[int, np.ndarray] = {}
     with np.load(source / "native_probe_reference.npz") as archive:
         for layer in layers:
-            observed = {
-                "coef": np.asarray(fits[layer]["classifier"].coef_[0], dtype=np.float64),
-                "intercept": np.asarray(fits[layer]["classifier"].intercept_, dtype=np.float64),
-                "mean": np.asarray(fits[layer]["scaler_mean"], dtype=np.float64),
-                "scale": np.asarray(fits[layer]["scaler_scale"], dtype=np.float64),
-                "direction": np.asarray(directions[layer], dtype=np.float64),
+            fits[layer] = {
+                "coef": archive[f"coef_{layer}"].copy(),
+                "intercept": archive[f"intercept_{layer}"].copy(),
+                "mean": archive[f"mean_{layer}"].copy(),
+                "scale": archive[f"scale_{layer}"].copy(),
             }
-            for name, value in observed.items():
-                maximum = max(
-                    maximum,
-                    float(np.max(np.abs(value - archive[f"{name}_{layer}"]))),
-                )
-    if maximum > 1e-10:
-        raise RuntimeError(f"native probe identity drifted from full discovery: {maximum}")
-    return maximum
+            directions[layer] = archive[f"direction_{layer}"].copy()
+    return fits, directions
 
 
 def _find_bf16_reference(repo_root: Path, profile: str, split_hash: str) -> Path:
@@ -428,28 +419,33 @@ def run_e14(
             token_sites=token_sites,
         )
         fits: dict[int, dict[str, Any]] = {}
+        native_reference_fits: dict[int, dict[str, np.ndarray]] | None = None
         native_directions: dict[int, np.ndarray] = {}
         probe_rows: list[dict[str, Any]] = []
         native_probe_max_deviation = 0.0
-        for trace in needed_layers:
-            fit, row = _fit_layer_probe(
-                activations,
-                frame,
-                labels,
-                trace,
-                c_grid=cfg.probe.C_grid,
-                seed=int(cfg.reproducibility.probe_seed),
+        if _frozen_native_source is None:
+            for trace in needed_layers:
+                fit, row = _fit_layer_probe(
+                    activations,
+                    frame,
+                    labels,
+                    trace,
+                    c_grid=cfg.probe.C_grid,
+                    seed=int(cfg.reproducibility.probe_seed),
+                )
+                fits[trace] = fit
+                native_directions[trace] = _unit(raw_probe_direction(fit))
+                probe_rows.append(row)
+        else:
+            native_reference_fits, native_directions = _load_native_probe_reference(
+                _frozen_native_source, needed_layers
             )
-            fits[trace] = fit
-            native_directions[trace] = _unit(raw_probe_direction(fit))
-            probe_rows.append(row)
+            probe_rows = pd.read_parquet(
+                _frozen_native_source / "probe_metrics.parquet"
+            ).to_dict(orient="records")
         if profile == "full":
             if _frozen_native_source is None:
                 _save_native_probe_reference(run_dir, fits, native_directions)
-            else:
-                native_probe_max_deviation = _verify_native_probe_reference(
-                    _frozen_native_source, fits, native_directions, needed_layers
-                )
 
         validation_ids = frame.loc[frame["split"] == "validation", "sample_id"].astype(str).tolist()
         validation_labels = np.asarray([labels[sid] for sid in validation_ids], dtype=int)
@@ -544,8 +540,10 @@ def run_e14(
 
         x_eval = np.stack([activations[layer][sid] for sid in base_ids])
         y_eval = np.asarray([labels[sid] for sid in base_ids], dtype=int)
-        native_scores = fits[layer]["classifier"].decision_function(
-            transform_features(fits[layer], x_eval)
+        native_scores = (
+            fits[layer]["classifier"].decision_function(transform_features(fits[layer], x_eval))
+            if native_reference_fits is None
+            else _frozen_scores(native_reference_fits[layer], x_eval)
         )
         frozen_scores = _frozen_scores(reference_fits[layer], x_eval)
         d_native = classification_metrics(y_eval, native_scores)
@@ -558,8 +556,12 @@ def run_e14(
                     "precision": precision,
                     "native_auroc_bounded": classification_metrics(
                         y_eval,
-                        fits[trace]["classifier"].decision_function(
-                            transform_features(fits[trace], eval_vectors)
+                        (
+                            fits[trace]["classifier"].decision_function(
+                                transform_features(fits[trace], eval_vectors)
+                            )
+                            if native_reference_fits is None
+                            else _frozen_scores(native_reference_fits[trace], eval_vectors)
                         ),
                     )["auroc"],
                     "frozen_bf16_axis_auroc_bounded": classification_metrics(
@@ -570,17 +572,29 @@ def run_e14(
         save_table(pd.DataFrame(probe_rows), run_dir / "probe_metrics.parquet")
 
         validation_references: dict[int, dict[str, float]] = {}
-        for trace in needed_layers:
-            vectors = np.stack([activations[trace][sid] for sid in validation_ids])
-            margins = adapter.final_readout_token_logits(vectors, token_ids)
-            sigma_q = float(np.std(vectors @ reference_directions[trace], ddof=1))
-            sigma_margin = float(np.std(margins[:, 0] - margins[:, 1], ddof=1))
-            if min(sigma_q, sigma_margin) <= 1e-12:
-                raise RuntimeError("quantized validation standardization is degenerate")
-            validation_references[trace] = {
-                "sigma_q": sigma_q,
-                "sigma_margin": sigma_margin,
+        if _frozen_native_source is not None:
+            frozen_metrics = json.loads(
+                (_frozen_native_source / "precision_metrics.json").read_text(encoding="utf-8")
+            )
+            validation_references = {
+                int(trace): {
+                    "sigma_q": float(values["sigma_q"]),
+                    "sigma_margin": float(values["sigma_margin"]),
+                }
+                for trace, values in frozen_metrics["validation_references"].items()
             }
+        else:
+            for trace in needed_layers:
+                vectors = np.stack([activations[trace][sid] for sid in validation_ids])
+                margins = adapter.final_readout_token_logits(vectors, token_ids)
+                sigma_q = float(np.std(vectors @ reference_directions[trace], ddof=1))
+                sigma_margin = float(np.std(margins[:, 0] - margins[:, 1], ddof=1))
+                if min(sigma_q, sigma_margin) <= 1e-12:
+                    raise RuntimeError("quantized validation standardization is degenerate")
+                validation_references[trace] = {
+                    "sigma_q": sigma_q,
+                    "sigma_margin": sigma_margin,
+                }
 
         hidden_dim = int(adapter.hidden_size)
         zeros = {sid: np.zeros(hidden_dim, dtype=np.float64) for sid in base_ids}

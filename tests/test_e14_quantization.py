@@ -16,7 +16,7 @@ from representation_reliability.metrics.quantization import (
     percent_change,
     summarize_factorial,
 )
-from representation_reliability.runners.e14 import e14_profile
+from representation_reliability.runners.e14 import _load_native_probe_reference, e14_profile
 
 
 @pytest.mark.parametrize(
@@ -34,6 +34,21 @@ def test_factorial_components_cover_additive_gating_mixed_and_suppression(arms, 
     assert float(result["A"]) == expected[1]
     assert float(result["G"]) == expected[2]
     assert np.allclose(result["G"], result["Q_context"] - result["Q0"])
+
+
+def test_frozen_native_probe_is_loaded_without_refitting(tmp_path):
+    np.savez(
+        tmp_path / "native_probe_reference.npz",
+        coef_17=np.array([1.0, 2.0]),
+        intercept_17=np.array([0.5]),
+        mean_17=np.array([3.0, 4.0]),
+        scale_17=np.array([5.0, 6.0]),
+        direction_17=np.array([0.6, 0.8]),
+    )
+    fits, directions = _load_native_probe_reference(tmp_path, [17])
+    assert np.array_equal(fits[17]["coef"], [1.0, 2.0])
+    assert np.array_equal(fits[17]["scale"], [5.0, 6.0])
+    assert np.array_equal(directions[17], [0.6, 0.8])
 
 
 def test_random_seeds_are_averaged_per_base_before_contrast():
