@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn.functional as F
+from torch import nn
 
 from ..config import config_hash, resolve_config, save_resolved_config
 from ..data.base import samples_to_dataframe
@@ -32,6 +33,7 @@ from ..metrics.quantization import factorial_components, summarize_factorial
 from ..metrics.setpoint import validation_setpoint_targets
 from ..probes.linear import raw_probe_direction, transform_features
 from ..reporting.tables import save_json, save_table
+from ..runtime.checkpoint import begin_atomic_checkpoint, commit_atomic_checkpoint
 from ..runtime.manifest import RunManifest, dataset_split_hash, prompt_hash
 from ..runtime.run_id import allocate_run_dir, make_run_id
 from ..runtime.status import StatusFile
@@ -165,13 +167,14 @@ def distillation_loss(
     teacher_logits: torch.Tensor | None,
     regime: str,
     temperature: float = KD_TEMPERATURE,
+    hidden_loss: torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, dict[str, float]]:
     """Frozen R1/R2 next-token objectives over the full vocabulary."""
     ce = F.cross_entropy(student_logits.float(), target_ids)
     if regime == "R1":
         return ce, {"ce": float(ce.detach()), "kd": 0.0}
-    if regime != "R2" or teacher_logits is None:
-        raise ValueError("R2 requires frozen teacher logits")
+    if regime not in {"R2", "R3"} or teacher_logits is None:
+        raise ValueError("R2/R3 require frozen teacher logits")
     temp = float(temperature)
     kd = F.kl_div(
         F.log_softmax(student_logits.float() / temp, dim=-1),
@@ -179,7 +182,45 @@ def distillation_loss(
         reduction="batchmean",
     )
     loss = 0.5 * ce + 0.5 * temp * temp * kd
-    return loss, {"ce": float(ce.detach()), "kd": float(kd.detach())}
+    hidden_value = 0.0
+    if regime == "R3":
+        if hidden_loss is None or hidden_loss.ndim != 0:
+            raise ValueError("R3 requires a scalar hidden-state loss")
+        loss = loss + hidden_loss
+        hidden_value = float(hidden_loss.detach())
+    return loss, {
+        "ce": float(ce.detach()),
+        "kd": float(kd.detach()),
+        "hidden": hidden_value,
+    }
+
+
+class HiddenStateProjector(nn.Module):
+    """Trainable R3 map from normalized student to teacher hidden width."""
+
+    def __init__(self, student_width: int, teacher_width: int) -> None:
+        super().__init__()
+        self.linear = nn.Linear(int(student_width), int(teacher_width), bias=True)
+
+    def forward(self, hidden: torch.Tensor) -> torch.Tensor:
+        return self.linear(hidden)
+
+
+def rms_normalize_hidden(hidden: torch.Tensor, epsilon: float = 1e-8) -> torch.Tensor:
+    return hidden / torch.sqrt(hidden.float().pow(2).mean(dim=-1, keepdim=True) + epsilon).to(
+        hidden.dtype
+    )
+
+
+def representation_kd_loss(
+    student_hidden: torch.Tensor,
+    teacher_hidden: torch.Tensor,
+    projector: HiddenStateProjector,
+) -> torch.Tensor:
+    student_normalized = rms_normalize_hidden(student_hidden)
+    teacher_normalized = rms_normalize_hidden(teacher_hidden).detach()
+    projected = projector(student_normalized)
+    return F.mse_loss(projected.float(), teacher_normalized.float(), reduction="mean")
 
 
 def learning_rate_for_step(step: int) -> float:
@@ -270,15 +311,25 @@ def _evaluate_checkpoint(
     step: int,
     output_dir: Path,
     batch_size: int,
+    precomputed_activations: dict[int, dict[str, np.ndarray]] | None = None,
+    precomputed_token_indices: dict[str, int] | None = None,
+    precomputed_token_sites: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[dict[str, Any], pd.DataFrame]:
     ids = frame["sample_id"].astype(str).tolist()
-    activations, token_indices, _token_sites = extract_resid_post_layers(
-        adapter,
-        [samples_by_id[sid] for sid in ids],
-        layers=[LAYER],
-        token_selector=SELECTOR,
-        batch_size=batch_size,
-    )
+    if precomputed_activations is None:
+        activations, token_indices, token_sites = extract_resid_post_layers(
+            adapter,
+            [samples_by_id[sid] for sid in ids],
+            layers=[LAYER],
+            token_selector=SELECTOR,
+            batch_size=batch_size,
+        )
+    else:
+        if precomputed_token_indices is None or precomputed_token_sites is None:
+            raise ValueError("precomputed E13 activations require token metadata")
+        activations = precomputed_activations
+        token_indices = precomputed_token_indices
+        token_sites = precomputed_token_sites
     fit, _ = _fit_layer_probe(
         activations,
         frame,
@@ -392,11 +443,17 @@ def _evaluate_checkpoint(
         for sid in eval_ids:
             target_label = 1 - int(labels[sid])
             orientation = 1.0 if target_label == 1 else -1.0
+            sample = samples_by_id[sid]
+            site = token_sites[sid]
+            base_logits = np.asarray(clean[sid]["selected_logits"], dtype=np.float64)
+            q_logits = np.asarray(y10[sid]["selected_logits"], dtype=np.float64)
+            context_logits = np.asarray(y01[sid]["selected_logits"], dtype=np.float64)
+            joint_logits = np.asarray(y11[sid]["selected_logits"], dtype=np.float64)
             estimates = factorial_components(
                 orientation * clean_margins[sid],
                 orientation * y10_margins[sid],
-                orientation * _selected_margin(y01[sid]["selected_logits"]),
-                orientation * _selected_margin(y11[sid]["selected_logits"]),
+                orientation * _selected_margin(context_logits),
+                orientation * _selected_margin(joint_logits),
             )
             q_after = coordinate_value(y11[sid]["captured"][LAYER], direction)
             max_q_error = max(max_q_error, abs(q_after - q_targets[sid]))
@@ -406,19 +463,50 @@ def _evaluate_checkpoint(
                     "regime": regime,
                     "step": step,
                     "base_sample_id": sid,
-                    "pair_id": str(samples_by_id[sid].pair_id),
-                    "relation_family": str(samples_by_id[sid].metadata["relation"]),
+                    "pair_id": str(sample.pair_id),
+                    "relation_family": str(sample.metadata["relation"]),
                     "gold_label": int(labels[sid]),
+                    "target_label": target_label,
                     "context": context,
                     "direction_seed": direction_seed,
                     "Y00": orientation * clean_margins[sid],
                     "Y10": orientation * y10_margins[sid],
-                    "Y01": orientation * _selected_margin(y01[sid]["selected_logits"]),
-                    "Y11": orientation * _selected_margin(y11[sid]["selected_logits"]),
+                    "Y01": orientation * _selected_margin(context_logits),
+                    "Y11": orientation * _selected_margin(joint_logits),
                     "Q0": float(estimates["Q0"]),
                     "A": float(estimates["A"]),
                     "Q_context": float(estimates["Q_context"]),
                     "G": float(estimates["G"]),
+                    "Y00_yes_logit": float(base_logits[0]),
+                    "Y00_no_logit": float(base_logits[1]),
+                    "Y10_yes_logit": float(q_logits[0]),
+                    "Y10_no_logit": float(q_logits[1]),
+                    "Y01_yes_logit": float(context_logits[0]),
+                    "Y01_no_logit": float(context_logits[1]),
+                    "Y11_yes_logit": float(joint_logits[0]),
+                    "Y11_no_logit": float(joint_logits[1]),
+                    "semantic_delta_norm": float(np.linalg.norm(semantic[sid])),
+                    "context_delta_norm": float(np.linalg.norm(vectors[sid])),
+                    "total_delta_norm": float(np.linalg.norm(semantic[sid] + vectors[sid])),
+                    "activation_norm": float(np.linalg.norm(bases[sid])),
+                    "total_delta_norm_ratio": float(
+                        np.linalg.norm(semantic[sid] + vectors[sid])
+                        / max(float(np.linalg.norm(bases[sid])), 1e-12)
+                    ),
+                    "raw_text": str(sample.prompt),
+                    "site": SITE,
+                    "layer": LAYER,
+                    "native_module_name": adapter.resolve_site(
+                        SITE, LAYER
+                    ).native_module_name,
+                    "token_selector": SELECTOR,
+                    "token_index": int(token_indices[sid]),
+                    "prompt_sequence_length": int(site["sequence_length"]),
+                    "token_id": int(site["token_id"]),
+                    "token_text": str(site["token_text"]),
+                    "token_char_start": site["char_start"],
+                    "token_char_end": site["char_end"],
+                    "chat_template_used": bool(site["chat_template_used"]),
                     "confirmation_accessed": False,
                 }
             )
@@ -482,27 +570,75 @@ def _train_regime(
     token_ids,
     evaluate,
     regime_dir: Path,
+    *,
+    training_seed: int = TRAINING_SEED,
+    run_identity: str | None = None,
+    resume_checkpoint: Path | None = None,
+    projector: HiddenStateProjector | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    if regime not in {"R1", "R2"}:
-        raise ValueError("trainable E13 regime must be R1 or R2")
+    if regime not in {"R1", "R2", "R3"}:
+        raise ValueError("trainable E13 regime must be R1, R2, or R3")
     model = student.model
     model.train()
     model.config.use_cache = False
+    parameters = list(model.parameters())
+    if regime == "R3":
+        if teacher is None:
+            raise ValueError("R3 requires the frozen teacher")
+        if projector is None:
+            projector = HiddenStateProjector(student.hidden_size, teacher.hidden_size).to(
+                device=student.device, dtype=student.torch_dtype
+            )
+        projector.train()
+        parameters.extend(projector.parameters())
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=PEAK_LR, betas=(0.9, 0.95), eps=1e-8, weight_decay=0.01
+        parameters, lr=PEAK_LR, betas=(0.9, 0.95), eps=1e-8, weight_decay=0.01
     )
-    rng = np.random.default_rng(TRAINING_SEED)
+    rng = np.random.default_rng(int(training_seed))
     order = rng.permutation(train_ids).tolist()
     cursor = 0
+    start_step = 1
     loss_rows: list[dict[str, Any]] = []
     metric_rows: list[dict[str, Any]] = []
+    if resume_checkpoint is not None:
+        with (resume_checkpoint / "training_state.json").open(
+            "r", encoding="utf-8"
+        ) as handle:
+            training_state = json.load(handle)
+        if run_identity is None or training_state["run_identity"] != run_identity:
+            raise RuntimeError("E13 training resume identity mismatch")
+        completed_step = int(training_state["completed_step"])
+        order = list(map(str, training_state["order"]))
+        cursor = int(training_state["cursor"])
+        rng.bit_generator.state = training_state["numpy_rng_state"]
+        loss_rows = list(training_state["loss_rows"])
+        from safetensors.torch import load_file as load_torch_safetensors
+
+        rng_tensors = load_torch_safetensors(resume_checkpoint / "rng.safetensors")
+        torch.set_rng_state(rng_tensors["torch_cpu_rng"].cpu())
+        if torch.cuda.is_available() and "torch_cuda_rng" in rng_tensors:
+            torch.cuda.set_rng_state(rng_tensors["torch_cuda_rng"].cpu())
+        optimizer.load_state_dict(
+            torch.load(
+                resume_checkpoint / "optimizer.pt",
+                map_location=student.device,
+                weights_only=True,
+            )
+        )
+        for prior_step in CHECKPOINT_STEPS:
+            prior_path = regime_dir / f"step_{prior_step:03d}" / "metrics.json"
+            if 0 < prior_step <= completed_step and prior_path.exists():
+                with prior_path.open("r", encoding="utf-8") as handle:
+                    metric_rows.append(json.load(handle))
+        start_step = completed_step + 1
     optimizer.zero_grad(set_to_none=True)
-    for step in range(1, MAX_STEPS + 1):
+    for step in range(start_step, MAX_STEPS + 1):
         for group in optimizer.param_groups:
             group["lr"] = learning_rate_for_step(step)
         micro_losses = []
         micro_ce = []
         micro_kd = []
+        micro_hidden = []
         for _micro in range(GRAD_ACCUMULATION):
             if cursor + MICROBATCH > len(order):
                 order = rng.permutation(train_ids).tolist()
@@ -514,23 +650,43 @@ def _train_regime(
             input_ids = encoded["input_ids"].to(student.device)
             attention = encoded["attention_mask"].to(student.device)
             positions = _last_positions(attention)
-            logits = model(input_ids=input_ids, attention_mask=attention).logits
-            selected = logits[torch.arange(len(batch_ids), device=student.device), positions]
+            student_outputs = model(
+                input_ids=input_ids,
+                attention_mask=attention,
+                output_hidden_states=regime == "R3",
+            )
+            selected = student_outputs.logits[
+                torch.arange(len(batch_ids), device=student.device), positions
+            ]
             teacher_selected = None
-            if regime == "R2":
+            hidden_loss = None
+            if regime in {"R2", "R3"}:
                 with torch.inference_mode():
-                    teacher_logits = teacher.model(
-                        input_ids=input_ids, attention_mask=attention
-                    ).logits
-                    teacher_selected = teacher_logits[
+                    teacher_outputs = teacher.model(
+                        input_ids=input_ids,
+                        attention_mask=attention,
+                        output_hidden_states=regime == "R3",
+                    )
+                    teacher_selected = teacher_outputs.logits[
                         torch.arange(len(batch_ids), device=student.device), positions
                     ]
+                if regime == "R3":
+                    student_hidden = student_outputs.hidden_states[LAYER + 1][
+                        torch.arange(len(batch_ids), device=student.device), positions
+                    ]
+                    teacher_hidden = teacher_outputs.hidden_states[LAYER + 1][
+                        torch.arange(len(batch_ids), device=student.device), positions
+                    ]
+                    hidden_loss = representation_kd_loss(
+                        student_hidden, teacher_hidden, projector
+                    )
             targets = _target_ids([labels[sid] for sid in batch_ids], token_ids, student.device)
             loss, parts = distillation_loss(
                 selected,
                 targets,
                 teacher_logits=teacher_selected,
                 regime=regime,
+                hidden_loss=hidden_loss,
             )
             if not torch.isfinite(loss):
                 raise RuntimeError(f"nonfinite E13 {regime} loss")
@@ -538,7 +694,8 @@ def _train_regime(
             micro_losses.append(float(loss.detach()))
             micro_ce.append(parts["ce"])
             micro_kd.append(parts["kd"])
-        grad_norm = float(torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0))
+            micro_hidden.append(parts.get("hidden", 0.0))
+        grad_norm = float(torch.nn.utils.clip_grad_norm_(parameters, 1.0))
         if not np.isfinite(grad_norm):
             raise RuntimeError(f"nonfinite E13 {regime} gradient")
         optimizer.step()
@@ -550,19 +707,71 @@ def _train_regime(
                 "loss": float(np.mean(micro_losses)),
                 "ce": float(np.mean(micro_ce)),
                 "kd": float(np.mean(micro_kd)),
+                "hidden": float(np.mean(micro_hidden)),
                 "learning_rate": learning_rate_for_step(step),
                 "gradient_norm": grad_norm,
             }
         )
         if step in CHECKPOINT_STEPS[1:]:
             model.eval()
-            checkpoint_dir = regime_dir / f"step_{step:03d}"
+            checkpoint_dir = (
+                begin_atomic_checkpoint(regime_dir, step)
+                if run_identity is not None
+                else regime_dir / f"step_{step:03d}"
+            )
             checkpoint_dir.mkdir(parents=True, exist_ok=True)
             model.save_pretrained(
                 checkpoint_dir / "model", safe_serialization=True, max_shard_size="2GB"
             )
-            metrics, _ = evaluate(regime, step, checkpoint_dir)
+            student.tokenizer.save_pretrained(checkpoint_dir / "model")
+            if projector is not None:
+                from safetensors.torch import save_file
+
+                save_file(
+                    {
+                        name: tensor.detach().cpu().contiguous()
+                        for name, tensor in projector.state_dict().items()
+                    },
+                    checkpoint_dir / "projector.safetensors",
+                )
+                save_json(
+                    {
+                        "student_width": int(student.hidden_size),
+                        "teacher_width": int(teacher.hidden_size),
+                        "epsilon": 1e-8,
+                    },
+                    checkpoint_dir / "projector.json",
+                )
+            metrics, _ = evaluate(regime, step, checkpoint_dir, projector)
             metric_rows.append(metrics)
+            if run_identity is not None:
+                torch.save(optimizer.state_dict(), checkpoint_dir / "optimizer.pt")
+                from safetensors.torch import save_file as save_torch_safetensors
+
+                rng_tensors = {"torch_cpu_rng": torch.get_rng_state().cpu()}
+                if torch.cuda.is_available():
+                    rng_tensors["torch_cuda_rng"] = torch.cuda.get_rng_state().cpu()
+                save_torch_safetensors(rng_tensors, checkpoint_dir / "rng.safetensors")
+                save_json(
+                    {
+                        "run_identity": run_identity,
+                        "training_seed": int(training_seed),
+                        "regime": regime,
+                        "completed_step": int(step),
+                        "order": order,
+                        "cursor": int(cursor),
+                        "numpy_rng_state": rng.bit_generator.state,
+                        "loss_rows": loss_rows,
+                    },
+                    checkpoint_dir / "training_state.json",
+                )
+                checkpoint_dir = commit_atomic_checkpoint(
+                    checkpoint_dir,
+                    regime_dir,
+                    step=step,
+                    identity=run_identity,
+                    metadata={"regime": regime, "training_seed": int(training_seed)},
+                )
             model.train()
     return loss_rows, metric_rows
 
@@ -573,7 +782,7 @@ def run_e13_training_smoke() -> Path:
     samples, _frame, _stats = build_e13_open_corpus((("train", 8, 20261301),))
     batch = samples[:2]
     results: dict[str, Any] = {"confirmation_accessed": False}
-    for regime in ("R1", "R2"):
+    for regime in ("R1", "R2", "R3"):
         student_cfg, _ = resolve_config(
             base_path=repo_root / "configs/base.yaml",
             model_path=repo_root / "configs/models/qwen3_0.6b.yaml",
@@ -582,7 +791,7 @@ def run_e13_training_smoke() -> Path:
         )
         student = load_adapter(student_cfg)
         teacher = None
-        if regime == "R2":
+        if regime in {"R2", "R3"}:
             teacher_cfg, _ = resolve_config(
                 base_path=repo_root / "configs/base.yaml",
                 model_path=repo_root / "configs/models/qwen3_1.7b.yaml",
@@ -606,33 +815,68 @@ def run_e13_training_smoke() -> Path:
             [int(sample.target_label) for sample in batch], token_ids, student.device
         )
         teacher_selected = None
+        teacher_hidden = None
         if teacher is not None:
             with torch.inference_mode():
-                first = teacher.model(input_ids=input_ids, attention_mask=attention).logits
-                second = teacher.model(input_ids=input_ids, attention_mask=attention).logits
-            teacher_determinism = float(torch.max(torch.abs(first - second)))
-            teacher_selected = first[
+                first = teacher.model(
+                    input_ids=input_ids,
+                    attention_mask=attention,
+                    output_hidden_states=regime == "R3",
+                )
+                second = teacher.model(
+                    input_ids=input_ids,
+                    attention_mask=attention,
+                    output_hidden_states=regime == "R3",
+                )
+            teacher_determinism = float(torch.max(torch.abs(first.logits - second.logits)))
+            teacher_selected = first.logits[
                 torch.arange(len(batch), device=student.device), positions
             ]
+            if regime == "R3":
+                teacher_hidden = first.hidden_states[LAYER + 1][
+                    torch.arange(len(batch), device=student.device), positions
+                ]
         else:
             teacher_determinism = 0.0
-        optimizer = torch.optim.AdamW(student.model.parameters(), lr=PEAK_LR)
+        projector = None
+        parameters = list(student.model.parameters())
+        if regime == "R3":
+            projector = HiddenStateProjector(student.hidden_size, teacher.hidden_size).to(
+                device=student.device, dtype=student.torch_dtype
+            )
+            parameters.extend(projector.parameters())
+        optimizer = torch.optim.AdamW(parameters, lr=PEAK_LR)
         losses = []
         gradients = []
         student.model.train()
         student.model.config.use_cache = False
         for _step in range(5):
             optimizer.zero_grad(set_to_none=True)
-            logits = student.model(input_ids=input_ids, attention_mask=attention).logits
-            selected = logits[torch.arange(len(batch), device=student.device), positions]
+            outputs = student.model(
+                input_ids=input_ids,
+                attention_mask=attention,
+                output_hidden_states=regime == "R3",
+            )
+            selected = outputs.logits[
+                torch.arange(len(batch), device=student.device), positions
+            ]
+            hidden_loss = None
+            if regime == "R3":
+                student_hidden = outputs.hidden_states[LAYER + 1][
+                    torch.arange(len(batch), device=student.device), positions
+                ]
+                hidden_loss = representation_kd_loss(
+                    student_hidden, teacher_hidden, projector
+                )
             loss, _ = distillation_loss(
                 selected,
                 targets,
                 teacher_logits=teacher_selected,
                 regime=regime,
+                hidden_loss=hidden_loss,
             )
             loss.backward()
-            gradients.append(float(torch.nn.utils.clip_grad_norm_(student.model.parameters(), 1.0)))
+            gradients.append(float(torch.nn.utils.clip_grad_norm_(parameters, 1.0)))
             optimizer.step()
             losses.append(float(loss.detach()))
         student.model.eval()
@@ -829,7 +1073,7 @@ def run_e13_bounded(
             step_zero = {**baseline_metrics, "regime": regime, "reused_from": "R0"}
             all_metrics.append(step_zero)
 
-            def callback(name, step, directory, active_student=student):
+            def callback(name, step, directory, _projector=None, active_student=student):
                 return evaluate(active_student, name, step, directory)
 
             loss_rows, metric_rows = _train_regime(

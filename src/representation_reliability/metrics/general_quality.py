@@ -16,6 +16,15 @@ HELLASWAG_REVISION = "218ec52e09a7e7462a5400043bb9a69a41d06b76"
 HELLASWAG_SEED = 20261402
 
 
+def block_scored_token_count(token_count: int, block_size: int) -> int:
+    if int(token_count) < 0 or int(block_size) < 2:
+        raise ValueError("token count must be nonnegative and block size at least two")
+    return sum(
+        max(0, min(int(block_size), int(token_count) - start) - 1)
+        for start in range(0, int(token_count), int(block_size))
+    )
+
+
 def deterministic_hellaswag_indices(rows: list[dict[str, Any]], n: int = 500) -> list[int]:
     if len(rows) < int(n):
         raise ValueError("HellaSwag split is smaller than the frozen subset")
@@ -58,6 +67,8 @@ def score_wikitext(
         total_loss += float(loss.detach().cpu())
         scored += len(block) - 1
     nll = total_loss / scored
+    if scored != block_scored_token_count(len(token_ids), block_size):
+        raise RuntimeError("WikiText scored-token accounting mismatch")
     return {
         "dataset": "Salesforce/wikitext",
         "configuration": "wikitext-2-raw-v1",

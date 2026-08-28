@@ -361,6 +361,59 @@ def e13_smoke() -> None:
     typer.echo(f"E13 training smoke complete: {result}")
 
 
+@app.command("e13-multiseed")
+def e13_multiseed() -> None:
+    """Run the frozen R0/R1/R2/R3 full-discovery campaign."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_multiseed import run_e13_multiseed_campaign
+
+    run_dir = run_e13_multiseed_campaign()
+    typer.echo(f"E13 multi-seed baseline campaign complete: {run_dir}")
+
+
+@app.command("e13-multiseed-reference")
+def e13_multiseed_reference() -> None:
+    """Prepare the immutable teacher/R0 E13 discovery reference."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_multiseed import prepare_e13_multiseed_reference
+
+    run_dir = prepare_e13_multiseed_reference()
+    typer.echo(f"E13 multi-seed reference complete: {run_dir}")
+
+
+@app.command("e13-multiseed-smoke")
+def e13_multiseed_smoke() -> None:
+    """Run the forty-row enhanced E13 evaluation contract."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_multiseed import run_e13_multiseed_smoke
+
+    run_dir = run_e13_multiseed_smoke()
+    typer.echo(f"E13 multi-seed smoke complete: {run_dir}")
+
+
+@app.command("e13-multiseed-job")
+def e13_multiseed_job(
+    regime: str = typer.Option(..., "--regime"),
+    seed: int = typer.Option(..., "--seed"),
+) -> None:
+    """Run one immutable E13 regime/seed job for the overnight scheduler."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_multiseed import run_e13_multiseed_job
+
+    run_dir = run_e13_multiseed_job(regime.upper(), seed)
+    typer.echo(f"E13 multi-seed job complete: {run_dir}")
+
+
+@app.command("e13-multiseed-analyze")
+def e13_multiseed_analyze() -> None:
+    """Analyze completed R0/R1/R2/R3 discovery and apply the frozen gate."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_multiseed import analyze_e13_multiseed_campaign
+
+    report = analyze_e13_multiseed_campaign()
+    typer.echo(f"E13 multi-seed analysis complete: {report}")
+
+
 @app.command()
 def extract(
     base: Path | None = None,
