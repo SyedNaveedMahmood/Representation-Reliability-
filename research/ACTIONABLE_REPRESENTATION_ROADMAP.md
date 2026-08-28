@@ -146,15 +146,20 @@ branch; it does not authorize reopening E14 or testing a new quantizer.
 
 ### C1. E13 distillation reliability — gated on E01B
 
-Status: **one-seed R0/R1/R2 bounded diagnostic complete; multi-seed discovery
-not yet authorized**. E13 confirmation remains locked and unmaterialized.
+Status: **three-seed R0/R1/R2/R3 full discovery authorized and
+preregistered** under `docs/E13_MULTI_SEED_CAUSAL_TRANSFER_PROTOCOL.md`. E13
+confirmation remains locked and unmaterialized. Conversion-response training is
+conditional on the frozen post-baseline discovery gate.
 
 Pilot result: D was saturated throughout and both SFT/KD reached B=1.0, but Q
 remained weak—especially under KD—while A/G changed strongly and differently by
 objective. SFT substantially overshot teacher A/G; KD ended near teacher G but
 far above teacher A and near baseline Q. This justifies multi-seed replication
 and triggers a proposed conversion-response objective, but neither is authorized
-by the one-seed pilot. See `E13_BOUNDED_PILOT_SUMMARY.md`.
+by the one-seed pilot. The newly authorized discovery adds validation-scaled,
+probability, flip, causal-organization-distance, behavior-matched-checkpoint,
+representation-similarity, and general-quality views. See
+`E13_BOUNDED_PILOT_SUMMARY.md` and the multi-seed protocol.
 
 Goal: determine whether distillation transfers representation and utilization together or separately.
 
@@ -185,9 +190,12 @@ or hidden-state similarity improves without corresponding C transfer.
 
 ### C2. conversion-response distillation — method trigger only
 
-Do not implement by default.
+Do not execute before the frozen multi-seed gate.
 
-Trigger only if standard KD leaves a robust teacher-student conversion gap after controlling for task learning.
+Trigger only if R2 or R3 achieves teacher-like validation behavior in at least
+two seeds while a preregistered standardized causal-organization gap remains and
+general quality is interpretable. If the gate passes, the executed method
+protocol must be committed and pushed before any R4/R5/R6/R2-C training.
 
 Then test whether the student's response to source-free latent setpoints can be trained to match the teacher's response curve.
 
@@ -243,7 +251,7 @@ Current recommended ordering:
 | 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
 | 3 | E01B-3 | strong confirmation complete; mechanism frozen |
 | 4 | E14 | strong confirmation complete; mixed actionability/general degradation |
-| 5 | E13 | bounded distillation implementation/pilot authorized by E14 gate |
+| 5 | E13 | multi-seed R0/R1/R2/R3 discovery authorized; confirmation locked |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
 | 7 | E15 | highest long-horizon conceptual upside; not authorized |
 

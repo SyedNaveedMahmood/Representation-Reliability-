@@ -344,7 +344,7 @@ experiments:
       does knowledge distillation transfer the teacher's ability to use it, or
       can representation and causal conversion remain dissociated after distillation?
     priority: P0
-    status: bounded_r0_r1_r2_complete_multiseed_not_authorized
+    status: multiseed_discovery_authorized_confirmation_locked
     depends_on: [E01B]
     dimensions: [D, C, R]
     refs: [logit_kd, hidden_state_kd, trajectory_kd, source_free_setpoints]
@@ -369,10 +369,31 @@ experiments:
         test a conversion-response distillation loss that matches the teacher's
         standardized native-margin response to source-free semantic setpoints.
     execution_policy: >
-      Implement and run exactly one bounded seed for R0 frozen student, R1
-      hard-label SFT, and R2 full-vocabulary logit KD under the frozen E13
-      protocol. Do not run hidden-state KD, conversion-response KD, multi-seed
-      discovery, or materialize the E13 confirmation namespace.
+      Full three-seed discovery for R0/R1/R2/R3 is authorized under the frozen
+      multi-seed protocol. The E13 confirmation namespace remains locked and
+      unmaterialized. Conversion-response methods are authorized only if every
+      frozen discovery gate passes and their executed protocol is committed and
+      present on origin/main before method training.
+    multiseed_preregistration:
+      status: authorized
+      protocol: docs/E13_MULTI_SEED_CAUSAL_TRANSFER_PROTOCOL.md
+      protocol_sha256: 04daa7fcc66cc1c93f8077de23962dfec9861c9412c44367d83603ed0ccb7cac
+      teacher: Qwen/Qwen3-1.7B
+      student: Qwen/Qwen3-0.6B
+      corpus_directed: {train: 4000, validation: 500, discovery_test: 300}
+      corpus_seeds: {train: 20261301, validation: 20261302, discovery_test: 20261303}
+      confirmation_namespace: e13_confirmation_v1
+      confirmation_seed: 20261304
+      confirmation_accessed: false
+      regimes: [R0_frozen, R1_hard_label_sft, R2_logit_kd, R3_hidden_state_kd]
+      training_seeds: [20261305, 20261315, 20261325]
+      optimizer_steps: 100
+      checkpoint_steps: [0, 10, 25, 50, 100]
+      hidden_kd_coefficient: 1.0
+      primary_profile: [Q_z, A_z, G_z]
+      checkpoint_selection: validation_B_closest_to_teacher_earliest_tie
+      quality_controls: [wikitext2_10000_tokens, hellaswag_fixed_500]
+      conversion_response_status: conditional_on_frozen_discovery_gate
     bounded_preregistration:
       protocol: docs/E13_DISTILLATION_FULL_PROTOCOL.md
       protocol_sha256: eafe0eb3a5aef011e24906bc505f525349ab6be10aa33d26916d7b86b1f6e685
