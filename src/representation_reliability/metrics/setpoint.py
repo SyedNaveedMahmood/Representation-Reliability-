@@ -131,7 +131,14 @@ def grid_example_metrics(rows: pd.DataFrame) -> pd.DataFrame:
         margins = ordered["intervened_yes_no_margin"].to_numpy(float)
         if np.any(np.diff(q) <= 0):
             raise RuntimeError(f"base {base_id} has non-increasing q targets")
-        rho = float(spearmanr(q, margins).statistic)
+        # A flat output trajectory has no rank association. SciPy reports NaN
+        # for this degenerate case, but zero is the scientifically meaningful
+        # finite value for an absent dose response.
+        rho = (
+            0.0
+            if float(np.ptp(margins)) <= 1e-12
+            else float(spearmanr(q, margins).statistic)
+        )
         output.append(
             {
                 "base_sample_id": str(base_id),

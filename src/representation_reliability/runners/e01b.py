@@ -62,7 +62,7 @@ from .extract import load_adapter
 
 logger = logging.getLogger(__name__)
 
-E01B1_VERSION = "e01b1-source-free-setpoints-v2"
+E01B1_VERSION = "e01b1-source-free-setpoints-v3"
 SITE = "resid_post"
 SELECTOR = "last_prompt"
 
@@ -924,6 +924,10 @@ def run_e01b(
             confidence_level=confidence_level,
             seed=bootstrap_seed,
         )
+        if not np.isfinite(
+            grid_examples[["spearman", "per_base_slope"]].to_numpy(float)
+        ).all():
+            raise RuntimeError("non-finite E01B grid example metric")
         contrasts = pd.DataFrame(
             [
                 paired_setpoint_control_contrast(

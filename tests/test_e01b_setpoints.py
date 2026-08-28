@@ -139,3 +139,12 @@ def test_grid_rejects_missing_or_out_of_order_targets():
     rows = _grid_rows().iloc[:-1]
     with pytest.raises(RuntimeError, match="complete frozen grid"):
         grid_example_metrics(rows)
+
+
+def test_flat_grid_response_is_finite_zero_association():
+    rows = _grid_rows()
+    rows["intervened_yes_no_margin"] = 1.25
+    examples = grid_example_metrics(rows)
+    assert np.isfinite(examples["spearman"]).all()
+    assert (examples["spearman"] == 0.0).all()
+    assert (examples["per_base_slope"] == 0.0).all()
