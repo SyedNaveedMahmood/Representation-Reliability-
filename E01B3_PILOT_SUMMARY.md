@@ -5,6 +5,10 @@ Date: 2026-08-28
 Status: bounded smoke/pilot complete; full discovery not run or authorized;
 confirmation locked and not accessed.
 
+Historical note: full discovery was subsequently authorized and completed in
+`E01B3_84ee4bae8564` and `E01B3_e7462847a558`. See
+`E01B3_FULL_DISCOVERY_SUMMARY.md`. The text below remains the frozen pilot record.
+
 ## Question
 
 E01B-2 showed that structured orthogonal context changes behavior at a fixed

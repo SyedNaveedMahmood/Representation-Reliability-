@@ -159,3 +159,11 @@ Confirmation rows, labels, caches, metrics, and activations remain inaccessible.
 They may not be used for debugging, target or source selection, standardization,
 metric choice, or interpretation. Confirmation remains locked after this bounded
 task regardless of pilot outcome.
+
+## Execution record
+
+The pre-registration above was committed before any E01B-3 GPU execution. Full
+discovery was subsequently authorized and completed without changing the frozen
+design: `E01B3_84ee4bae8564` for Qwen3-0.6B and `E01B3_e7462847a558` for
+Qwen3-1.7B. Confirmation remained locked. Results and claim boundaries are in
+`E01B3_FULL_DISCOVERY_SUMMARY.md`.

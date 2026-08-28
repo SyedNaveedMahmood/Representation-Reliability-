@@ -221,6 +221,36 @@ heterogeneity**. This operational result does not distinguish a multiplicative
 q-by-context interaction from an additive causal signal in the orthogonal
 structured component. See `E01B2_FULL_DISCOVERY_SUMMARY.md`.
 
+## E01B-3 additive-vs-gating full-discovery result
+
+The completed runs `E01B3_84ee4bae8564` (Qwen3-0.6B) and
+`E01B3_e7462847a558` (Qwen3-1.7B) used all 150 discovery pairs, the frozen
+E01B-2 context plans, lambdas 0.5/1.0, ten random contexts, and 2,000
+pair-cluster bootstrap draws. Y00/Y10/Y11 were identity-audited reuse from the
+matching E01B-2 runs; only the Y01 context-only arm required new full-set
+forwards. All compatibility and numerical gates passed, and confirmation was
+not accessed.
+
+At lambda 1, the additive context-only effects A for matched/same-family/
+different-family contexts are `1.121`/`0.857`/`0.618` in 0.6B and
+`3.467`/`2.918`/`2.287` in 1.7B. The corresponding factorial interactions G
+are `0.006`/`0.007`/`0.002` in 0.6B, with all structured-minus-random G
+intervals including zero. In 1.7B, G is `0.146`/`0.163`/`0.196`, and all three
+structured-minus-random intervals exclude zero.
+
+The corrected full-discovery classification is therefore **mostly additive
+multidimensional signal** in 0.6B and **mixed additive plus structured gating**
+in 1.7B. The additive component dominates the E01B-2 context increment in both
+models. At L17, q remains fixed while additive context signal reaches native
+readout immediately; downstream q changes emerge in both models, but resolved
+downstream interaction emerges only in 1.7B.
+
+Matched and same-family contexts have larger additive effects than different-
+family context in both models. The interaction does not follow that hierarchy:
+in 1.7B, different-family G is larger than matched and same-family G. Relation
+compatibility therefore structures the additive signal, not a monotonic positive
+gating hierarchy. See `E01B3_FULL_DISCOVERY_SUMMARY.md`.
+
 ## What is and is not resolved
 
 Supported for Qwen3-0.6B:
@@ -235,7 +265,11 @@ Supported for Qwen3-0.6B:
 - the same frozen scalar setpoint has strongly context-dependent causal effects
   under structured orthogonal state edits;
 - structured context sensitivity and its downstream readout/propagation effects
-  are substantially larger in 1.7B.
+  are substantially larger in 1.7B;
+- structured orthogonal state carries independent additive causal signal in both
+  checkpoints;
+- a smaller structured q-by-context interaction is resolved in 1.7B but not
+  0.6B under the frozen factorial design.
 
 Not established:
 
@@ -245,19 +279,23 @@ Not established:
 - that this is universal across model families, tasks, or scales;
 - that visible output behavior faithfully reports internal reasoning;
 - that one selected layer would confirm without untouched confirmation data.
-- whether E01B-2 context increments are a multiplicative utilization gate or
-  an additive orthogonal causal signal under this intervention.
+- whether the E01B-3 decomposition generalizes beyond this task, site, model
+  family, and pair construction;
+- whether the probe-defined axis and orthogonal components correspond to the
+  model's endogenous natural coding scheme.
 
 ## Exact next boundary
 
-E01B-2 discovery is complete. Freeze the site, targets, context construction,
-lambdas, controls, metrics, and primary contrasts before separately deciding
-whether to spend the untouched confirmation split. No confirmation or
-application experiment is authorized by these discovery results.
+E01B-1/E01B-2/E01B-3 discovery is complete. Freeze the exact factorial claim,
+site, targets, context construction, lambdas, controls, metrics, contrasts, and
+prospective decision rule before separately deciding whether to spend the
+untouched confirmation split. No confirmation or application experiment is
+authorized by these discovery results.
 
 See `DIAGNOSIS_PHASE_0A2.md` for full measured results and
 `E01A_FULL_DISCOVERY_SUMMARY.md` for the causal-discovery results, and
 `E01A_TRACE_MECHANISM_ANALYSIS.md` for the exploratory pathway localization.
 See `E01B1_FULL_DISCOVERY_SUMMARY.md` for donor-free setpoint causality.
 See `E01B2_FULL_DISCOVERY_SUMMARY.md` for fixed-setpoint orthogonal-context
-causality and its claim boundaries.
+causality and its claim boundaries. See `E01B3_FULL_DISCOVERY_SUMMARY.md` for
+the additive-versus-gating factorial decomposition.

@@ -87,7 +87,7 @@ experiments:
       identity or nuisance matching matter when orthogonal source context is
       given an explicit route to influence behavior at fixed scalar displacement?
     priority: P0
-    status: e01b3_bounded_pilot_complete_full_discovery_not_authorized
+    status: e01b3_full_discovery_complete_confirmation_locked
     depends_on: [E01A]
     dimensions: [C, R]
     refs: [internal_intervention_adapter, source_free_setpoints, orthogonal_context_controls]
@@ -181,15 +181,31 @@ experiments:
       immediately; structured downstream q and readout interaction emerged in
       1.7B. This supports mostly additive multidimensional signal in 0.6B and
       mixed additive plus structured gating in 1.7B, pending full discovery.
+    e01b3_full_runs:
+      qwen3_0_6b: E01B3_84ee4bae8564
+      qwen3_1_7b: E01B3_e7462847a558
+    e01b3_full_outcome: >
+      Full discovery reproduces the factorial scale difference. At lambda 1,
+      0.6B matched/same-family/different-family A effects are
+      1.121/0.857/0.618, while G effects are 0.006/0.007/0.002 and all
+      structured-minus-random G intervals include zero. The 0.6B context effect
+      is therefore mostly additive multidimensional signal. In 1.7B, A effects
+      are 3.467/2.918/2.287 and G effects are 0.146/0.163/0.196; all three
+      structured-minus-random G intervals exclude zero. The 1.7B effect is
+      mixed additive plus structured gating, dominated by A. L17 q is preserved
+      while A enters native readout immediately; structured downstream G emerges
+      only in 1.7B. Additive matched/same-family effects exceed different-family
+      effects, but the G ordering reverses, so relation compatibility does not
+      form a monotonic positive gating hierarchy. Confirmation was not accessed.
     next_recommendation: >
-      Review the frozen E01B-3 bounded result and exact full-discovery handoff.
-      Full discovery requires separate authorization. Do not authorize
-      confirmation until the full mechanism is prospectively frozen.
+      Freeze the E01B-3 full-discovery claim and prospective confirmation rule,
+      then separately decide whether to authorize the untouched confirmation
+      split. Do not broaden the discovery claim across tasks, sites, or model
+      families.
     execution_policy: >
-      E01B-1 and E01B-2 full discovery and E01B-3 bounded pilot are complete.
-      E01B-3 full discovery and confirmation remain locked. Do not access
-      confirmation or run E13, E14, E15, E16, or E02 without a new explicit
-      authorization.
+      E01B-1, E01B-2, and E01B-3 full discovery are complete. Confirmation
+      remains locked. Do not access confirmation or run E13, E14, E15, E16,
+      or E02 without a new explicit authorization.
 
   - id: E02
     name: decode_steer_gap

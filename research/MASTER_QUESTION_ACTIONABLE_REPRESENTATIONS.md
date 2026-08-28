@@ -54,6 +54,11 @@ The current Qwen3 discovery already provides one controlled instance:
    contexts change behavior far more than random context in both checkpoints.
 10. The context effect enters native readout at L17 while decoded q remains fixed,
     then changes downstream q propagation; the effect is larger in 1.7B.
+11. Factorial decomposition shows that structured orthogonal state independently
+    carries causal signal in both checkpoints; this additive component explains
+    nearly all of the 0.6B E01B-2 increment.
+12. Qwen3-1.7B additionally has a smaller structured q-by-context interaction
+    beyond random context, whereas Qwen3-0.6B does not resolve such gating.
 
 This is evidence for checkpoint-dependent utilization, not yet a general law.
 
@@ -65,9 +70,11 @@ This is evidence for checkpoint-dependent utilization, not yet a general law.
 
 Experiment family: **E01B**.
 
-Full discovery supports structured context sensitivity. The remaining boundary
-is whether the orthogonal component gates conversion multiplicatively or carries
-an additional causal signal additively; confirmation remains untouched.
+Full discovery resolves the decomposition under the frozen task/site. Orthogonal
+structured state carries a large additive causal signal in both checkpoints.
+Only 1.7B additionally shows a resolved structured q-by-context interaction,
+and that interaction is much smaller than the additive component. Confirmation
+remains untouched.
 
 ### Q2 — Learning and transfer
 
@@ -182,7 +189,8 @@ The intended order is:
 ```text
 E01B-1 source-free setpoints
     -> E01B-2 orthogonal context
-    -> freeze core mechanism
+    -> E01B-3 additive-vs-gating decomposition
+    -> freeze full-discovery claim
     -> choose ONE high-upside extension first
          default: E14 quantization reliability
          second: E13 distillation reliability
