@@ -79,6 +79,28 @@ def _sha256_json(value: Any) -> str:
     ).hexdigest()
 
 
+def dataframe_to_markdown(frame: pd.DataFrame, *, digits: int = 6) -> str:
+    """Render a compact pipe table without Pandas' optional tabulate dependency."""
+    columns = [str(column) for column in frame.columns]
+
+    def render(value: Any) -> str:
+        if pd.isna(value):
+            return "NA"
+        if isinstance(value, (float, np.floating)):
+            return f"{float(value):.{int(digits)}f}"
+        return str(value).replace("|", "\\|")
+
+    lines = [
+        "| " + " | ".join(columns) + " |",
+        "|" + "|".join("---" for _column in columns) + "|",
+    ]
+    lines.extend(
+        "| " + " | ".join(render(value) for value in row) + " |"
+        for row in frame.itertuples(index=False, name=None)
+    )
+    return "\n".join(lines)
+
+
 def _corpus_bundle():
     samples, frame, stats = build_e13_open_corpus(CORPUS_SPECS)
     labels = dict(zip(frame["sample_id"].astype(str), frame["target_label"].astype(int)))
@@ -1027,7 +1049,7 @@ def analyze_e13_multiseed_campaign(campaign_dir: Path | None = None) -> Path:
         "",
         "## Behavior-matched discovery",
         "",
-        b_matched.to_markdown(index=False, floatfmt=".6f"),
+        dataframe_to_markdown(b_matched, digits=6),
         "",
         "## Frozen method gate",
         "",

@@ -1,4 +1,9 @@
-from representation_reliability.runners.e13_multiseed import evaluate_method_gate
+import pandas as pd
+
+from representation_reliability.runners.e13_multiseed import (
+    dataframe_to_markdown,
+    evaluate_method_gate,
+)
 
 
 def _reference():
@@ -51,3 +56,11 @@ def test_method_gate_stops_on_quality_or_component_floor():
     gate = evaluate_method_gate(_reference(), jobs)
     assert not gate["Gate_D"]
     assert not gate["conversion_response_authorized"]
+
+
+def test_report_table_does_not_require_optional_tabulate():
+    rendered = dataframe_to_markdown(
+        pd.DataFrame({"regime": ["R2"], "COD": [0.123456789], "note": ["a|b"]})
+    )
+    assert "0.123457" in rendered
+    assert "a\\|b" in rendered
