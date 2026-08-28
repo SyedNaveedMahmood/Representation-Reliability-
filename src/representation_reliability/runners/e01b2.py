@@ -58,6 +58,7 @@ from .e01b2_support import (
     CONTEXT_EPSILON,
     build_context_source_plans,
     e01b2_profile_limits,
+    find_e01b1_coordinate_reference,
     find_frozen_e01b1_run,
     parse_context_strengths,
     validate_e01b2_artifact_shape,
@@ -68,7 +69,7 @@ from .extract import load_adapter
 
 logger = logging.getLogger(__name__)
 
-E01B2_VERSION = "e01b2-orthogonal-context-v1"
+E01B2_VERSION = "e01b2-orthogonal-context-v2"
 SITE = "resid_post"
 SELECTOR = "last_prompt"
 
@@ -1035,10 +1036,12 @@ def run_e01b2(
         )
         max_state_error = float(raw_df["target_state_relative_l2_error"].max())
         max_decomposition = float(raw_df["total_decomposition_max_abs_error"].max())
-        e01b1_raw = pd.read_parquet(frozen_e01b1_dir / "intervention_rows.parquet")
-        e01b1_reference = e01b1_raw[
-            e01b1_raw["condition"] == "source_free_opposite_class_median"
-        ][["base_sample_id", "q_target", "intervened_yes_no_margin"]]
+        coordinate_reference_dir, e01b1_reference = find_e01b1_coordinate_reference(
+            repo_root,
+            model_id=str(cfg.model.id),
+            resolved_revision=resolved_revision,
+            base_sample_ids=base_ids,
+        )
         coordinate = raw_df[raw_df["condition"] == "coordinate_only"]
         reproduction = coordinate.merge(
             e01b1_reference,
@@ -1073,6 +1076,9 @@ def run_e01b2(
             "target_state_max_relative_l2_error": max_state_error,
             "coordinate_only_target_vs_e01b1_max_abs": coordinate_target_deviation,
             "coordinate_only_output_vs_e01b1_max_abs": coordinate_output_deviation,
+            "coordinate_only_reference_run": str(
+                coordinate_reference_dir.relative_to(repo_root)
+            ),
             "hook_leakage_max_logit_deviation": hook_leakage,
             "finite_values": True,
             "source_selection_invariants": True,
@@ -1161,6 +1167,9 @@ def run_e01b2(
             "n_specs": len(specs),
             "candidate_token_ids": output_token_ids,
             "frozen_e01b1_run": str(frozen_e01b1_dir.relative_to(repo_root)),
+            "coordinate_only_reference_run": str(
+                coordinate_reference_dir.relative_to(repo_root)
+            ),
             "validation_fallback": fallback,
             "fallback_rows": int(raw_df["context_fallback_used"].sum()),
             "gates": gates,

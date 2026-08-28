@@ -1,3 +1,4 @@
+import json
 from dataclasses import replace
 
 import numpy as np
@@ -28,11 +29,13 @@ from representation_reliability.runners.e01b2 import _load_shard, _save_shard
 from representation_reliability.runners.e01b2_support import (
     build_context_source_plans,
     e01b2_profile_limits,
+    find_e01b1_coordinate_reference,
     parse_context_strengths,
     validate_context_source_plans,
     validate_e01b2_artifact_shape,
     validation_matched_norm_fallback,
 )
+from representation_reliability.runtime.status import StatusFile
 
 
 def test_orthogonal_decomposition_and_fixed_setpoint_identity():
@@ -338,4 +341,47 @@ def test_shard_resume_identity_rejects_changed_plan(tmp_path):
             base_ids=["a", "b"],
             plan_digest="plan-b",
             n_traces=2,
+        )
+
+
+def test_coordinate_reference_requires_identical_example_set(tmp_path):
+    run_dir = tmp_path / "runs" / "E01B1" / "reference"
+    status = StatusFile.create(run_dir, "reference", "E01B1")
+    status.complete()
+    (run_dir / "manifest.json").write_text(
+        json.dumps(
+            {
+                "model": {
+                    "id": "model",
+                    "resolved_revision": "revision",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    (run_dir / "e01b1_metrics.json").write_text(
+        json.dumps({"confirmation_accessed": False}), encoding="utf-8"
+    )
+    pd.DataFrame(
+        {
+            "base_sample_id": ["a", "b"],
+            "condition": ["source_free_opposite_class_median"] * 2,
+            "q_target": [1.0, -1.0],
+            "intervened_yes_no_margin": [0.2, -0.3],
+        }
+    ).to_parquet(run_dir / "intervention_rows.parquet", index=False)
+    found, rows = find_e01b1_coordinate_reference(
+        tmp_path,
+        model_id="model",
+        resolved_revision="revision",
+        base_sample_ids=["b", "a"],
+    )
+    assert found == run_dir
+    assert set(rows["base_sample_id"]) == {"a", "b"}
+    with pytest.raises(RuntimeError, match="matching E01B-1"):
+        find_e01b1_coordinate_reference(
+            tmp_path,
+            model_id="model",
+            resolved_revision="revision",
+            base_sample_ids=["a"],
         )

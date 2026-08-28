@@ -244,6 +244,57 @@ def find_frozen_e01b1_run(
     raise RuntimeError(f"completed full E01B-1 run not found for {model_id}")
 
 
+def find_e01b1_coordinate_reference(
+    repo_root: Path,
+    *,
+    model_id: str,
+    resolved_revision: str | None,
+    base_sample_ids: Sequence[str],
+) -> tuple[Path, pd.DataFrame]:
+    """Find an E01B-1 coordinate run with the identical directed-example set.
+
+    Matching the example set also matches bounded-run batch composition. This
+    avoids treating expected BF16 batch-shape drift between a smoke and a full
+    sweep as an intervention-implementation discrepancy.
+    """
+    expected_ids = set(map(str, base_sample_ids))
+    root = repo_root / "runs" / "E01B1"
+    for candidate in sorted(root.iterdir(), reverse=True):
+        status = StatusFile.load(candidate)
+        manifest_path = candidate / "manifest.json"
+        metrics_path = candidate / "e01b1_metrics.json"
+        rows_path = candidate / "intervention_rows.parquet"
+        if (
+            status is None
+            or not status.is_complete()
+            or not manifest_path.exists()
+            or not metrics_path.exists()
+            or not rows_path.exists()
+        ):
+            continue
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+        if (
+            str(manifest.get("model", {}).get("id")) != str(model_id)
+            or str(manifest.get("model", {}).get("resolved_revision"))
+            != str(resolved_revision)
+            or metrics.get("confirmation_accessed") is not False
+        ):
+            continue
+        rows = pd.read_parquet(rows_path)
+        reference = rows[
+            rows["condition"] == "source_free_opposite_class_median"
+        ][["base_sample_id", "q_target", "intervened_yes_no_margin"]].copy()
+        if reference["base_sample_id"].duplicated().any():
+            raise RuntimeError(f"duplicate E01B-1 coordinate rows in {candidate}")
+        if set(reference["base_sample_id"].astype(str)) == expected_ids:
+            return candidate, reference
+    raise RuntimeError(
+        f"matching E01B-1 coordinate reference not found for {model_id} "
+        f"with {len(expected_ids)} examples"
+    )
+
+
 def validate_e01b2_artifact_shape(
     raw: pd.DataFrame,
     trace: pd.DataFrame,
