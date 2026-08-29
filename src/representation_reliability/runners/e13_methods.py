@@ -276,12 +276,16 @@ def _deterministic_live_batch_ids(
     ordered_ids: list[str], *, batch_size: int, n_rows: int = LIVE_CACHE_ROWS
 ) -> list[str]:
     """Select complete original batches so live BF16 inference has identical padding."""
-    if n_rows % batch_size != 0 or len(ordered_ids) % batch_size != 0:
+    if n_rows % batch_size != 0:
         raise ValueError("live cache rows must comprise complete original batches")
     batches = [
-        ordered_ids[start : start + batch_size] for start in range(0, len(ordered_ids), batch_size)
+        ordered_ids[start : start + batch_size]
+        for start in range(0, len(ordered_ids), batch_size)
+        if len(ordered_ids[start : start + batch_size]) == batch_size
     ]
     needed = n_rows // batch_size
+    if len(batches) < needed:
+        raise ValueError("insufficient complete batches for live cache validation")
     ranked = sorted(
         range(len(batches)),
         key=lambda index: hashlib.sha256(

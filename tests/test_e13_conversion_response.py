@@ -129,7 +129,7 @@ def test_teacher_cache_geometry_rejects_student_reference_before_edit():
 
 
 def test_live_validation_preserves_original_bf16_batch_identity():
-    ordered = [f"sample-{index:03d}" for index in range(32)]
+    ordered = [f"sample-{index:04d}" for index in range(4500)]
     chosen = _deterministic_live_batch_ids(ordered, batch_size=8, n_rows=16)
     assert len(chosen) == 16
     for start in range(0, len(chosen), 8):
