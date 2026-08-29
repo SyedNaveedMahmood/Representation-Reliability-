@@ -303,9 +303,13 @@ def run_e13_diagnostic_confirmation(*, protocol_commit: str, dry_run: bool = Fal
         if eval_samples is not None:
             for sample in eval_samples:
                 samples_by_id[str(sample.sample_id)] = sample
-        labels = {
-            str(row.sample_id): int(row.label) for row in combined.itertuples(index=False)
-        }
+        labels = dict(
+            zip(
+                combined["sample_id"].astype(str),
+                combined["target_label"].astype(int),
+                strict=True,
+            )
+        )
 
         holdout_identity = {
             "n_rows": len(eval_frame),
@@ -545,7 +549,6 @@ def run_e13_diagnostic_confirmation(*, protocol_commit: str, dry_run: bool = Fal
         return run_dir / "primary_results.parquet"
     except Exception as exc:
         status.fail(message=f"{type(exc).__name__}: {exc}")
-        manifest.fail({"type": type(exc).__name__, "message": str(exc)})
         manifest.finish()
         raise
 
