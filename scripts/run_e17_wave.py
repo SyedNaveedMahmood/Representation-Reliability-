@@ -8,6 +8,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from prune_e17_checkpoints import prune
+
 ROOT = Path(__file__).resolve().parents[1]
 SEEDS = (20261705, 20261715, 20261725)
 REGIMES = ("R1", "R2", "R3")
@@ -43,6 +46,13 @@ def main() -> int:
             status_path.write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
             if result.returncode != 0:
                 raise RuntimeError(f"E17 job {key} failed with exit {result.returncode}")
+            # A 1.48B student writes roughly 34 GiB of resume-only artifacts per
+            # job. Prune each completed job immediately so the wave's disk
+            # footprint stays bounded instead of accumulating past the device.
+            for job_dir in sorted((campaign / "jobs").glob(f"{key}_*")):
+                freed = prune(job_dir)
+                if freed:
+                    print(f"pruned {job_dir.name}: {freed / 2**30:.1f} GiB", flush=True)
     return 0
 
 
