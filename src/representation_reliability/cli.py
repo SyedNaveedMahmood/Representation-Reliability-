@@ -455,6 +455,16 @@ def e13_method_analyze() -> None:
     typer.echo(f"E13 method analysis complete: {report}")
 
 
+@app.command("e13-response-diagnostic")
+def e13_response_diagnostic() -> None:
+    """Audit R5/R6 response scales, sensitivity, and full-model gradients."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_revision import run_response_regularization_diagnostic
+
+    report = run_response_regularization_diagnostic()
+    typer.echo(f"E13 response diagnostic complete: {report}")
+
+
 @app.command()
 def extract(
     base: Path | None = None,
