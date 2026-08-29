@@ -503,3 +503,63 @@ def test_access_record_refuses_a_second_campaign(tmp_path):
 def test_frozen_margins_are_the_discovery_values():
     assert DELTA_B == 0.03
     assert DELTA_C == 0.10
+
+
+# --------------------------------------------------------------------------
+# E17 cross-family contracts (no model loading, no causal quantities)
+# --------------------------------------------------------------------------
+
+
+def test_e17_relative_depth_rule_is_frozen_and_matches_the_qwen_site():
+    from representation_reliability.runners.e17 import relative_layer
+
+    # Qwen3 has 28 blocks; the rule must land adjacent to E13's frozen layer 17.
+    assert relative_layer(28) == 16
+    assert relative_layer(24) == 14
+    assert relative_layer(32) == 19
+    assert relative_layer(2) == 1
+    with pytest.raises(ValueError):
+        relative_layer(1)
+
+
+def test_e17_corpus_shape_pairing_and_namespace():
+    from representation_reliability.runners.e17 import build_e17_corpus
+
+    _samples, frame, stats = build_e17_corpus()
+    assert len(frame) == 4800
+    assert frame["pair_id"].nunique() == 2400
+    assert frame.groupby("split").size().to_dict() == {
+        "train": 4000,
+        "validation": 500,
+        "discovery_test": 300,
+    }
+    assert frame["sample_id"].astype(str).str.startswith("e17-").all()
+    assert not frame["sample_id"].duplicated().any()
+    assert not frame["prompt"].duplicated().any()
+    assert bool(frame.groupby("pair_id")["sample_id"].size().eq(2).all())
+    assert stats["confirmation_accessed"] is False
+
+
+def test_e17_identities_never_collide_with_e13():
+    from representation_reliability.runners.e13 import build_e13_open_corpus
+    from representation_reliability.runners.e17 import build_e17_corpus
+
+    _s17, f17, _st = build_e17_corpus()
+    _s13, f13, _st13 = build_e13_open_corpus()
+    assert not set(f17["sample_id"]) & set(f13["sample_id"])
+    assert not set(f17["pair_id"]) & set(f13["pair_id"])
+
+
+def test_e17_candidate_order_is_frozen():
+    from representation_reliability.runners.e17 import CANDIDATES
+
+    assert [c["name"] for c in CANDIDATES] == ["SmolLM2", "Llama-3.2", "OLMo-2"]
+
+
+def test_e17_regimes_exclude_every_conversion_response_variant():
+    from representation_reliability.runners.e17 import REGIMES, TRAINING_SEEDS
+
+    assert REGIMES == ("R1", "R2", "R3")
+    assert TRAINING_SEEDS == (20261705, 20261715, 20261725)
+    for banned in ("R4", "R5", "R6", "R2C", *[f"R{i}" for i in range(7, 17)]):
+        assert banned not in REGIMES

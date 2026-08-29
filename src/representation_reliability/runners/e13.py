@@ -250,12 +250,14 @@ def _last_positions(attention_mask: torch.Tensor) -> torch.Tensor:
     return torch.where(attention_mask.bool(), positions[None, :], -1).max(dim=1).values
 
 
-def _reference_from_model(adapter, samples_by_id, frame, labels, token_ids, batch_size):
+def _reference_from_model(
+    adapter, samples_by_id, frame, labels, token_ids, batch_size, *, layer: int = LAYER
+):
     ids = frame["sample_id"].astype(str).tolist()
     activations, token_indices, token_sites = extract_resid_post_layers(
         adapter,
         [samples_by_id[sid] for sid in ids],
-        layers=[LAYER],
+        layers=[layer],
         token_selector=SELECTOR,
         batch_size=batch_size,
     )
@@ -263,7 +265,7 @@ def _reference_from_model(adapter, samples_by_id, frame, labels, token_ids, batc
         activations,
         frame,
         labels,
-        LAYER,
+        layer,
         c_grid=(0.01, 0.1, 1.0, 10.0),
         seed=20260829,
     )
@@ -278,7 +280,7 @@ def _reference_from_model(adapter, samples_by_id, frame, labels, token_ids, batc
         batch_size=batch_size,
     )
     validation_margins = np.asarray([_selected_margin(clean[sid]) for sid in validation_ids])
-    validation_vectors = np.stack([activations[LAYER][sid] for sid in validation_ids])
+    validation_vectors = np.stack([activations[layer][sid] for sid in validation_ids])
     targets = validation_setpoint_targets(
         validation_vectors @ direction,
         np.asarray([labels[sid] for sid in validation_ids], dtype=int),
@@ -335,6 +337,7 @@ def _evaluate_checkpoint(
     precomputed_token_sites: dict[str, dict[str, Any]] | None = None,
     eval_split: str = "discovery_test",
     confirmation_accessed: bool = False,
+    layer: int = LAYER,
 ) -> tuple[dict[str, Any], pd.DataFrame]:
     validate_evaluation_routing(frame, eval_split, confirmation_accessed)
     ids = frame["sample_id"].astype(str).tolist()
@@ -342,7 +345,7 @@ def _evaluate_checkpoint(
         activations, token_indices, token_sites = extract_resid_post_layers(
             adapter,
             [samples_by_id[sid] for sid in ids],
-            layers=[LAYER],
+            layers=[layer],
             token_selector=SELECTOR,
             batch_size=batch_size,
         )
@@ -356,12 +359,12 @@ def _evaluate_checkpoint(
         activations,
         frame,
         labels,
-        LAYER,
+        layer,
         c_grid=(0.01, 0.1, 1.0, 10.0),
         seed=20260829,
     )
     eval_ids = frame.loc[frame["split"] == str(eval_split), "sample_id"].astype(str).tolist()
-    eval_vectors = np.stack([activations[LAYER][sid] for sid in eval_ids])
+    eval_vectors = np.stack([activations[layer][sid] for sid in eval_ids])
     y_eval = np.asarray([labels[sid] for sid in eval_ids], dtype=int)
     native_scores = fit["classifier"].decision_function(transform_features(fit, eval_vectors))
     frozen_scores = _frozen_scores(frozen_reference["probe"], eval_vectors)
@@ -371,11 +374,11 @@ def _evaluate_checkpoint(
         adapter,
         samples_by_id,
         eval_ids,
-        layer=LAYER,
+        layer=layer,
         token_indices=token_indices,
         deltas_by_id=zeros,
         output_token_ids=token_ids,
-        capture_layers=[LAYER],
+        capture_layers=[layer],
         batch_size=batch_size,
     )
     unhooked = run_unintervened_batches(
@@ -389,7 +392,7 @@ def _evaluate_checkpoint(
     no_op = max(
         float(np.max(np.abs(clean[sid]["selected_logits"] - unhooked[sid]))) for sid in eval_ids
     )
-    bases = intervention_base_activations(clean, eval_ids, layer=LAYER)
+    bases = intervention_base_activations(clean, eval_ids, layer=layer)
     direction = frozen_reference["direction"]
     targets = frozen_reference["targets"]
     q_targets = {
@@ -403,11 +406,11 @@ def _evaluate_checkpoint(
         adapter,
         samples_by_id,
         eval_ids,
-        layer=LAYER,
+        layer=layer,
         token_indices=token_indices,
         deltas_by_id=semantic,
         output_token_ids=token_ids,
-        capture_layers=[LAYER],
+        capture_layers=[layer],
         batch_size=batch_size,
     )
     contexts: list[tuple[str, int | None, dict[str, np.ndarray]]] = []
@@ -415,7 +418,7 @@ def _evaluate_checkpoint(
     reference_norms: dict[str, float] = {}
     for sid in eval_ids:
         source_id = str(samples_by_id[sid].counterfactual_id)
-        raw = orthogonal_component(activations[LAYER][source_id], bases[sid], direction)
+        raw = orthogonal_component(activations[layer][source_id], bases[sid], direction)
         norm = float(np.linalg.norm(raw))
         if norm < 1e-8:
             raise RuntimeError("E13 matched orthogonal context is degenerate")
@@ -442,22 +445,22 @@ def _evaluate_checkpoint(
             adapter,
             samples_by_id,
             eval_ids,
-            layer=LAYER,
+            layer=layer,
             token_indices=token_indices,
             deltas_by_id=vectors,
             output_token_ids=token_ids,
-            capture_layers=[LAYER],
+            capture_layers=[layer],
             batch_size=batch_size,
         )
         y11 = run_intervention_batches(
             adapter,
             samples_by_id,
             eval_ids,
-            layer=LAYER,
+            layer=layer,
             token_indices=token_indices,
             deltas_by_id={sid: semantic[sid] + vectors[sid] for sid in eval_ids},
             output_token_ids=token_ids,
-            capture_layers=[LAYER],
+            capture_layers=[layer],
             batch_size=batch_size,
         )
         for sid in eval_ids:
@@ -475,7 +478,7 @@ def _evaluate_checkpoint(
                 orientation * _selected_margin(context_logits),
                 orientation * _selected_margin(joint_logits),
             )
-            q_after = coordinate_value(y11[sid]["captured"][LAYER], direction)
+            q_after = coordinate_value(y11[sid]["captured"][layer], direction)
             max_q_error = max(max_q_error, abs(q_after - q_targets[sid]))
             max_context_dot = max(max_context_dot, abs(float(np.dot(vectors[sid], direction))))
             rows.append(
@@ -515,8 +518,8 @@ def _evaluate_checkpoint(
                     ),
                     "raw_text": str(sample.prompt),
                     "site": SITE,
-                    "layer": LAYER,
-                    "native_module_name": adapter.resolve_site(SITE, LAYER).native_module_name,
+                    "layer": layer,
+                    "native_module_name": adapter.resolve_site(SITE, layer).native_module_name,
                     "token_selector": SELECTOR,
                     "token_index": int(token_indices[sid]),
                     "prompt_sequence_length": int(site["sequence_length"]),
@@ -596,7 +599,10 @@ def _train_regime(
     projector: HiddenStateProjector | None = None,
     response_loss_fn=None,
     custom_gradient_step_fn=None,
+    layer: int = LAYER,
+    teacher_layer: int | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    teacher_layer = layer if teacher_layer is None else int(teacher_layer)
     response_regimes = {
         "R4",
         "R5",
@@ -709,7 +715,7 @@ def _train_regime(
                         student,
                         input_ids=input_ids,
                         attention_mask=attention,
-                        layer=LAYER,
+                        layer=layer,
                     )
                     response_hidden = response_sequence[
                         torch.arange(len(batch_ids), device=student.device), positions
@@ -736,10 +742,10 @@ def _train_regime(
                             torch.arange(len(batch_ids), device=student.device), positions
                         ]
                     if regime == "R3":
-                        student_hidden = student_outputs.hidden_states[LAYER + 1][
+                        student_hidden = student_outputs.hidden_states[layer + 1][
                             torch.arange(len(batch_ids), device=student.device), positions
                         ]
-                        teacher_hidden = teacher_outputs.hidden_states[LAYER + 1][
+                        teacher_hidden = teacher_outputs.hidden_states[teacher_layer + 1][
                             torch.arange(len(batch_ids), device=student.device), positions
                         ]
                         hidden_loss = representation_kd_loss(
