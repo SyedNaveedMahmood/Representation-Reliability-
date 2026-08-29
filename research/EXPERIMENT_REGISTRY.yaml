@@ -344,7 +344,7 @@ experiments:
       does knowledge distillation transfer the teacher's ability to use it, or
       can representation and causal conversion remain dissociated after distillation?
     priority: P0
-    status: full_discovery_complete_method_revision_required
+    status: discovery_complete_method_branch_closed_diagnostic_only
     depends_on: [E01B]
     dimensions: [D, C, R]
     refs: [logit_kd, hidden_state_kd, trajectory_kd, source_free_setpoints]
@@ -370,9 +370,12 @@ experiments:
         standardized native-margin response to source-free semantic setpoints.
     execution_policy: >
       Full three-seed discovery for R0/R1/R2/R3 and R4/R5/R6/R2-C is complete
-      under the frozen protocols. The E13 confirmation namespace remains locked
-      and unmaterialized. Any method revision requires a new frozen discovery
-      design and must not inspect confirmation evidence.
+      under the frozen protocols, and the R7-R16 method-revision campaign is
+      complete with no candidate selected. The E13 confirmation namespace
+      remains locked, unmaterialized, and unaccessed. The method branch is
+      closed; E13 is retained as diagnostic evidence. Any further method work
+      requires a new frozen discovery design and must not inspect confirmation
+      evidence.
     multiseed_preregistration:
       status: authorized
       protocol: docs/E13_MULTI_SEED_CAUSAL_TRANSFER_PROTOCOL.md
@@ -438,6 +441,78 @@ experiments:
       recommendation: revise_conversion_response_method_before_confirmation
       confirmation_accessed: false
       report: E13_CONVERSION_RESPONSE_DISCOVERY_SUMMARY.md
+    method_revision_preregistration:
+      status: completed
+      specificity_protocol: docs/E13_RESPONSE_SPECIFICITY_PROTOCOL.md
+      specificity_protocol_sha256: 08b45d7912c2110b87fb2915b983dcc9e4d2b66a0c961efa2bb8c46438d078ba
+      objective_protocol: docs/E13_RESPONSE_OBJECTIVE_REVISION_PROTOCOL.md
+      objective_protocol_sha256: 79d9141a25b420ed6b8fcd290297384cb9d31e920d53dec634bb0462b6a180b0
+      diagnostic_report: E13_RESPONSE_REGULARIZATION_DIAGNOSTIC.md
+      mechanism_controls: [R7_global_shuffle, R8_family_shuffle, R9_semantic_geometry_random_target, R10_random_geometry_semantic_target]
+      objective_variants: [R11_full_arm, R12_whitened, R13_QA_only, R14_G_only, R15_projected_gradient, R16_norm_balanced_gradient]
+      bounded_seed: 20261305
+      permutation_seed: 20261331
+      optimizer_steps: 100
+      response_coefficient: 1.0
+      conflict_gate_fired: true
+      confirmation_accessed: false
+    method_revision_result:
+      campaign: E13MR_08b45d7912c2_79d9141a25b4
+      scheduler_campaign: 20260829T_revision_wave_v1
+      duplicate_scheduler_record: 20260829T_revision_wave_v2
+      regimes_complete: [R7, R8, R9, R10, R11, R12, R13, R14, R15, R16]
+      training_seeds_complete: [20261305]
+      selected_regime: null
+      no_candidate_passed: true
+      three_seed_wave_run: false
+      classification: METHOD_REVISION_INCONCLUSIVE
+      bounded_COD:
+        R2: 0.733286
+        R3: 0.707304
+        R5: 0.507220
+        R6: 0.552956
+        R7: 0.545301
+        R8: 0.454964
+        R9: 1.246526
+        R10: 0.827450
+        R11: 0.635353
+        R12: 0.768399
+        R13: 0.594429
+        R14: 0.697306
+        R15: 0.667481
+        R16: 0.595298
+      q_sign_agreement:
+        R2: 0.600
+        R5: 0.903
+        R6: 0.823
+        R7: 0.850
+        R8: 0.867
+        R13: 0.970
+        R15: 0.970
+        R16: 0.980
+      in_training_gradient_conflict:
+        source: R15 seed 20261305, 100 optimizer steps
+        mean_cosine_kd_response: -0.0090
+        fraction_below_minus_0_2: 0.150
+        median_response_to_kd_gradient_norm_ratio: 3.087
+      findings:
+        - COD_benefit_is_generic_local_sensitivity_regularization_not_causal_transfer
+        - logit_KD_overshoots_A_and_COD_is_magnitude_dominated_by_A
+        - family_shuffled_targets_R8_gave_lowest_COD_in_campaign
+        - semantic_specific_signal_exists_only_in_Q_sign_agreement
+        - mismatched_geometry_and_target_R9_R10_both_degrade
+        - response_coefficient_1_0_makes_response_the_dominant_loss
+        - G_individually_learnable_but_inert_and_not_carried_by_Q_A
+        - gradient_conflict_minor_scale_imbalance_dominant
+        - behavioral_equivalence_with_causal_organizational_mismatch_replicated
+      recommendation: stop_method_branch_retain_E13_as_diagnostic_evidence
+      quality_controls_pass: true
+      confirmation_accessed: false
+      report: E13_METHOD_REVISION_DISCOVERY_SUMMARY.md
+      supporting_reports:
+        - E13_RESPONSE_REGULARIZATION_DIAGNOSTIC.md
+        - E13_RESPONSE_SPECIFICITY_RESULTS.md
+        - E13_RESPONSE_OBJECTIVE_REVISION_RESULTS.md
     bounded_preregistration:
       protocol: docs/E13_DISTILLATION_FULL_PROTOCOL.md
       protocol_sha256: eafe0eb3a5aef011e24906bc505f525349ab6be10aa33d26916d7b86b1f6e685

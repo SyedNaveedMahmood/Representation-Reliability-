@@ -367,3 +367,66 @@ recommendation is to revise conversion-response methodology before any E13
 confirmation; confirmation remains locked and unmaterialized. See
 `E13_MULTI_SEED_DISCOVERY_SUMMARY.md` and
 `E13_CONVERSION_RESPONSE_DISCOVERY_SUMMARY.md`.
+
+## E13 method-revision campaign (diagnostic, no confirmation)
+
+The E13 method-revision campaign is complete and its frozen bounded gate
+selected **nothing**. Fourteen regimes were compared at validation-selected
+behavior-matched checkpoints on seed `20261305`: mechanism controls R7-R10
+(`docs/E13_RESPONSE_SPECIFICITY_PROTOCOL.md`), objective revisions R11-R16
+(`docs/E13_RESPONSE_OBJECTIVE_REVISION_PROTOCOL.md`), and comparators
+R2/R3/R5/R6. All six candidates failed the eligibility rule, so no three-seed
+method wave was run. Classification: `METHOD REVISION INCONCLUSIVE`.
+
+The campaign answered the question it was posed. R6's improvement is generic
+local-sensitivity regularization, not causal transfer. Plain logit KD does not
+under-move the student's causal organization; it *overshoots* the action effect
+(`A_z 0.788 -> 1.757` by step 25 against a teacher value of `1.169`), and since
+COD is a magnitude-dominated per-example norm over `(Q_z, A_z, G_z)` with A by
+far the largest component, any structured response penalty buys most of the COD
+reduction. Shuffling teacher targets within relation family (R8) so that no
+sample receives its own causal response produced the **lowest COD of the entire
+campaign** (`0.455`, versus R5 `0.507` and R6 `0.553`) while remaining
+teacher-like in behavior.
+
+A genuine semantic-specific signal does exist, but it is confined to Q and is
+invisible to COD. Per-example Q sign agreement rises from `0.600` under plain KD
+to `0.823` under any response regularization, then to `0.903`-`0.980` only for
+regimes whose loss contains a sample-matched semantic Q target (R5, R13, R15,
+R16); shuffled controls sit in between at `0.850`-`0.867`. The two mismatched
+controls both failed, so the effect is not pure scale regularization either:
+semantic geometry with random targets (R9) collapsed behavior entirely
+(B gap `0.165`, COD `1.247`), and random geometry with semantic targets (R10)
+fell below plain KD (`0.827` versus `0.733`).
+
+The objective revisions failed on scale, not form. Mean response-to-KD loss
+ratios were R14 `2.19`, R15 `3.11`, R16 `3.98`, R13 `7.13`, R11 `8.55`, R12
+`22.04`, and this ordering predicts the behavior failures exactly: the three
+regimes that lost teacher-like behavior are the three with the largest response
+terms. At the frozen coefficient of 1.0, inherited from R5 rather than
+re-derived per objective, these are the dominant loss, not an auxiliary. G is
+individually learnable (R14 is the best-behaved regime and gives the smallest G
+gap, `0.080`) but nearly inert on overall organization, and G does not come
+along for free when only Q and A are trained (R13 G gap `0.100`, `G_z` drifting
+to `0.0785` past the teacher's `0.046`). Gradient conflict proved minor:
+measured in-training over all 100 optimizer steps, mean
+`cos(g_KD, g_response) = -0.009`, below `-0.2` on only 15% of steps, while the
+response gradient runs `3.1`-`3.4` times the KD gradient norm.
+
+The core E13 dissociation is unchanged and better demonstrated than before: R6,
+R15 and R16 all reach validation B of `1.000000` — behaviorally indistinguishable
+from the teacher on the selection metric — while retaining COD of `0.553`,
+`0.667` and `0.595` against a teacher value of `0`. General quality never
+degraded catastrophically anywhere in the wave (PPL `30.76`-`32.73`, HellaSwag
+`0.466`-`0.480`).
+
+The frozen recommendation is to **stop the method branch and retain E13 as
+diagnostic evidence**. Causal-organization transfer is not demonstrated by this
+method family under this design: the improvements attributed to
+conversion-response distillation are reproduced and exceeded by targets with no
+sample-level semantic content. E13 confirmation (`e13_confirmation_v1`) remains
+locked, unmaterialized, and was not accessed. See
+`E13_RESPONSE_REGULARIZATION_DIAGNOSTIC.md`,
+`E13_RESPONSE_SPECIFICITY_RESULTS.md`,
+`E13_RESPONSE_OBJECTIVE_REVISION_RESULTS.md`, and
+`E13_METHOD_REVISION_DISCOVERY_SUMMARY.md`.

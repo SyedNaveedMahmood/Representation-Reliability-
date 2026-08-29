@@ -220,10 +220,26 @@ logit KD reached teacher-like behavior while retaining large causal-organization
 distance, and hidden-state KD improved representation-similarity views without
 equivalent COD improvement. Factorial conversion-response distillation produced
 the best mean COD, but missed teacher-like behavior in one seed, did not jointly
-improve Q/A/G, and did not consistently beat the random-response control. This
-supports the master distinction while leaving semantic-specific causal transfer
-heterogeneous and unresolved. The method should be revised in discovery before
-confirmation is considered.
+improve Q/A/G, and did not consistently beat the random-response control.
+
+The follow-up method-revision campaign resolved that ambiguity against the
+method. Its frozen bounded gate selected no candidate from six objective
+revisions, so no three-seed method wave was run. Mechanism controls showed that
+the COD benefit is generic local-sensitivity regularization rather than causal
+transfer: logit KD *overshoots* the action effect, COD is a magnitude-dominated
+norm over that component, and shuffling teacher targets within relation family
+so that no sample receives its own causal response produced the lowest COD of
+the whole campaign. A genuine semantic-specific effect survives, but only in the
+smallest component Q (per-example Q sign agreement `0.903`-`0.980` with
+sample-matched semantic targets versus at most `0.867` without), where the
+frozen summary statistic cannot see it.
+
+This strengthens the master distinction rather than weakening it. Behavioral
+equivalence and causal-organizational mismatch coexist more sharply than before:
+three regimes reach validation B of `1.000000` while retaining COD of `0.553`,
+`0.595` and `0.667` against a teacher value of `0`. But causal-organization
+transfer itself is not demonstrated by this method family, and the E13 branch
+should be retained as diagnostic evidence rather than advanced to confirmation.
 
 E15 has high conceptual upside but much higher task/evaluation complexity and should not be used merely as an agent benchmark.
 

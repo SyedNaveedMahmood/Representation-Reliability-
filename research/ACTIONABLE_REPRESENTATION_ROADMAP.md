@@ -146,9 +146,15 @@ branch; it does not authorize reopening E14 or testing a new quantizer.
 
 ### C1. E13 distillation reliability — gated on E01B
 
-Status: **three-seed R0/R1/R2/R3 and R4/R5/R6/R2-C full discovery complete**.
-All frozen baseline Gates A-E passed, and all 12 authorized method jobs then
-completed. E13 confirmation remains locked and unmaterialized.
+Status: **discovery complete; method branch closed as diagnostic**. Three-seed
+R0/R1/R2/R3 and R4/R5/R6/R2-C full discovery passed all frozen baseline Gates
+A-E and all 12 authorized method jobs completed. The subsequent method-revision
+campaign (R7-R16, one bounded seed, `runs/E13_METHOD_REVISION/`) then failed its
+frozen bounded gate with `selected_regime: null`, so no three-seed method wave
+was authorized or run. Classification `METHOD REVISION INCONCLUSIVE`;
+recommendation is to retain E13 as diagnostic evidence and not to preregister a
+confirmation. E13 confirmation remains locked, unmaterialized, and unaccessed.
+See `E13_METHOD_REVISION_DISCOVERY_SUMMARY.md`.
 
 Pilot result: D was saturated throughout and both SFT/KD reached B=1.0, but Q
 remained weak—especially under KD—while A/G changed strongly and differently by
@@ -257,7 +263,7 @@ Current recommended ordering:
 | 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
 | 3 | E01B-3 | strong confirmation complete; mechanism frozen |
 | 4 | E14 | strong confirmation complete; mixed actionability/general degradation |
-| 5 | E13 | full discovery complete; revise method before confirmation |
+| 5 | E13 | discovery complete; method revision failed its frozen gate; retain as diagnostic, do not confirm |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
 | 7 | E15 | highest long-horizon conceptual upside; not authorized |
 
@@ -287,7 +293,21 @@ If E13 shows a representation/utilization transfer gap:
 
 > Distillation can transfer what is represented and how it is used at different rates.
 
-If conversion-response distillation repairs this gap, that becomes a separate method contribution.
+E13 supports this diagnostic claim and it is the part worth writing. The method
+half did not survive. Conversion-response distillation does **not** repair the
+gap: its frozen bounded revision gate selected no candidate from six objective
+variants, and mechanism controls showed the apparent COD benefit is generic
+local-sensitivity regularization — shuffling teacher targets within relation
+family, destroying all sample-level semantic correspondence, gave the lowest COD
+in the campaign. A semantic-specific signal exists only in the smallest profile
+component (Q), which the frozen selection statistic cannot resolve. There is no
+separate method contribution to claim.
+
+If the method branch is ever resumed it needs two changes, both requiring a new
+frozen discovery design: a response coefficient calibrated per objective against
+the KD gradient scale rather than fixed at 1.0 (the response gradient currently
+runs 3-5x the KD gradient), and a selection statistic sensitive to per-example
+profile correspondence rather than a magnitude-dominated norm.
 
 ### Paper path 4 — developmental paper
 

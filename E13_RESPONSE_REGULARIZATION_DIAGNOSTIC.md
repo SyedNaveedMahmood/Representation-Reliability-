@@ -100,3 +100,20 @@ Semantic/random target correlations are weak: Q 0.103, A 0.058, G 0.105, and res
 R6 reduces the B-matched matched-context standardized mean-square response from R2's 2.872 to 1.201 and has a low unseen-random Jacobian proxy (0.0036 versus R2 0.0095). R5 also reduces matched-context sensitivity (1.539) but is anisotropic on unseen directions (pooled proxy 0.0178, driven by direction 2131). The best current explanation is that R6 supplies strong generic local-sensitivity/Jacobian regularization, which moves A/G magnitudes toward the teacher profile without semantic target correspondence.
 
 Gradient conflict is heterogeneous but real. Mean cosine(KD,A) is -0.207, with values below -0.2 at both audited checkpoints; cosine(KD,G) reaches -0.529, while Q is usually aligned or near orthogonal. The frozen repeated-conflict gate therefore fires and authorizes the preregistered R15/R16 bounded controls.
+
+## Appendix: post-hoc confirmation of the conflict gate
+
+Added after the R15/R16 runs authorized by this diagnostic. The gate above fired on a two-batch, two-checkpoint read-only audit. R15 subsequently recorded the same quantity from full accumulated `g_KD` and `g_response` at every one of its 100 optimizer steps, which is a far larger and more representative sample.
+
+| statistic | in-training value (R15, 100 steps) |
+|---|---|
+| mean cos(g_KD, g_response) | -0.0090 |
+| median | -0.0092 |
+| SD | 0.1686 |
+| p05 / p95 | -0.2601 / 0.2674 |
+| min / max | -0.4366 / 0.3751 |
+| fraction negative | 0.550 |
+| fraction below -0.2 | 0.150 |
+| mean / median response-to-KD gradient norm ratio | 3.373 / 3.087 |
+
+The gate decision stands as a correctly applied frozen rule, but the fuller measurement reverses its emphasis. Directional conflict is mild and roughly symmetric about zero, with a negative tail on 15% of steps rather than a persistent opposition. The response gradient is instead persistently three to five times larger than the KD gradient. The dominant pathology in the R5 objective family is **scale, not direction**, which is why norm-balancing (R16) outperformed projection (R15) among the authorized remedies. This does not alter any number reported above; it refines the interpretation of the gradient audit section.
