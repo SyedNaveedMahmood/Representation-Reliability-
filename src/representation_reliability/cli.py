@@ -616,5 +616,87 @@ def e17_analyze() -> None:
     typer.echo(f"E17 analysis complete: {output}")
 
 
+@app.command("e15-stage0")
+def e15_stage0(
+    model: str = typer.Option("qwen3_1.7b", "--model", help="frozen E15 model config name"),
+) -> None:
+    """Freeze the E15 stateful task and validate exact state labels."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e15 import run_e15_stage0
+
+    run_dir = run_e15_stage0(model)
+    typer.echo(f"E15 Stage 0 complete: {run_dir}")
+
+
+@app.command("e15-stage1")
+def e15_stage1(
+    model: str = typer.Option("qwen3_1.7b", "--model", help="frozen E15 model config name"),
+) -> None:
+    """Establish E15 D(k) and B(k) with no intervention."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e15 import run_e15_stage1
+
+    run_dir = run_e15_stage1(model)
+    typer.echo(f"E15 Stage 1 complete: {run_dir}")
+
+
+@app.command("e15-stage2")
+def e15_stage2(
+    model: str = typer.Option("qwen3_1.7b", "--model", help="frozen E15 model config name"),
+) -> None:
+    """Run the bounded E15 intervention smoke (engineering gate only)."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e15 import run_e15_stage2
+
+    run_dir = run_e15_stage2(model)
+    typer.echo(f"E15 Stage 2 complete: {run_dir}")
+
+
+@app.command("e15-stage3")
+def e15_stage3(
+    model: str = typer.Option("qwen3_1.7b", "--model", help="frozen E15 model config name"),
+) -> None:
+    """Run the full E15 horizon curve and evaluate the frozen Stage 4 gate."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e15 import run_e15_stage3
+
+    run_dir = run_e15_stage3(model)
+    typer.echo(f"E15 Stage 3 complete: {run_dir}")
+
+
+@app.command("e15-stage3b")
+def e15_stage3b(
+    model: str = typer.Option("qwen3_1.7b", "--model", help="frozen E15 model config name"),
+) -> None:
+    """Run the secondary E15 distractor-density contrast (H15.3)."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e15 import run_e15_stage3b
+
+    run_dir = run_e15_stage3b(model)
+    typer.echo(f"E15 Stage 3b complete: {run_dir}")
+
+
+@app.command("e15-stage4")
+def e15_stage4() -> None:
+    """Replicate E15 on the frozen second checkpoint, only if the gate passed."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e15 import run_e15_stage4
+
+    run_dir = run_e15_stage4()
+    typer.echo(f"E15 Stage 4 complete: {run_dir}")
+
+
+@app.command("e15-analyze")
+def e15_analyze(
+    model: str = typer.Option("qwen3_1.7b", "--model", help="frozen E15 model config name"),
+) -> None:
+    """Assemble the E15 discovery report from completed stage artifacts."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e15 import analyze_e15
+
+    output = analyze_e15(model)
+    typer.echo(f"E15 analysis complete: {output}")
+
+
 if __name__ == "__main__":
     app()

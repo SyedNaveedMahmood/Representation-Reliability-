@@ -145,7 +145,7 @@ class RepresentationConfig(StrictModel):
 
 
 class DatasetConfig(StrictModel):
-    type: Literal["synthetic_relations"]
+    type: Literal["synthetic_relations", "stateful_console"]
     n_samples: int = Field(gt=0)
     split: str = "discovery"
     invariant_transforms: list[str] = []

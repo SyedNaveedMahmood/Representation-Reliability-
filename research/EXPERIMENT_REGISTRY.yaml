@@ -715,7 +715,7 @@ experiments:
       In a long-horizon task, can a state variable remain internally decodable
       after its causal influence on future actions has substantially decayed?
     priority: P1
-    status: proposed_not_authorized
+    status: authorized_staged_execution
     depends_on: [E01B]
     dimensions: [D, C, R]
     refs: [long_horizon_state, causal_intervention, temporal_persistence]
@@ -732,9 +732,27 @@ experiments:
       Begin with one structured stateful task having explicit latent state,
       auditable transitions, delayed decisions, matched counterfactual episodes,
       and controlled distractor/horizon variation.
+    protocol: docs/E15_TEMPORAL_CAUSAL_HALF_LIFE_PROTOCOL.md
+    campaign: runs/E15_TEMPORAL
+    primary_model: Qwen/Qwen3-1.7B
+    replication_model_frozen_in_advance: Qwen/Qwen3-0.6B
+    task: stateful_console
+    site: {name: resid_post, layer: 17, rule: repository_frozen_qwen3_site_no_search}
+    carrier_token: target_span_last_over_the_target_clearance_step_line
+    decision_token: last_prompt
+    horizon_grid: [1, 2, 4, 8, 16, 32]
+    corpus_seeds: {train: 20261501, validation: 20261502, discovery_test: 20261503}
+    confirmation_split_exists: false
+    hypotheses_executed: [H15.1, H15.2]
+    hypotheses_secondary: [H15.3]
+    hypotheses_gated: [H15.4]
     execution_policy: >
-      Design only. Do not implement until a task is separately frozen and an
-      explicit authorization is given.
+      Authorized 2026-08-29 for staged execution under the frozen protocol. The
+      staged plan is the authorization structure: stage 4 runs only if the frozen
+      stage 4 gate passes. No confirmation split is created and none of the
+      consumed E01/E13/E14 holdouts are touched. A failed gate stands as the
+      result and must not be repaired by adding horizons, arms, layers, carriers,
+      tasks or models.
 
   - id: E16
     name: utilization_emergence_during_training

@@ -1,0 +1,39 @@
+experiment:
+  id: E15
+  name: temporal_causal_half_life
+  mode: discovery
+
+dataset:
+  # Frozen stateful console environment; episode counts, horizon grid and seeds
+  # live in runners/e15.py because they are protocol constants, not knobs.
+  type: stateful_console
+  n_samples: 1200
+  split: discovery
+
+representation:
+  sites: [resid_post]
+  # Primary carrier/decision layer is the repository-frozen Qwen3 site L17.
+  # No causal layer search is permitted (protocol section 2).
+  layers: all
+  token_selectors: [last_prompt, target_span_last]
+
+probe:
+  type: logistic_regression
+  standardize: true
+  C_grid: [0.01, 0.1, 1.0, 10.0]
+  class_weight: balanced
+
+controls:
+  random_labels: true
+  random_label_seeds: [0, 1, 2]
+  text_baseline: null
+  random_features: false
+
+behavior:
+  candidates_primary: [" Yes", " No"]
+  candidates_secondary: [" yes", " no"]
+  free_generation_diagnostic_n: 0
+
+outputs:
+  save_coefficients: true
+  layerwise_metrics: true
