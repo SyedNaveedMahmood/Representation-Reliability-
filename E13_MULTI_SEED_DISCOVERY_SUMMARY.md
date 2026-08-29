@@ -1,6 +1,6 @@
 # E13 Multi-Seed Causal-Organization Transfer Discovery
 
-Status date: 2026-08-28. Full open discovery only; E13 confirmation was not accessed.
+Status date: 2026-08-29. Full open discovery and conversion-response method wave complete; E13 confirmation was not accessed.
 
 Protocol SHA-256: `04daa7fcc66cc1c93f8077de23962dfec9861c9412c44367d83603ed0ccb7cac`  
 Campaign: `runs\E13_MULTI_SEED\E13MS_04daa7fcc66c`
@@ -34,6 +34,14 @@ Campaign: `runs\E13_MULTI_SEED\E13MS_04daa7fcc66c`
 - Gate D: PASS
 - Gate E: PASS
 
-**CONVERSION-RESPONSE METHOD AUTHORIZED**
+**CONVERSION-RESPONSE METHOD EXECUTED**
 
 Raw, validation-z, bounded-probability, strict-flip, per-example COD, representation-similarity, and quality evidence are retained in the campaign directory. Claims remain discovery-only and model/task/site specific.
+
+## Conversion-response method outcome
+
+All 12 frozen R4/R5/R6/R2-C jobs completed for seeds 20261305, 20261315, and 20261325 after a code-only correction enforcing separate 2048-dimensional teacher and 1024-dimensional student intervention spaces. The teacher cache passed every frozen live check with max and mean absolute discrepancy `0.0`.
+
+R5 had the lowest mean COD (`0.542515`, versus R2 `0.783882`, R3 `0.781511`, R2-C `0.783882`, R4 `0.774921`, and R6 `0.599255`), but the frozen primary method criterion failed. R5 seed 20261325 missed teacher-like validation B, R5 did not jointly reduce Q/A/G gaps, and random-response R6 beat R5 COD in one paired seed. General quality remained interpretable. The original behavioral-equivalence/causal-organization dissociation survives, while explicit semantic-specific transfer remains heterogeneous and unresolved.
+
+Recommendation: revise conversion-response method before confirmation. See `E13_CONVERSION_RESPONSE_DISCOVERY_SUMMARY.md`; do not access or materialize E13 confirmation.

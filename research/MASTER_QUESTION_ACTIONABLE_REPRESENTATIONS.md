@@ -204,7 +204,7 @@ E01B-1 source-free setpoints
     -> one preregistered untouched confirmation (complete: strong)
     -> choose ONE high-upside extension first
          E14 quantization reliability (strong confirmation complete)
-         E13 distillation reliability (bounded pilot next)
+         E13 distillation reliability (full discovery complete)
     -> E16 training emergence if suitable checkpoints are available
     -> E15 long-horizon causal half-life only after a clean sequential task is selected
     -> application-specific discovery/confirmation without retuning core E01
@@ -212,14 +212,18 @@ E01B-1 source-free setpoints
 
 E14 is complete for the frozen primary ladder. It confirms that native-axis
 decodability can outlive higher-order actionability under INT4, with the explicit
-boundary that generic quality also degrades. E13 is now the active bounded branch.
+boundary that generic quality also degrades. E13 full open discovery is also
+complete; its untouched confirmation remains locked.
 
-The one-seed E13 pilot now shows a candidate transfer dissociation: D was
-already saturated and B became perfect under both SFT and logit KD, while Q/A/G
-followed objective-specific, non-teacher-matching trajectories. This justifies
-multi-seed replication. It also fires the preregistered method trigger for a
-conversion-response objective, which remains proposed and unauthorized until
-the standard baselines replicate.
+The three-seed E13 campaign shows a replicated transfer dissociation. Standard
+logit KD reached teacher-like behavior while retaining large causal-organization
+distance, and hidden-state KD improved representation-similarity views without
+equivalent COD improvement. Factorial conversion-response distillation produced
+the best mean COD, but missed teacher-like behavior in one seed, did not jointly
+improve Q/A/G, and did not consistently beat the random-response control. This
+supports the master distinction while leaving semantic-specific causal transfer
+heterogeneous and unresolved. The method should be revised in discovery before
+confirmation is considered.
 
 E15 has high conceptual upside but much higher task/evaluation complexity and should not be used merely as an agent benchmark.
 

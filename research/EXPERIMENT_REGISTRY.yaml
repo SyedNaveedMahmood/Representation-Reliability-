@@ -344,7 +344,7 @@ experiments:
       does knowledge distillation transfer the teacher's ability to use it, or
       can representation and causal conversion remain dissociated after distillation?
     priority: P0
-    status: multiseed_baselines_complete_conversion_response_authorized
+    status: full_discovery_complete_method_revision_required
     depends_on: [E01B]
     dimensions: [D, C, R]
     refs: [logit_kd, hidden_state_kd, trajectory_kd, source_free_setpoints]
@@ -369,11 +369,10 @@ experiments:
         test a conversion-response distillation loss that matches the teacher's
         standardized native-margin response to source-free semantic setpoints.
     execution_policy: >
-      Full three-seed discovery for R0/R1/R2/R3 is authorized under the frozen
-      multi-seed protocol. The E13 confirmation namespace remains locked and
-      unmaterialized. Conversion-response methods are authorized only if every
-      frozen discovery gate passes and their executed protocol is committed and
-      present on origin/main before method training.
+      Full three-seed discovery for R0/R1/R2/R3 and R4/R5/R6/R2-C is complete
+      under the frozen protocols. The E13 confirmation namespace remains locked
+      and unmaterialized. Any method revision requires a new frozen discovery
+      design and must not inspect confirmation evidence.
     multiseed_preregistration:
       status: authorized
       protocol: docs/E13_MULTI_SEED_CAUSAL_TRANSFER_PROTOCOL.md
@@ -393,7 +392,7 @@ experiments:
       primary_profile: [Q_z, A_z, G_z]
       checkpoint_selection: validation_B_closest_to_teacher_earliest_tie
       quality_controls: [wikitext2_10000_tokens, hellaswag_fixed_500]
-      conversion_response_status: conditional_on_frozen_discovery_gate
+      conversion_response_status: discovery_complete_primary_failed
     multiseed_result:
       campaign: E13MS_04daa7fcc66c
       baseline_regimes_complete: [R0, R1, R2, R3]
@@ -402,9 +401,10 @@ experiments:
       gate: {A: true, B: true, C: true, D: true, E: true}
       joint_gate_passes: {R2: 3, R3: 3}
       conversion_response_authorized: true
+      conversion_response_complete: true
       report: E13_MULTI_SEED_DISCOVERY_SUMMARY.md
     conversion_response_preregistration:
-      status: authorized
+      status: completed
       protocol: docs/E13_CONVERSION_RESPONSE_FULL_PROTOCOL.md
       protocol_sha256: 3f3dd9a65347fc9ba6a20c29686aba11bd578f52b28d87818c399b422325846b
       regimes: [R4_scalar_CRD, R5_factorial_CRD, R6_random_response, R2_C_compute_control]
@@ -415,6 +415,29 @@ experiments:
       factorial_weights: {Q: 1.0, A: 1.0, G: 1.0}
       random_response_seed: 20261307
       confirmation_accessed: false
+    conversion_response_result:
+      campaign: E13CR_3f3dd9a65347
+      scheduler_campaign: 20260829T_method_wave_fixed
+      parent_failed_campaign: 20260828T_method_wave
+      cache_fix_commit: 39d4f378a019ab152fce40d2a1584b6208378177
+      cache_rows: 4500
+      cache_live_validation: {max_abs: 0.0, mean_abs: 0.0, passed: true}
+      regimes_complete: [R4, R5, R6, R2C]
+      training_seeds_complete: [20261305, 20261315, 20261325]
+      mean_COD: {R2: 0.783882, R3: 0.781511, R2C: 0.783882, R4: 0.774921, R5: 0.542515, R6: 0.599255}
+      primary_success: false
+      r5_behavior_retained_all_seeds: false
+      r5_lower_COD_than_R2_R3_R2C_R4_each_seed: true
+      r5_lower_COD_than_R6_each_seed: false
+      r5_jointly_lower_Q_A_G_gaps: false
+      quality_controls_pass: true
+      classification:
+        - behavioral_equivalence_with_causal_organizational_mismatch
+        - representation_similarity_without_causal_organizational_equivalence
+        - results_heterogeneous_unresolved
+      recommendation: revise_conversion_response_method_before_confirmation
+      confirmation_accessed: false
+      report: E13_CONVERSION_RESPONSE_DISCOVERY_SUMMARY.md
     bounded_preregistration:
       protocol: docs/E13_DISTILLATION_FULL_PROTOCOL.md
       protocol_sha256: eafe0eb3a5aef011e24906bc505f525349ab6be10aa33d26916d7b86b1f6e685

@@ -146,10 +146,9 @@ branch; it does not authorize reopening E14 or testing a new quantizer.
 
 ### C1. E13 distillation reliability — gated on E01B
 
-Status: **three-seed R0/R1/R2/R3 full discovery complete; conversion-response
-methods authorized**. All frozen Gates A-E passed, jointly in 3/3 R2 seeds and
-3/3 R3 seeds. E13 confirmation remains locked and unmaterialized. R4/R5/R6/R2-C
-are preregistered under `docs/E13_CONVERSION_RESPONSE_FULL_PROTOCOL.md`.
+Status: **three-seed R0/R1/R2/R3 and R4/R5/R6/R2-C full discovery complete**.
+All frozen baseline Gates A-E passed, and all 12 authorized method jobs then
+completed. E13 confirmation remains locked and unmaterialized.
 
 Pilot result: D was saturated throughout and both SFT/KD reached B=1.0, but Q
 remained weak—especially under KD—while A/G changed strongly and differently by
@@ -188,10 +187,16 @@ C changes substantially under KD
 
 or hidden-state similarity improves without corresponding C transfer.
 
-### C2. conversion-response distillation — method trigger only
+### C2. conversion-response distillation — discovery complete
 
-The frozen multi-seed gate passed; execute only the preregistered R4/R5/R6/R2-C
-campaign before considering confirmation.
+The frozen multi-seed gate passed and the preregistered R4/R5/R6/R2-C campaign
+is complete. R5 had the lowest mean COD (`0.543`) but failed the frozen primary
+criterion because one seed missed teacher-like validation B; R5 also failed to
+improve all Q/A/G gaps and did not consistently beat R6. R2-C exactly matched
+R2, ruling out extra detached-forward compute as the explanation. The current
+classification is heterogeneous/unresolved method evidence, and the next action
+is to revise the conversion-response method in a newly frozen discovery design,
+not to access confirmation.
 
 Trigger only if R2 or R3 achieves teacher-like validation behavior in at least
 two seeds while a preregistered standardized causal-organization gap remains and
@@ -252,7 +257,7 @@ Current recommended ordering:
 | 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
 | 3 | E01B-3 | strong confirmation complete; mechanism frozen |
 | 4 | E14 | strong confirmation complete; mixed actionability/general degradation |
-| 5 | E13 | baseline gate passed; conversion-response discovery authorized |
+| 5 | E13 | full discovery complete; revise method before confirmation |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
 | 7 | E15 | highest long-horizon conceptual upside; not authorized |
 

@@ -347,3 +347,23 @@ Q/A/G=`0.109/28.30/0.487`, while KD ended at `-0.002/9.19/0.192`, against teache
 causal organization. This is pilot-only, justifies multi-seed replication, and
 triggers—but does not authorize—a conversion-response distillation design. See
 `E13_BOUNDED_PILOT_SUMMARY.md`.
+
+The frozen three-seed E13 baseline and conversion-response discovery campaigns
+are now complete. R2 logit KD achieved teacher-like validation behavior in all
+three seeds but retained COD `0.733`-`0.876`; R3 hidden-state KD improved
+representation-alignment views without materially improving mean B-matched COD
+(`0.782` versus R2 `0.784`). Thus behavioral equivalence still did not imply
+causal-organizational equivalence, and representation similarity did not imply
+causal-organizational similarity.
+
+All 12 R4/R5/R6/R2-C method jobs completed after a code-only repair enforcing
+separate teacher (2048-d) and student (1024-d) intervention geometry. Factorial
+R5 had the lowest mean COD (`0.543`) and beat R2/R3/R2-C/R4 in every paired
+seed, but failed the frozen primary criterion: one seed missed teacher-like
+validation B, G-gap did not improve, and random-response R6 (`0.599` mean COD)
+beat R5 in one paired seed. Quality controls remained interpretable. The method
+signal is therefore heterogeneous and not confirmation-ready. The frozen
+recommendation is to revise conversion-response methodology before any E13
+confirmation; confirmation remains locked and unmaterialized. See
+`E13_MULTI_SEED_DISCOVERY_SUMMARY.md` and
+`E13_CONVERSION_RESPONSE_DISCOVERY_SUMMARY.md`.
