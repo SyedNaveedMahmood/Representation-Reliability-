@@ -21,6 +21,9 @@ PROTOCOL_SHA256 = "3f3dd9a65347fc9ba6a20c29686aba11bd578f52b28d87818c399b4223258
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--campaign-id", default=None)
+    parser.add_argument("--parent-failed-campaign", default=None)
+    parser.add_argument("--failure-reason", default=None)
+    parser.add_argument("--fix-commit", default=None)
     args = parser.parse_args()
     gpus = detect_gpus()
     campaign_id = args.campaign_id or (
@@ -38,6 +41,9 @@ def main() -> int:
         "gpus": gpus,
         "one_process_per_gpu": True,
         "retry_policy": "only demonstrated transient/OOM failures; none assumed",
+        "parent_failed_campaign": args.parent_failed_campaign,
+        "parent_failure_reason": args.failure_reason,
+        "fix_commit": args.fix_commit,
         "confirmation_accessed": False,
     }
     _atomic_json(campaign_dir / "campaign_manifest.json", manifest)
