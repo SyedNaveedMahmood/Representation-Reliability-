@@ -607,5 +607,14 @@ def e17_job(
     typer.echo(f"E17 job complete: {output}")
 
 
+@app.command("e17-analyze")
+def e17_analyze() -> None:
+    """Build the E17 cross-family discovery tables and replication verdict."""
+    from .runners.e17_analysis import analyze_e17
+
+    output = analyze_e17()
+    typer.echo(f"E17 analysis complete: {output}")
+
+
 if __name__ == "__main__":
     app()
