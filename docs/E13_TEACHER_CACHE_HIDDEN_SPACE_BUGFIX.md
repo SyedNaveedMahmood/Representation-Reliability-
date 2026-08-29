@@ -46,3 +46,17 @@ factorial Q/A/G construction at both widths, model-local deterministic R6
 orthogonality and norm matching, cache digests/provenance, and live-validation
 identity fields. The existing R2-C zero-gradient and hook-cleanup GPU contract
 also remains passing.
+
+## Live-validation batching correction
+
+The first cache attempt after the hidden-space fix reached the frozen live gate
+and stopped. Its hashed row-level subset regrouped prompts into different
+eight-row padded batches than cache construction. In BF16 this changed raw
+teacher margins by as much as 0.5 and standardized responses by as much as
+0.1186, exceeding the unchanged `0.02`/`0.002` tolerances. No cache was saved
+and no training started.
+
+The live subset now deterministically selects two complete original cache
+batches, preserving row order, padding shape, weights, dtype, and token sites.
+This corrects inference identity rather than loosening tolerance. A regression
+test proves that all 16 selected rows retain their original batch boundaries.

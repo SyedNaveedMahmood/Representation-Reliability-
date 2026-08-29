@@ -18,6 +18,7 @@ from representation_reliability.metrics.quantization import factorial_components
 from representation_reliability.runners.e13_methods import (
     METHOD_PROTOCOL_SHA256,
     ModelLocalReference,
+    _deterministic_live_batch_ids,
     _model_local_geometry,
     _orientation,
     _random_pair,
@@ -125,6 +126,18 @@ def test_teacher_cache_geometry_rejects_student_reference_before_edit():
             base_by_id={"sample": np.zeros(2048)},
             source_by_id={"sample": np.ones(2048)},
         )
+
+
+def test_live_validation_preserves_original_bf16_batch_identity():
+    ordered = [f"sample-{index:03d}" for index in range(32)]
+    chosen = _deterministic_live_batch_ids(ordered, batch_size=8, n_rows=16)
+    assert len(chosen) == 16
+    for start in range(0, len(chosen), 8):
+        block = chosen[start : start + 8]
+        original_start = ordered.index(block[0])
+        assert original_start % 8 == 0
+        assert block == ordered[original_start : original_start + 8]
+    assert chosen == _deterministic_live_batch_ids(ordered, batch_size=8, n_rows=16)
 
 
 class _TinyModel(nn.Module):

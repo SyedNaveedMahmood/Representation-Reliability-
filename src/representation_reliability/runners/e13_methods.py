@@ -272,6 +272,25 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _deterministic_live_batch_ids(
+    ordered_ids: list[str], *, batch_size: int, n_rows: int = LIVE_CACHE_ROWS
+) -> list[str]:
+    """Select complete original batches so live BF16 inference has identical padding."""
+    if n_rows % batch_size != 0 or len(ordered_ids) % batch_size != 0:
+        raise ValueError("live cache rows must comprise complete original batches")
+    batches = [
+        ordered_ids[start : start + batch_size] for start in range(0, len(ordered_ids), batch_size)
+    ]
+    needed = n_rows // batch_size
+    ranked = sorted(
+        range(len(batches)),
+        key=lambda index: hashlib.sha256(
+            f"E13-live-batch|{index}|{batches[index][0]}".encode()
+        ).digest(),
+    )[:needed]
+    return [sid for index in sorted(ranked) for sid in batches[index]]
+
+
 def _response_rows(
     ids: list[str],
     *,
@@ -484,9 +503,7 @@ def prepare_teacher_response_cache() -> Path:
                 column = f"{regime}_{component}"
                 scales[column] = max(float(evidence.loc[validation, column].std(ddof=0)), 1e-6)
 
-        live_ids = sorted(ids, key=lambda sid: hashlib.sha256(sid.encode()).digest())[
-            :LIVE_CACHE_ROWS
-        ]
+        live_ids = _deterministic_live_batch_ids(ids, batch_size=batch_size, n_rows=LIVE_CACHE_ROWS)
         live_clean = run_unintervened_batches(
             teacher,
             samples_by_id,
@@ -544,6 +561,8 @@ def prepare_teacher_response_cache() -> Path:
             }
         live_check = {
             "sample_ids": live_ids,
+            "batch_size": batch_size,
+            "batch_identity": "complete original cache batches with identical order/padding",
             "max_abs": float(absolute.max()),
             "mean_abs": float(absolute.mean()),
             "max_abs_tolerance": LIVE_CACHE_MAX_ABS,
