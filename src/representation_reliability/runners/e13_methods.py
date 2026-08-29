@@ -1298,6 +1298,7 @@ def _selected_method_row(job: dict[str, Any]) -> dict[str, Any]:
     step = int(job["b_matched"]["selected_step"])
     selected = next(row for row in job["checkpoints"] if int(row["step"]) == step)
     quality = job["general_quality"][f"step_{step:03d}"]
+    effects = selected["causal_effects"]
     return {
         "regime": str(job["regime"]),
         "seed": int(job["seed"]),
@@ -1305,9 +1306,20 @@ def _selected_method_row(job: dict[str, Any]) -> dict[str, Any]:
         "B_student": float(selected["B"]["auroc"]),
         "validation_B_student": float(selected["validation_B"]),
         "absolute_validation_B_gap": float(job["b_matched"]["absolute_B_gap"]),
-        "Q_z": float(selected["causal_effects"]["Q_z"]),
-        "A_z": float(selected["causal_effects"]["A_z"]),
-        "G_z": float(selected["causal_effects"]["G_z"]),
+        "D_native": float(selected["D_native"]["auroc"]),
+        "D_frozen": float(selected["D_frozen_initial_axis"]["auroc"]),
+        "Q_raw": float(effects["Q_raw"]),
+        "A_raw": float(effects["A_raw"]),
+        "G_raw": float(effects["G_raw"]),
+        "Q_z": float(effects["Q_z"]),
+        "A_z": float(effects["A_z"]),
+        "G_z": float(effects["G_z"]),
+        "Q_prob": float(effects["Q_prob"]),
+        "A_prob": float(effects["A_prob"]),
+        "G_prob": float(effects["G_prob"]),
+        "q_target_flip": float(effects["q_target_flip"]),
+        "context_target_flip": float(effects["context_target_flip"]),
+        "joint_target_flip": float(effects["joint_target_flip"]),
         "Q_gap": float(selected["COD"]["mean_abs_Q_z_gap"]),
         "A_gap": float(selected["COD"]["mean_abs_A_z_gap"]),
         "G_gap": float(selected["COD"]["mean_abs_G_z_gap"]),
@@ -1352,9 +1364,20 @@ def analyze_method_campaign(campaign_dir: Path | None = None) -> Path:
     save_table(results, campaign_dir / "method_b_matched_results.parquet")
     measures = [
         "B_student",
+        "D_native",
+        "D_frozen",
+        "Q_raw",
+        "A_raw",
+        "G_raw",
         "Q_z",
         "A_z",
         "G_z",
+        "Q_prob",
+        "A_prob",
+        "G_prob",
+        "q_target_flip",
+        "context_target_flip",
+        "joint_target_flip",
         "Q_gap",
         "A_gap",
         "G_gap",
@@ -1429,10 +1452,11 @@ def analyze_method_campaign(campaign_dir: Path | None = None) -> Path:
         "hellaswag_accuracy",
     ]
     report = repo_root / "E13_CONVERSION_RESPONSE_DISCOVERY_SUMMARY.md"
+    auto_report = campaign_dir / "method_analysis_auto.md"
     lines = [
         "# E13 Conversion-Response Distillation Discovery",
         "",
-        "Status date: 2026-08-28. Open discovery only; E13 confirmation was not accessed.",
+        "Status date: 2026-08-29. Open discovery only; E13 confirmation was not accessed.",
         "",
         f"Protocol SHA-256: `{METHOD_PROTOCOL_SHA256}`  ",
         f"Campaign: `{campaign_dir.relative_to(repo_root)}`",
@@ -1453,5 +1477,7 @@ def analyze_method_campaign(campaign_dir: Path | None = None) -> Path:
         "",
         "All comparisons are descriptive with n=3 seeds. Per-example raw evidence, all checkpoints, controls, and quality artifacts remain in the campaign directory.",
     ]
-    report.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    auto_report.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    if not report.exists():
+        report.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return report
