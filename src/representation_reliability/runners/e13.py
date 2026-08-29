@@ -571,8 +571,25 @@ def _train_regime(
     resume_checkpoint: Path | None = None,
     projector: HiddenStateProjector | None = None,
     response_loss_fn=None,
+    custom_gradient_step_fn=None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    if regime not in {"R1", "R2", "R3", "R4", "R5", "R6", "R2C"}:
+    response_regimes = {
+        "R4",
+        "R5",
+        "R6",
+        "R2C",
+        "R7",
+        "R8",
+        "R9",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+    }
+    if regime not in {"R1", "R2", "R3", *response_regimes}:
         raise ValueError("trainable E13 regime is outside the frozen design")
     model = student.model
     model.train()
@@ -634,95 +651,114 @@ def _train_regime(
         micro_kd = []
         micro_hidden = []
         micro_response = []
-        for _micro in range(GRAD_ACCUMULATION):
-            if cursor + MICROBATCH > len(order):
-                order = rng.permutation(train_ids).tolist()
-                cursor = 0
-            batch_ids = order[cursor : cursor + MICROBATCH]
-            cursor += MICROBATCH
-            prompts = [samples_by_id[sid].prompt for sid in batch_ids]
-            encoded = student.tokenize(prompts)
-            input_ids = encoded["input_ids"].to(student.device)
-            attention = encoded["attention_mask"].to(student.device)
-            positions = _last_positions(attention)
-            response_hidden = None
-            if regime in {"R4", "R5", "R6", "R2C"}:
-                student_outputs, response_sequence = forward_with_resid_post_capture(
-                    student,
-                    input_ids=input_ids,
-                    attention_mask=attention,
-                    layer=LAYER,
-                )
-                response_hidden = response_sequence[
-                    torch.arange(len(batch_ids), device=student.device), positions
-                ]
-            else:
-                student_outputs = model(
-                    input_ids=input_ids,
-                    attention_mask=attention,
-                    output_hidden_states=regime == "R3",
-                )
-            selected = student_outputs.logits[
-                torch.arange(len(batch_ids), device=student.device), positions
-            ]
-            teacher_selected = None
-            hidden_loss = None
-            if regime in {"R2", "R3", "R4", "R5", "R6", "R2C"}:
-                with torch.inference_mode():
-                    teacher_outputs = teacher.model(
+        gradient_diagnostics = {}
+        if custom_gradient_step_fn is not None:
+            step_batches = []
+            for _micro in range(GRAD_ACCUMULATION):
+                if cursor + MICROBATCH > len(order):
+                    order = rng.permutation(train_ids).tolist()
+                    cursor = 0
+                step_batches.append(order[cursor : cursor + MICROBATCH])
+                cursor += MICROBATCH
+            custom = custom_gradient_step_fn(step_batches)
+            micro_losses = list(custom["losses"])
+            micro_ce = list(custom["ce"])
+            micro_kd = list(custom["kd"])
+            micro_hidden = [0.0] * len(step_batches)
+            micro_response = list(custom["response"])
+            gradient_diagnostics = dict(custom["gradient_diagnostics"])
+        else:
+            for _micro in range(GRAD_ACCUMULATION):
+                if cursor + MICROBATCH > len(order):
+                    order = rng.permutation(train_ids).tolist()
+                    cursor = 0
+                batch_ids = order[cursor : cursor + MICROBATCH]
+                cursor += MICROBATCH
+                prompts = [samples_by_id[sid].prompt for sid in batch_ids]
+                encoded = student.tokenize(prompts)
+                input_ids = encoded["input_ids"].to(student.device)
+                attention = encoded["attention_mask"].to(student.device)
+                positions = _last_positions(attention)
+                response_hidden = None
+                if regime in response_regimes:
+                    student_outputs, response_sequence = forward_with_resid_post_capture(
+                        student,
+                        input_ids=input_ids,
+                        attention_mask=attention,
+                        layer=LAYER,
+                    )
+                    response_hidden = response_sequence[
+                        torch.arange(len(batch_ids), device=student.device), positions
+                    ]
+                else:
+                    student_outputs = model(
                         input_ids=input_ids,
                         attention_mask=attention,
                         output_hidden_states=regime == "R3",
                     )
-                    teacher_selected = teacher_outputs.logits[
-                        torch.arange(len(batch_ids), device=student.device), positions
-                    ]
-                if regime == "R3":
-                    student_hidden = student_outputs.hidden_states[LAYER + 1][
-                        torch.arange(len(batch_ids), device=student.device), positions
-                    ]
-                    teacher_hidden = teacher_outputs.hidden_states[LAYER + 1][
-                        torch.arange(len(batch_ids), device=student.device), positions
-                    ]
-                    hidden_loss = representation_kd_loss(student_hidden, teacher_hidden, projector)
-            targets = _target_ids([labels[sid] for sid in batch_ids], token_ids, student.device)
-            base_regime = "R3" if regime == "R3" else ("R1" if regime == "R1" else "R2")
-            loss, parts = distillation_loss(
-                selected,
-                targets,
-                teacher_logits=teacher_selected,
-                regime=base_regime,
-                hidden_loss=hidden_loss,
-            )
-            response_value = 0.0
-            if regime in {"R4", "R5", "R6", "R2C"}:
-                if response_loss_fn is None:
-                    raise ValueError(f"{regime} requires a response-loss callback")
-                response_loss = response_loss_fn(
-                    student=student,
-                    batch_ids=batch_ids,
-                    clean_selected_logits=selected.index_select(
-                        -1,
-                        torch.as_tensor(token_ids, dtype=torch.long, device=student.device),
-                    ),
-                    input_ids=input_ids,
-                    attention_mask=attention,
-                    positions=positions,
-                    clean_hidden=response_hidden,
-                    regime=regime,
+                selected = student_outputs.logits[
+                    torch.arange(len(batch_ids), device=student.device), positions
+                ]
+                teacher_selected = None
+                hidden_loss = None
+                if regime in {"R2", "R3", *response_regimes}:
+                    with torch.inference_mode():
+                        teacher_outputs = teacher.model(
+                            input_ids=input_ids,
+                            attention_mask=attention,
+                            output_hidden_states=regime == "R3",
+                        )
+                        teacher_selected = teacher_outputs.logits[
+                            torch.arange(len(batch_ids), device=student.device), positions
+                        ]
+                    if regime == "R3":
+                        student_hidden = student_outputs.hidden_states[LAYER + 1][
+                            torch.arange(len(batch_ids), device=student.device), positions
+                        ]
+                        teacher_hidden = teacher_outputs.hidden_states[LAYER + 1][
+                            torch.arange(len(batch_ids), device=student.device), positions
+                        ]
+                        hidden_loss = representation_kd_loss(
+                            student_hidden, teacher_hidden, projector
+                        )
+                targets = _target_ids([labels[sid] for sid in batch_ids], token_ids, student.device)
+                base_regime = "R3" if regime == "R3" else ("R1" if regime == "R1" else "R2")
+                loss, parts = distillation_loss(
+                    selected,
+                    targets,
+                    teacher_logits=teacher_selected,
+                    regime=base_regime,
+                    hidden_loss=hidden_loss,
                 )
-                if response_loss.ndim != 0 or not torch.isfinite(response_loss):
-                    raise RuntimeError(f"nonfinite E13 {regime} response loss")
-                loss = loss + response_loss
-                response_value = float(response_loss.detach())
-            if not torch.isfinite(loss):
-                raise RuntimeError(f"nonfinite E13 {regime} loss")
-            (loss / GRAD_ACCUMULATION).backward()
-            micro_losses.append(float(loss.detach()))
-            micro_ce.append(parts["ce"])
-            micro_kd.append(parts["kd"])
-            micro_hidden.append(parts.get("hidden", 0.0))
-            micro_response.append(response_value)
+                response_value = 0.0
+                if regime in response_regimes:
+                    if response_loss_fn is None:
+                        raise ValueError(f"{regime} requires a response-loss callback")
+                    response_loss = response_loss_fn(
+                        student=student,
+                        batch_ids=batch_ids,
+                        clean_selected_logits=selected.index_select(
+                            -1,
+                            torch.as_tensor(token_ids, dtype=torch.long, device=student.device),
+                        ),
+                        input_ids=input_ids,
+                        attention_mask=attention,
+                        positions=positions,
+                        clean_hidden=response_hidden,
+                        regime=regime,
+                    )
+                    if response_loss.ndim != 0 or not torch.isfinite(response_loss):
+                        raise RuntimeError(f"nonfinite E13 {regime} response loss")
+                    loss = loss + response_loss
+                    response_value = float(response_loss.detach())
+                if not torch.isfinite(loss):
+                    raise RuntimeError(f"nonfinite E13 {regime} loss")
+                (loss / GRAD_ACCUMULATION).backward()
+                micro_losses.append(float(loss.detach()))
+                micro_ce.append(parts["ce"])
+                micro_kd.append(parts["kd"])
+                micro_hidden.append(parts.get("hidden", 0.0))
+                micro_response.append(response_value)
         grad_norm = float(torch.nn.utils.clip_grad_norm_(parameters, 1.0))
         if not np.isfinite(grad_norm):
             raise RuntimeError(f"nonfinite E13 {regime} gradient")
@@ -739,6 +775,7 @@ def _train_regime(
                 "response": float(np.mean(micro_response)),
                 "learning_rate": learning_rate_for_step(step),
                 "gradient_norm": grad_norm,
+                **gradient_diagnostics,
             }
         )
         if step in CHECKPOINT_STEPS[1:]:

@@ -4,6 +4,8 @@ import pandas as pd
 from representation_reliability.runners.e13_revision import (
     _cosine_from_norms,
     _distribution,
+    _fixed_point_free_permutation,
+    _revision_validation_geometry,
     _teacher_signal_tables,
 )
 
@@ -51,3 +53,29 @@ def test_cosine_is_recovered_from_three_gradient_norms():
         np.linalg.norm(left), np.linalg.norm(right), np.linalg.norm(left + right)
     )
     assert np.isclose(observed, -0.5)
+
+
+def test_pair_permutation_is_deterministic_and_fixed_point_free():
+    items = [f"pair-{index}" for index in range(20)]
+    first = _fixed_point_free_permutation(items, 20261331)
+    second = _fixed_point_free_permutation(items, 20261331)
+    assert first == second
+    assert set(first.values()) == set(items)
+    assert all(source != target for source, target in first.items())
+
+
+def test_revision_validation_geometry_uses_validation_only():
+    frame = pd.DataFrame(
+        {
+            "split": ["train", "validation", "validation", "validation", "validation"],
+            "R5_Q": [999.0, -2.0, -1.0, 1.0, 2.0],
+            "R5_A": [999.0, -1.0, 2.0, -2.0, 1.0],
+            "R5_G": [999.0, 0.5, -0.5, 1.5, -1.5],
+        }
+    )
+    result = _revision_validation_geometry(frame, {"response_tensor_sha256": "cache-digest"})
+    assert result["source_split"] == "validation"
+    assert result["source_cache_digest"] == "cache-digest"
+    assert result["R12_epsilon"] > 0
+    assert min(result["R12_eigenvalues"]) > 0
+    assert np.isfinite(result["R12_condition_number"])

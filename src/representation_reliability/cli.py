@@ -465,6 +465,39 @@ def e13_response_diagnostic() -> None:
     typer.echo(f"E13 response diagnostic complete: {report}")
 
 
+@app.command("e13-revision-smoke")
+def e13_revision_smoke() -> None:
+    """Run frozen R7-R16 loss and gradient-strategy GPU contracts."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_revision import run_revision_smoke
+
+    output = run_revision_smoke()
+    typer.echo(f"E13 revision smoke complete: {output}")
+
+
+@app.command("e13-revision-job")
+def e13_revision_job(
+    regime: str = typer.Option(..., "--regime"),
+    seed: int = typer.Option(..., "--seed"),
+) -> None:
+    """Run one immutable frozen E13 revision job."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_revision import run_revision_job
+
+    output = run_revision_job(regime.upper(), seed)
+    typer.echo(f"E13 revision job complete: {output}")
+
+
+@app.command("e13-revision-analyze")
+def e13_revision_analyze() -> None:
+    """Apply frozen bounded selection and, when complete, three-seed gates."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e13_revision import analyze_revision_campaign
+
+    output = analyze_revision_campaign()
+    typer.echo(f"E13 revision analysis complete: {output}")
+
+
 @app.command()
 def extract(
     base: Path | None = None,
