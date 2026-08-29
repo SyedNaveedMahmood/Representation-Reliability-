@@ -601,6 +601,7 @@ def _train_regime(
     custom_gradient_step_fn=None,
     layer: int = LAYER,
     teacher_layer: int | None = None,
+    teacher_batch_lookup=None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     teacher_layer = layer if teacher_layer is None else int(teacher_layer)
     response_regimes = {
@@ -732,20 +733,34 @@ def _train_regime(
                 teacher_selected = None
                 hidden_loss = None
                 if regime in {"R2", "R3", *response_regimes}:
-                    with torch.inference_mode():
-                        teacher_outputs = teacher.model(
-                            input_ids=input_ids,
-                            attention_mask=attention,
-                            output_hidden_states=regime == "R3",
+                    if teacher_batch_lookup is not None:
+                        # Frozen-teacher cache: the teacher is in inference_mode and
+                        # depends only on the prompt, so its last-position logits and
+                        # hidden state are precomputable. The objective is unchanged.
+                        cached = teacher_batch_lookup(batch_ids)
+                        teacher_selected = cached["logits"]
+                        teacher_hidden = cached.get("hidden")
+                    else:
+                        with torch.inference_mode():
+                            teacher_outputs = teacher.model(
+                                input_ids=input_ids,
+                                attention_mask=attention,
+                                output_hidden_states=regime == "R3",
+                            )
+                            teacher_selected = teacher_outputs.logits[
+                                torch.arange(len(batch_ids), device=student.device), positions
+                            ]
+                        teacher_hidden = (
+                            teacher_outputs.hidden_states[teacher_layer + 1][
+                                torch.arange(len(batch_ids), device=student.device), positions
+                            ]
+                            if regime == "R3"
+                            else None
                         )
-                        teacher_selected = teacher_outputs.logits[
-                            torch.arange(len(batch_ids), device=student.device), positions
-                        ]
                     if regime == "R3":
+                        if teacher_hidden is None:
+                            raise ValueError("R3 requires teacher hidden states")
                         student_hidden = student_outputs.hidden_states[layer + 1][
-                            torch.arange(len(batch_ids), device=student.device), positions
-                        ]
-                        teacher_hidden = teacher_outputs.hidden_states[teacher_layer + 1][
                             torch.arange(len(batch_ids), device=student.device), positions
                         ]
                         hidden_loss = representation_kd_loss(

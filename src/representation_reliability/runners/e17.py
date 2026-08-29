@@ -387,7 +387,14 @@ def _selection() -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if payload.get("selected") is None:
         raise RuntimeError("no E17 candidate pair passed the frozen non-causal screen")
-    return payload["selected"]
+    selected = dict(payload["selected"])
+    # Config file names are resolved from the frozen candidate table rather than
+    # stored in the screen record, so the recorded screen artifact stays exactly
+    # as it was written when the selection was made.
+    frozen = next(c for c in CANDIDATES if c["name"] == selected["candidate"])
+    selected["teacher_config"] = frozen["teacher_config"]
+    selected["student_config"] = frozen["student_config"]
+    return selected
 
 
 __all__ = [
@@ -401,3 +408,4 @@ __all__ = [
     "relative_layer",
     "screen_candidates",
 ]
+

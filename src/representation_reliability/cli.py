@@ -577,5 +577,35 @@ def e13_diagnostic_confirmation(
     typer.echo(f"E13 diagnostic confirmation complete: {output}")
 
 
+@app.command("e17-screen")
+def e17_screen() -> None:
+    """Screen frozen E17 candidate pairs on engineering, B and D only."""
+    from .runners.e17 import screen_candidates
+
+    output = screen_candidates()
+    typer.echo(f"E17 candidate screen complete: {output}")
+
+
+@app.command("e17-reference")
+def e17_reference() -> None:
+    """Evaluate the frozen E17 teacher and R0 and build the teacher KD cache."""
+    from .runners.e17_support import prepare_e17_reference
+
+    output = prepare_e17_reference()
+    typer.echo(f"E17 reference complete: {output}")
+
+
+@app.command("e17-job")
+def e17_job(
+    regime: str = typer.Option(..., "--regime"),
+    seed: int = typer.Option(..., "--seed"),
+) -> None:
+    """Train and evaluate one frozen E17 regime/seed."""
+    from .runners.e17_support import run_e17_job
+
+    output = run_e17_job(regime.upper(), int(seed))
+    typer.echo(f"E17 job complete: {output}")
+
+
 if __name__ == "__main__":
     app()
