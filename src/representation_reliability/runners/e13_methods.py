@@ -6,6 +6,7 @@ import gc
 import hashlib
 import json
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -30,7 +31,7 @@ from ..metrics.causal_organization import (
 )
 from ..reporting.tables import markdown_table, save_json, save_table
 from ..runtime.checkpoint import latest_complete_checkpoint
-from ..runtime.manifest import RunManifest
+from ..runtime.manifest import RunManifest, project_git_state
 from ..runtime.status import StatusFile
 from .e00c import candidate_token_id_lists
 from .e01a import _selected_margin
@@ -72,6 +73,127 @@ LIVE_CACHE_MEAN_ABS = 2e-3
 logger = logging.getLogger(__name__)
 
 
+def _json_digest(payload: Any) -> str:
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
+    ).hexdigest()
+
+
+def _probe_digest(probe: dict[str, Any]) -> str:
+    digest = hashlib.sha256()
+    for name in sorted(probe):
+        digest.update(name.encode())
+        digest.update(np.asarray(probe[name], dtype=np.float64).tobytes())
+    return digest.hexdigest()
+
+
+@dataclass(frozen=True)
+class ModelLocalReference:
+    """Frozen intervention geometry that is valid in exactly one model space."""
+
+    model_role: str
+    hidden_size: int
+    direction: np.ndarray
+    targets: dict[str, Any]
+    probe: dict[str, Any]
+    probe_digest: str
+    target_digest: str
+    model_revisions: dict[str, Any]
+
+    @classmethod
+    def from_reference(
+        cls,
+        *,
+        model_role: str,
+        hidden_size: int,
+        reference: dict[str, Any],
+        model_revisions: dict[str, Any],
+    ) -> ModelLocalReference:
+        if model_role not in {"teacher", "student"}:
+            raise ValueError(f"invalid model-local reference role: {model_role}")
+        direction = np.asarray(reference["direction"], dtype=np.float64).reshape(-1)
+        probe = {name: np.asarray(value) for name, value in reference["probe"].items()}
+        result = cls(
+            model_role=model_role,
+            hidden_size=int(hidden_size),
+            direction=direction,
+            targets=dict(reference["targets"]),
+            probe=probe,
+            probe_digest=_probe_digest(probe),
+            target_digest=_json_digest(reference["targets"]),
+            model_revisions=dict(model_revisions),
+        )
+        result.assert_contract(expected_role=model_role, runtime_hidden_size=hidden_size)
+        return result
+
+    @property
+    def random_identity(self) -> str:
+        return json.dumps(
+            {
+                "model_role": self.model_role,
+                "model_revisions": self.model_revisions,
+            },
+            sort_keys=True,
+        )
+
+    def assert_contract(
+        self,
+        *,
+        expected_role: str,
+        runtime_hidden_size: int,
+        runtime_revisions: dict[str, Any] | None = None,
+    ) -> None:
+        direction_size = int(self.direction.size)
+        revision_matches = (
+            runtime_revisions is None or dict(runtime_revisions) == self.model_revisions
+        )
+        if (
+            self.model_role != expected_role
+            or int(self.hidden_size) != int(runtime_hidden_size)
+            or direction_size != int(runtime_hidden_size)
+            or not revision_matches
+        ):
+            raise ValueError(
+                "model-local reference mismatch: "
+                f"role={self.model_role!r}, expected_role={expected_role!r}, "
+                f"runtime_hidden_size={int(runtime_hidden_size)}, "
+                f"reference_hidden_size={int(self.hidden_size)}, "
+                f"direction_size={direction_size}, "
+                f"probe_digest={self.probe_digest}, "
+                f"revision_matches={revision_matches}"
+            )
+
+    def assert_activation(self, activation: np.ndarray) -> np.ndarray:
+        value = np.asarray(activation, dtype=np.float64).reshape(-1)
+        if value.size != self.hidden_size:
+            raise ValueError(
+                "model-local activation mismatch: "
+                f"role={self.model_role!r}, activation_size={value.size}, "
+                f"reference_hidden_size={self.hidden_size}, "
+                f"direction_size={self.direction.size}, "
+                f"probe_digest={self.probe_digest}"
+            )
+        return value
+
+    def semantic_delta(self, activation: np.ndarray, q_target: float) -> np.ndarray:
+        base = self.assert_activation(activation)
+        delta = source_free_setpoint_delta(base, self.direction, q_target)
+        if delta.shape != (self.hidden_size,):
+            raise ValueError("model-local semantic delta shape mismatch")
+        return delta
+
+    def context_delta(self, base: np.ndarray, source: np.ndarray) -> np.ndarray:
+        base_value = self.assert_activation(base)
+        source_value = self.assert_activation(source)
+        raw = orthogonal_component(source_value, base_value, self.direction)
+        context, _ = standardize_orthogonal_context(
+            raw, self.direction, float(np.linalg.norm(raw)), epsilon=1e-8
+        )
+        if context.shape != (self.hidden_size,):
+            raise ValueError("model-local context delta shape mismatch")
+        return context
+
+
 def _orientation(labels, ids):
     return np.asarray([1.0 if int(labels[sid]) == 1 else -1.0 for sid in ids])
 
@@ -97,6 +219,49 @@ def _random_pair(
     if norm <= 1e-8:
         raise RuntimeError("degenerate random-response orthogonalization")
     return q_unit * q_norm, raw / norm * c_norm
+
+
+def _model_local_geometry(
+    *,
+    reference: ModelLocalReference,
+    expected_role: str,
+    runtime_hidden_size: int,
+    runtime_revisions: dict[str, Any],
+    ids: list[str],
+    labels: dict[str, int],
+    base_by_id: dict[str, np.ndarray],
+    source_by_id: dict[str, np.ndarray],
+) -> dict[str, dict[str, np.ndarray]]:
+    """Construct semantic, context, and random edits in one asserted model space."""
+    reference.assert_contract(
+        expected_role=expected_role,
+        runtime_hidden_size=runtime_hidden_size,
+        runtime_revisions=runtime_revisions,
+    )
+    semantic: dict[str, np.ndarray] = {}
+    context: dict[str, np.ndarray] = {}
+    random_q: dict[str, np.ndarray] = {}
+    random_c: dict[str, np.ndarray] = {}
+    for sid in ids:
+        q_target = float(
+            reference.targets["q1_star"] if labels[sid] == 0 else reference.targets["q0_star"]
+        )
+        semantic[sid] = reference.semantic_delta(base_by_id[sid], q_target)
+        context[sid] = reference.context_delta(base_by_id[sid], source_by_id[sid])
+        random_q[sid], random_c[sid] = _random_pair(
+            runtime_hidden_size,
+            sid,
+            reference.direction,
+            float(np.linalg.norm(semantic[sid])),
+            float(np.linalg.norm(context[sid])),
+            reference.random_identity,
+        )
+    return {
+        "semantic": semantic,
+        "context": context,
+        "random_q": random_q,
+        "random_c": random_c,
+    }
 
 
 def _sha256_file(path: Path) -> str:
@@ -138,11 +303,19 @@ def _response_rows(
                 "split": split_by_id[sid],
                 "raw_text": str(samples_by_id[sid].prompt),
                 "Y00": y0,
+                "R4_Y_neg": values["r4_neg"],
+                "R4_Y_pos": values["r4_pos"],
                 "r4_neg": (values["r4_neg"] - y0) / margin_sigma,
                 "r4_pos": (values["r4_pos"] - y0) / margin_sigma,
+                "R5_Y10": values["r5_q"],
+                "R5_Y01": values["r5_c"],
+                "R5_Y11": values["r5_qc"],
                 "R5_Q": (values["r5_q"] - y0) / margin_sigma,
                 "R5_A": (values["r5_c"] - y0) / margin_sigma,
                 "R5_G": ((values["r5_qc"] - values["r5_q"]) - (values["r5_c"] - y0)) / margin_sigma,
+                "R6_Y10": values["r6_q"],
+                "R6_Y01": values["r6_c"],
+                "R6_Y11": values["r6_qc"],
                 "R6_Q": (values["r6_q"] - y0) / margin_sigma,
                 "R6_A": (values["r6_c"] - y0) / margin_sigma,
                 "R6_G": ((values["r6_qc"] - values["r6_q"]) - (values["r6_c"] - y0)) / margin_sigma,
@@ -197,10 +370,32 @@ def prepare_teacher_response_cache() -> Path:
             baseline_summary = json.load(handle)
         if baseline_summary["corpus_digest"] != corpus_digest:
             raise RuntimeError("teacher response-cache corpus digest mismatch")
-        reference = _load_reference(paths)
         token_ids = list(map(int, baseline_summary["token_ids"]))
         teacher = load_adapter(cfg)
         teacher.model.eval()
+        teacher_revisions = teacher.resolved_revisions()
+        if teacher_revisions != baseline_summary["teacher_revisions"]:
+            raise RuntimeError("teacher response-cache model revision mismatch")
+        reference_frame = frame.loc[frame["split"].isin(["train", "validation"])].copy()
+        raw_teacher_reference = _reference_from_model(
+            teacher,
+            samples_by_id,
+            reference_frame,
+            labels,
+            token_ids,
+            int(cfg.runtime.batch_size),
+        )
+        reference = ModelLocalReference.from_reference(
+            model_role="teacher",
+            hidden_size=teacher.hidden_size,
+            reference=raw_teacher_reference,
+            model_revisions=teacher_revisions,
+        )
+        reference.assert_contract(
+            expected_role="teacher",
+            runtime_hidden_size=teacher.hidden_size,
+            runtime_revisions=teacher_revisions,
+        )
         native_module = teacher.resolve_site(SITE, LAYER).native_module_name
         batch_size = int(cfg.runtime.batch_size)
         activations, token_indices, token_sites = extract_resid_post_layers(
@@ -219,31 +414,27 @@ def prepare_teacher_response_cache() -> Path:
             batch_size=batch_size,
         )
         base = {sid: activations[LAYER][sid] for sid in ids}
-        direction = np.asarray(reference["direction"], dtype=np.float64)
-        targets = reference["targets"]
+        direction = reference.direction
+        targets = reference.targets
         margin_sigma = float(targets["sigma_margin_validation"])
         q_sigma = float(targets["sigma_q_validation"])
-        model_identity = json.dumps(teacher.resolved_revisions(), sort_keys=True)
-        semantic: dict[str, np.ndarray] = {}
-        context: dict[str, np.ndarray] = {}
-        random_q: dict[str, np.ndarray] = {}
-        random_c: dict[str, np.ndarray] = {}
-        for sid in ids:
-            target = float(targets["q1_star"] if labels[sid] == 0 else targets["q0_star"])
-            semantic[sid] = source_free_setpoint_delta(base[sid], direction, target)
-            source = str(samples_by_id[sid].counterfactual_id)
-            raw = orthogonal_component(activations[LAYER][source], base[sid], direction)
-            context[sid], _ = standardize_orthogonal_context(
-                raw, direction, float(np.linalg.norm(raw)), epsilon=1e-8
-            )
-            random_q[sid], random_c[sid] = _random_pair(
-                teacher.hidden_size,
-                sid,
-                direction,
-                float(np.linalg.norm(semantic[sid])),
-                float(np.linalg.norm(context[sid])),
-                model_identity,
-            )
+        source_by_id = {
+            sid: activations[LAYER][str(samples_by_id[sid].counterfactual_id)] for sid in ids
+        }
+        geometry = _model_local_geometry(
+            reference=reference,
+            expected_role="teacher",
+            runtime_hidden_size=teacher.hidden_size,
+            runtime_revisions=teacher_revisions,
+            ids=ids,
+            labels=labels,
+            base_by_id=base,
+            source_by_id=source_by_id,
+        )
+        semantic = geometry["semantic"]
+        context = geometry["context"]
+        random_q = geometry["random_q"]
+        random_c = geometry["random_c"]
 
         all_deltas = {
             "r4_neg": {sid: -q_sigma * direction for sid in ids},
@@ -320,11 +511,19 @@ def prepare_teacher_response_cache() -> Path:
         cached = evidence.set_index("sample_id").loc[live_ids]
         response_columns = [
             "Y00",
+            "R4_Y_neg",
+            "R4_Y_pos",
             "r4_neg",
             "r4_pos",
+            "R5_Y10",
+            "R5_Y01",
+            "R5_Y11",
             "R5_Q",
             "R5_A",
             "R5_G",
+            "R6_Y10",
+            "R6_Y01",
+            "R6_Y11",
             "R6_Q",
             "R6_A",
             "R6_G",
@@ -333,6 +532,16 @@ def prepare_teacher_response_cache() -> Path:
             live.loc[live_ids, response_columns].to_numpy(float)
             - cached.loc[live_ids, response_columns].to_numpy(float)
         )
+        by_response = {}
+        for index, column in enumerate(response_columns):
+            by_response[column] = {
+                "max_abs": float(absolute[:, index].max()),
+                "mean_abs": float(absolute[:, index].mean()),
+                "passed": bool(
+                    absolute[:, index].max() <= LIVE_CACHE_MAX_ABS
+                    and absolute[:, index].mean() <= LIVE_CACHE_MEAN_ABS
+                ),
+            }
         live_check = {
             "sample_ids": live_ids,
             "max_abs": float(absolute.max()),
@@ -342,6 +551,7 @@ def prepare_teacher_response_cache() -> Path:
             "passed": bool(
                 absolute.max() <= LIVE_CACHE_MAX_ABS and absolute.mean() <= LIVE_CACHE_MEAN_ABS
             ),
+            "by_response": by_response,
         }
         if not live_check["passed"]:
             raise RuntimeError(f"teacher response-cache live check failed: {live_check}")
@@ -352,18 +562,32 @@ def prepare_teacher_response_cache() -> Path:
             input_hasher.update(sid.encode())
             input_hasher.update(np.asarray(encoded["input_ids"][0].cpu()).tobytes())
         numeric = evidence[response_columns].to_numpy(np.float64)
+        family_columns = {
+            "R4": ["R4_Y_neg", "R4_Y_pos", "r4_neg", "r4_pos"],
+            "R5": ["Y00", "R5_Y10", "R5_Y01", "R5_Y11", "R5_Q", "R5_A", "R5_G"],
+            "R6": ["Y00", "R6_Y10", "R6_Y01", "R6_Y11", "R6_Q", "R6_A", "R6_G"],
+        }
+        family_digests = {
+            family: hashlib.sha256(evidence[columns].to_numpy(np.float64).tobytes()).hexdigest()
+            for family, columns in family_columns.items()
+        }
         table_path = save_table(evidence, output / "teacher_response_rows.parquet")
         metadata = {
             "protocol_sha256": METHOD_PROTOCOL_SHA256,
             "corpus_digest": corpus_digest,
-            "teacher_revisions": teacher.resolved_revisions(),
+            "cache_code_commit": project_git_state()["sha"],
+            "model_role": reference.model_role,
+            "teacher_hidden_size": reference.hidden_size,
+            "semantic_direction_size": int(reference.direction.size),
+            "teacher_revisions": teacher_revisions,
             "ordered_id_sha256": hashlib.sha256("\n".join(ids).encode()).hexdigest(),
             "input_ids_sha256": input_hasher.hexdigest(),
-            "probe_digest": hashlib.sha256(direction.tobytes()).hexdigest(),
-            "targets_digest": hashlib.sha256(
-                json.dumps(targets, sort_keys=True).encode()
-            ).hexdigest(),
+            "probe_digest": reference.probe_digest,
+            "semantic_direction_digest": hashlib.sha256(direction.tobytes()).hexdigest(),
+            "targets_digest": reference.target_digest,
             "response_tensor_sha256": hashlib.sha256(numeric.tobytes()).hexdigest(),
+            "response_family_sha256": family_digests,
+            "response_family_columns": family_columns,
             "response_table_sha256": _sha256_file(table_path),
             "response_columns": response_columns,
             "margin_sigma": margin_sigma,
@@ -399,16 +623,31 @@ def _validate_cache_artifacts(cache_dir: Path) -> dict[str, Any]:
         raise RuntimeError("invalid teacher response-cache namespace identity")
     if metadata.get("component_scale_split") != "validation":
         raise RuntimeError("teacher response-cache scale provenance mismatch")
+    if (
+        metadata.get("model_role") != "teacher"
+        or int(metadata.get("teacher_hidden_size", -1)) != 2048
+        or int(metadata.get("semantic_direction_size", -1)) != 2048
+    ):
+        raise RuntimeError("teacher response-cache hidden-space identity mismatch")
     if metadata.get("response_table_sha256") != _sha256_file(table_path):
         raise RuntimeError("teacher response-cache table digest mismatch")
     if metadata.get("live_check", {}).get("passed") is not True:
         raise RuntimeError("teacher response-cache live check is not passing")
+    if not all(
+        result.get("passed") is True
+        for result in metadata["live_check"].get("by_response", {}).values()
+    ):
+        raise RuntimeError("teacher response-cache per-response live check failed")
     evidence = pd.read_parquet(table_path)
     if len(evidence) != int(metadata["n_rows"]):
         raise RuntimeError("teacher response-cache row count mismatch")
     numeric = evidence[list(metadata["response_columns"])].to_numpy(np.float64)
     if hashlib.sha256(numeric.tobytes()).hexdigest() != metadata.get("response_tensor_sha256"):
         raise RuntimeError("teacher response-cache tensor digest mismatch")
+    for family, columns in metadata["response_family_columns"].items():
+        digest = hashlib.sha256(evidence[columns].to_numpy(np.float64).tobytes()).hexdigest()
+        if digest != metadata["response_family_sha256"].get(family):
+            raise RuntimeError(f"teacher response-cache {family} digest mismatch")
     ordered = "\n".join(evidence["sample_id"].astype(str)).encode()
     if hashlib.sha256(ordered).hexdigest() != metadata.get("ordered_id_sha256"):
         raise RuntimeError("teacher response-cache ID ordering mismatch")
@@ -416,18 +655,24 @@ def _validate_cache_artifacts(cache_dir: Path) -> dict[str, Any]:
 
 
 def make_response_loss(
+    *,
     regime,
     cache_rows,
     cache_meta,
     samples_by_id,
     labels,
-    student_reference,
+    student_reference: ModelLocalReference,
+    student_adapter,
     token_ids,
-    model_identity,
 ):
     cache = cache_rows.set_index("sample_id")
-    direction = np.asarray(student_reference["direction"], dtype=np.float64)
-    targets = student_reference["targets"]
+    student_reference.assert_contract(
+        expected_role="student",
+        runtime_hidden_size=student_adapter.hidden_size,
+        runtime_revisions=student_adapter.resolved_revisions(),
+    )
+    direction = student_reference.direction
+    targets = student_reference.targets
     margin_sigma = float(targets["sigma_margin_validation"])
     q_sigma = float(targets["sigma_q_validation"])
 
@@ -499,11 +744,8 @@ def make_response_loss(
         q_deltas, c_deltas = [], []
         for index, sid in enumerate(batch_ids):
             target_q = float(targets["q1_star"] if labels[sid] == 0 else targets["q0_star"])
-            sem = source_free_setpoint_delta(bases[index], direction, target_q)
-            raw = orthogonal_component(sources[index], bases[index], direction)
-            ctx, _ = standardize_orthogonal_context(
-                raw, direction, float(np.linalg.norm(raw)), epsilon=1e-8
-            )
+            sem = student_reference.semantic_delta(bases[index], target_q)
+            ctx = student_reference.context_delta(bases[index], sources[index])
             if regime == "R6":
                 sem, ctx = _random_pair(
                     student.hidden_size,
@@ -511,7 +753,7 @@ def make_response_loss(
                     direction,
                     float(np.linalg.norm(sem)),
                     float(np.linalg.norm(ctx)),
-                    model_identity,
+                    student_reference.random_identity,
                 )
             q_deltas.append(sem)
             c_deltas.append(ctx)
@@ -575,7 +817,7 @@ def _student_response_reference(
     samples_by_id: dict[str, Any],
     token_ids: list[int],
     seed: int,
-) -> tuple[dict[str, Any], dict[str, Any]]:
+) -> tuple[ModelLocalReference, dict[str, Any]]:
     tensor_path = run_dir / "student_response_reference.safetensors"
     metadata_path = run_dir / "student_response_reference.json"
     sites_path = run_dir / "student_response_token_sites.parquet"
@@ -590,7 +832,7 @@ def _student_response_reference(
             raise RuntimeError("student response-reference tensor digest mismatch")
         if metadata.get("token_sites_sha256") != _sha256_file(sites_path):
             raise RuntimeError("student response-reference token-site digest mismatch")
-        reference = {
+        raw_reference = {
             "direction": tensors["direction"],
             "probe": {
                 "coef": tensors["probe_coef"],
@@ -600,13 +842,24 @@ def _student_response_reference(
             },
             "targets": metadata["targets"],
         }
+        reference = ModelLocalReference.from_reference(
+            model_role=str(metadata["model_role"]),
+            hidden_size=int(metadata["hidden_size"]),
+            reference=raw_reference,
+            model_revisions=metadata["model_revisions"],
+        )
+        if (
+            reference.probe_digest != metadata["probe_digest"]
+            or reference.target_digest != metadata["target_digest"]
+        ):
+            raise RuntimeError("student response-reference scientific digest mismatch")
         return reference, metadata
     if any(path.exists() for path in (tensor_path, metadata_path, sites_path)):
         raise RuntimeError("partial student response-reference artifact")
     _seed_everything(seed)
     adapter = load_adapter(cfg)
     reference_frame = frame.loc[frame["split"].isin(["train", "validation"])].copy()
-    reference = _reference_from_model(
+    raw_reference = _reference_from_model(
         adapter,
         samples_by_id,
         reference_frame,
@@ -614,22 +867,34 @@ def _student_response_reference(
         token_ids,
         int(cfg.runtime.batch_size),
     )
+    adapter_revisions = adapter.resolved_revisions()
+    reference = ModelLocalReference.from_reference(
+        model_role="student",
+        hidden_size=adapter.hidden_size,
+        reference=raw_reference,
+        model_revisions=adapter_revisions,
+    )
+    reference.assert_contract(
+        expected_role="student",
+        runtime_hidden_size=adapter.hidden_size,
+        runtime_revisions=adapter_revisions,
+    )
     from safetensors.numpy import save_file
 
     save_file(
         {
-            "direction": np.asarray(reference["direction"], dtype=np.float64),
-            "probe_coef": np.asarray(reference["probe"]["coef"], dtype=np.float64),
-            "probe_intercept": np.asarray(reference["probe"]["intercept"], dtype=np.float64),
-            "probe_mean": np.asarray(reference["probe"]["mean"], dtype=np.float64),
-            "probe_scale": np.asarray(reference["probe"]["scale"], dtype=np.float64),
+            "direction": reference.direction,
+            "probe_coef": np.asarray(reference.probe["coef"], dtype=np.float64),
+            "probe_intercept": np.asarray(reference.probe["intercept"], dtype=np.float64),
+            "probe_mean": np.asarray(reference.probe["mean"], dtype=np.float64),
+            "probe_scale": np.asarray(reference.probe["scale"], dtype=np.float64),
         },
         tensor_path,
     )
     native_module = adapter.resolve_site(SITE, LAYER).native_module_name
     site_rows = []
     for sid in reference_frame["sample_id"].astype(str):
-        site = reference["token_sites"][sid]
+        site = raw_reference["token_sites"][sid]
         site_rows.append(
             {
                 "sample_id": sid,
@@ -645,9 +910,14 @@ def _student_response_reference(
     metadata = {
         "protocol_sha256": METHOD_PROTOCOL_SHA256,
         "seed": int(seed),
-        "model_revisions": adapter.resolved_revisions(),
+        "model_role": reference.model_role,
+        "hidden_size": reference.hidden_size,
+        "direction_size": int(reference.direction.size),
+        "model_revisions": adapter_revisions,
         "fit_splits": ["train", "validation"],
-        "targets": reference["targets"],
+        "targets": reference.targets,
+        "probe_digest": reference.probe_digest,
+        "target_digest": reference.target_digest,
         "tensor_sha256": _sha256_file(tensor_path),
         "token_sites_sha256": _sha256_file(sites_path),
         "confirmation_accessed": False,
@@ -681,8 +951,14 @@ def run_method_training_smoke() -> Path:
     token_ids = [int(item[0]) for item in candidates]
     direction = np.zeros(student.hidden_size, dtype=np.float64)
     direction[0] = 1.0
-    reference = {
+    raw_reference = {
         "direction": direction,
+        "probe": {
+            "coef": direction,
+            "intercept": np.zeros(1),
+            "mean": np.zeros(student.hidden_size),
+            "scale": np.ones(student.hidden_size),
+        },
         "targets": {
             "q0_star": -0.5,
             "q1_star": 0.5,
@@ -690,6 +966,12 @@ def run_method_training_smoke() -> Path:
             "sigma_margin_validation": 1.0,
         },
     }
+    reference = ModelLocalReference.from_reference(
+        model_role="student",
+        hidden_size=student.hidden_size,
+        reference=raw_reference,
+        model_revisions=student.resolved_revisions(),
+    )
     cache = pd.DataFrame(
         [
             {
@@ -730,14 +1012,14 @@ def run_method_training_smoke() -> Path:
         clean = outputs.logits[row_ids, positions].index_select(-1, selected_ids)
         clean_hidden = hidden_sequence[row_ids, positions]
         callback = make_response_loss(
-            regime,
-            cache,
-            cache_meta,
-            samples_by_id,
-            labels,
-            reference,
-            token_ids,
-            "smoke-model",
+            regime=regime,
+            cache_rows=cache,
+            cache_meta=cache_meta,
+            samples_by_id=samples_by_id,
+            labels=labels,
+            student_reference=reference,
+            student_adapter=student,
+            token_ids=token_ids,
         )
         loss = callback(
             student=student,
@@ -864,16 +1146,15 @@ def run_method_job(regime: str, seed: int) -> Path:
         teacher.model.eval()
         for parameter in teacher.model.parameters():
             parameter.requires_grad_(False)
-        model_identity = json.dumps(student_reference_meta["model_revisions"], sort_keys=True)
         response = make_response_loss(
-            regime,
-            cache_rows,
-            cache_meta,
-            samples_by_id,
-            labels,
-            student_reference,
-            token_ids,
-            model_identity,
+            regime=regime,
+            cache_rows=cache_rows,
+            cache_meta=cache_meta,
+            samples_by_id=samples_by_id,
+            labels=labels,
+            student_reference=student_reference,
+            student_adapter=student,
+            token_ids=token_ids,
         )
         baseline = {
             **reference_summary["R0"],
