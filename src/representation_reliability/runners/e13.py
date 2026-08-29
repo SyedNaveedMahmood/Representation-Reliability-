@@ -298,6 +298,26 @@ def _reference_from_model(adapter, samples_by_id, frame, labels, token_ids, batc
     }
 
 
+def validate_evaluation_routing(
+    frame: pd.DataFrame, eval_split: str, confirmation_accessed: bool
+) -> list[str]:
+    """Refuse any evaluation whose split routing and confirmation flag disagree.
+
+    The confirmation flag is not decorative: it is what every persisted artifact
+    records.  Marking confirmation rows as open evidence, or open rows as
+    confirmation evidence, is a stop condition rather than a warning.
+    """
+    split = str(eval_split)
+    if bool(confirmation_accessed) != (split == "confirmation"):
+        raise RuntimeError("E13 confirmation flag must match the confirmation evaluation split")
+    if "split" not in frame.columns:
+        raise RuntimeError("E13 evaluation frame is missing its split column")
+    eval_ids = frame.loc[frame["split"].astype(str) == split, "sample_id"].astype(str).tolist()
+    if not eval_ids:
+        raise RuntimeError(f"E13 evaluation split {split!r} selected no rows")
+    return eval_ids
+
+
 def _evaluate_checkpoint(
     adapter,
     samples_by_id,
@@ -313,7 +333,10 @@ def _evaluate_checkpoint(
     precomputed_activations: dict[int, dict[str, np.ndarray]] | None = None,
     precomputed_token_indices: dict[str, int] | None = None,
     precomputed_token_sites: dict[str, dict[str, Any]] | None = None,
+    eval_split: str = "discovery_test",
+    confirmation_accessed: bool = False,
 ) -> tuple[dict[str, Any], pd.DataFrame]:
+    validate_evaluation_routing(frame, eval_split, confirmation_accessed)
     ids = frame["sample_id"].astype(str).tolist()
     if precomputed_activations is None:
         activations, token_indices, token_sites = extract_resid_post_layers(
@@ -337,7 +360,7 @@ def _evaluate_checkpoint(
         c_grid=(0.01, 0.1, 1.0, 10.0),
         seed=20260829,
     )
-    eval_ids = frame.loc[frame["split"] == "discovery_test", "sample_id"].astype(str).tolist()
+    eval_ids = frame.loc[frame["split"] == str(eval_split), "sample_id"].astype(str).tolist()
     eval_vectors = np.stack([activations[LAYER][sid] for sid in eval_ids])
     y_eval = np.asarray([labels[sid] for sid in eval_ids], dtype=int)
     native_scores = fit["classifier"].decision_function(transform_features(fit, eval_vectors))
@@ -502,7 +525,7 @@ def _evaluate_checkpoint(
                     "token_char_start": site["char_start"],
                     "token_char_end": site["char_end"],
                     "chat_template_used": bool(site["chat_template_used"]),
-                    "confirmation_accessed": False,
+                    "confirmation_accessed": bool(confirmation_accessed),
                 }
             )
     factorial = pd.DataFrame(rows)
@@ -535,8 +558,9 @@ def _evaluate_checkpoint(
             "max_context_dot_u": max_context_dot,
             "finite": factorial_evidence_is_finite(factorial),
             "n_eval": len(eval_ids),
+            "eval_split": str(eval_split),
         },
-        "confirmation_accessed": False,
+        "confirmation_accessed": bool(confirmation_accessed),
     }
     output_dir.mkdir(parents=True, exist_ok=True)
     save_table(factorial, output_dir / "factorial_rows.parquet")

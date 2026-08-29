@@ -555,5 +555,27 @@ def summarize(run_dir: Path) -> None:
         typer.echo(summary_path.read_text(encoding="utf-8"))
 
 
+@app.command("e13-confirmation-dry-run")
+def e13_confirmation_dry_run(
+    protocol_commit: str = typer.Option(..., "--protocol-commit"),
+) -> None:
+    """Exercise the E13 confirmation runner on discovery rows only."""
+    from .runners.e13_diagnostic_confirmation import run_e13_diagnostic_confirmation
+
+    output = run_e13_diagnostic_confirmation(protocol_commit=protocol_commit, dry_run=True)
+    typer.echo(f"E13 confirmation dry run complete: {output}")
+
+
+@app.command("e13-diagnostic-confirmation")
+def e13_diagnostic_confirmation(
+    protocol_commit: str = typer.Option(..., "--protocol-commit"),
+) -> None:
+    """Access the E13 confirmation holdout exactly once and apply frozen tests."""
+    from .runners.e13_diagnostic_confirmation import run_e13_diagnostic_confirmation
+
+    output = run_e13_diagnostic_confirmation(protocol_commit=protocol_commit, dry_run=False)
+    typer.echo(f"E13 diagnostic confirmation complete: {output}")
+
+
 if __name__ == "__main__":
     app()
