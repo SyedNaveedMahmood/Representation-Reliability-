@@ -849,8 +849,8 @@ def _train_regime(
                 )
                 save_json(
                     {
-                        "student_width": int(student.hidden_size),
-                        "teacher_width": int(teacher.hidden_size),
+                        "student_width": int(projector.linear.in_features),
+                        "teacher_width": int(projector.linear.out_features),
                         "epsilon": 1e-8,
                     },
                     checkpoint_dir / "projector.json",

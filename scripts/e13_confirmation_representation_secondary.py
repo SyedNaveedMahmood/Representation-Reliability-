@@ -21,30 +21,29 @@ import torch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from representation_reliability.config import resolve_config  # noqa: E402
-from representation_reliability.metrics.causal_organization import (  # noqa: E402
+from representation_reliability.metrics.causal_organization import (
     representation_similarity,
 )
-from representation_reliability.reporting.tables import save_json, save_table  # noqa: E402
-from representation_reliability.runners.e01a_support import (  # noqa: E402
+from representation_reliability.reporting.tables import save_json, save_table
+from representation_reliability.runners.e01a_support import (
     extract_resid_post_layers,
 )
-from representation_reliability.runners.e13 import LAYER, SELECTOR  # noqa: E402
-from representation_reliability.runners.e13_diagnostic_confirmation import (  # noqa: E402
+from representation_reliability.runners.e13 import LAYER, SELECTOR
+from representation_reliability.runners.e13_diagnostic_confirmation import (
     _open_corpus_signatures,
     _student_config,
     _teacher_config,
 )
-from representation_reliability.runners.e13_diagnostic_confirmation_support import (  # noqa: E402
+from representation_reliability.runners.e13_diagnostic_confirmation_support import (
     CHECKPOINT_REGISTRY,
     materialize_e13_holdout,
     resolve_checkpoint,
 )
-from representation_reliability.runners.e13_multiseed import (  # noqa: E402
+from representation_reliability.runners.e13_multiseed import (
     _checkpoint_adapter,
     _load_projector,
 )
-from representation_reliability.runners.extract import load_adapter  # noqa: E402
+from representation_reliability.runners.extract import load_adapter
 
 CAMPAIGN = ROOT / "runs" / "E13_DIAGNOSTIC_CONFIRMATION" / "E13DC_e13-diagnostic-confirmation-v1"
 

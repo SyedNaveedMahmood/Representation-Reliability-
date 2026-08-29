@@ -234,6 +234,23 @@ smallest component Q (per-example Q sign agreement `0.903`-`0.980` with
 sample-matched semantic targets versus at most `0.867` without), where the
 frozen summary statistic cannot see it.
 
+
+**Update (2026-08-29): the diagnostic claim is confirmed and replicates across
+families.** The E13 holdout was accessed exactly once under a protocol frozen
+beforehand and returned a strong confirmation: both logit KD and hidden-state KD
+exceed the teacher behaviorally in 3/3 seeds while carrying systematic Q and A
+mismatch (Holm 0.0003-0.0004), with G a genuine null and D_native 1.000000 for
+every model. E17 then replicated the phenomenon in OLMo-2 (7B -> 1B), a family
+with different depth, width, tokenizer and absolute site, chosen by a screen that
+never inspected Q/A/G.
+
+The cross-family structure is the sharpened claim. The scalar-conversion deficit
+is family-general and quantitatively near-identical (ΔQz -0.167/-0.173 in Qwen3
+versus -0.164/-0.165 in OLMo-2), the A distortion is present in both families but
+opposite in sign, and G is null in both. Distillation reliably transfers behavior
+and reliably fails to transfer the scalar conversion pathway; what compensates
+for the loss differs by family.
+
 This strengthens the master distinction rather than weakening it. Behavioral
 equivalence and causal-organizational mismatch coexist more sharply than before:
 three regimes reach validation B of `1.000000` while retaining COD of `0.553`,

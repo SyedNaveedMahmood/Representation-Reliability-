@@ -344,7 +344,7 @@ experiments:
       does knowledge distillation transfer the teacher's ability to use it, or
       can representation and causal conversion remain dissociated after distillation?
     priority: P0
-    status: discovery_complete_method_branch_closed_diagnostic_only
+    status: diagnostic_claim_confirmed_method_branch_closed
     depends_on: [E01B]
     dimensions: [D, C, R]
     refs: [logit_kd, hidden_state_kd, trajectory_kd, source_free_setpoints]
@@ -513,6 +513,38 @@ experiments:
         - E13_RESPONSE_REGULARIZATION_DIAGNOSTIC.md
         - E13_RESPONSE_SPECIFICITY_RESULTS.md
         - E13_RESPONSE_OBJECTIVE_REVISION_RESULTS.md
+    diagnostic_confirmation:
+      status: complete_strong
+      protocol: docs/E13_DIAGNOSTIC_CONFIRMATION_PROTOCOL.md
+      protocol_commit: 6daa148
+      protocol_sha256: c0c96f9c79586daf14692a62a9499233fab58017132a3251d1ce02f19e2aa16a
+      implementation_commit: 95c62be8f5b9682ec123e8d47b7be5265303a82f
+      confirmation_namespace: e13_confirmation_v1
+      first_access: "2026-08-29T18:36:21.640521+00:00"
+      access_count: 1
+      rows: 200
+      pairs: 100
+      split_digest: 8b7e21c787abb064eb91c021613cd93b033674947161a1c91efb8b7e14ea102d
+      delta_B: 0.03
+      delta_C: 0.10
+      family_alpha: 0.05
+      cod_used_as_endpoint: false
+      classification: strong
+      hypotheses:
+        H13-C1_R2_behavior: {estimate: 0.043917, ci: [0.005415, 0.088137], seeds: 3, verdict: PASS}
+        H13-C2_R3_behavior: {estimate: 0.055467, ci: [0.018649, 0.098835], seeds: 3, verdict: PASS}
+        H13-C3_R2_mismatch: {components: [Q, A], Q_gap: -0.167500, A_gap: 0.421201, holm: [0.0003, 0.0004], verdict: PASS}
+        H13-C4_R3_mismatch: {components: [Q, A], Q_gap: -0.173110, A_gap: 0.507840, holm: [0.0003, 0.0003], verdict: PASS}
+      G_null: {R2_gap: 0.012654, R3_gap: 0.012483, holm: 1.0, mismatch: false}
+      D_native_all_models: 1.0
+      representation_similarity_secondary:
+        favours_R3: false
+        R0_CKA: 0.744678
+        R2_mean_CKA: 0.769675
+        R3_mean_CKA: 0.704339
+        claim_narrowed: true
+      report: E13_DIAGNOSTIC_CONFIRMATION_SUMMARY.md
+      holdout_consumed: true
     bounded_preregistration:
       protocol: docs/E13_DISTILLATION_FULL_PROTOCOL.md
       protocol_sha256: eafe0eb3a5aef011e24906bc505f525349ab6be10aa33d26916d7b86b1f6e685
@@ -729,3 +761,67 @@ experiments:
     execution_policy: >
       Design only. Do not implement until E01B is frozen, a checkpoint family is
       selected, and explicit authorization is given.
+
+  - id: E17
+    name: cross_family_causal_organization
+    question: >
+      Does the confirmed behavior-versus-causal-organization dissociation appear
+      outside the Qwen family?
+    priority: P0
+    status: discovery_complete_replicated
+    depends_on: [E13]
+    dimensions: [D, C, R]
+    refs: [logit_kd, hidden_state_kd, relative_depth_site]
+    max_gpu_hours: 12
+    protocol: docs/E17_CROSS_FAMILY_CAUSAL_ORGANIZATION_PROTOCOL.md
+    protocol_commit: e3daa62
+    campaign: runs/E17_CROSS_FAMILY
+    candidate_priority: [SmolLM2, Llama-3.2, OLMo-2]
+    causal_quantities_inspected_during_screening: false
+    screen:
+      SmolLM2: {teacher_B: 0.687416, teacher_D: 1.0, student_D: 0.996080, eligible: false, reason: teacher_B_below_0.85}
+      Llama-3.2: {eligible: false, reason: gated_repo_401_not_accessible_without_permission_change}
+      OLMo-2: {teacher_B: 0.986296, teacher_D: 1.0, student_D: 0.999776, eligible: true}
+    selected_pair:
+      teacher: allenai/OLMo-2-1124-7B-Instruct
+      student: allenai/OLMo-2-0425-1B-Instruct
+      teacher_layers: 32
+      student_layers: 16
+      teacher_site_layer: 19
+      student_site_layer: 9
+      relative_depth: 0.60
+    corpus_seeds: {train: 20261701, validation: 20261702, discovery_test: 20261703}
+    training_seeds: [20261705, 20261715, 20261725]
+    regimes: [R0, R1, R2, R3]
+    conversion_response_reopened: false
+    engineering_accommodation: >
+      The 13.6 GiB teacher and 1.48B student cannot be co-resident on a 16 GiB
+      device, so the frozen teacher's last-prompt logits and layer-19 hidden
+      states were precomputed once. No loss term, learning rate, step count, or
+      batch size changed.
+    result:
+      phenomenon_replicated: true
+      replicated_regimes: [R1, R2, R3]
+      D_native: 1.0
+      delta_B_mean: {R1: 0.009956, R2: 0.009696, R3: 0.009667}
+      delta_Qz_mean: {R1: -0.172628, R2: -0.164064, R3: -0.165091}
+      delta_Az_mean: {R1: -0.061223, R2: -0.302599, R3: -0.347336}
+      delta_Gz_mean: {R1: -0.015445, R2: -0.022781, R3: -0.021951}
+      Q_same_direction_seeds: {R1: 3, R2: 3, R3: 3}
+      A_same_direction_seeds: {R1: 1, R2: 3, R3: 3}
+      G_same_direction_seeds: {R1: 0, R2: 0, R3: 0}
+      R3_mean_CKA: 0.884666
+      quality: {wikitext_range: [18.778, 19.192], hellaswag_range: [0.694, 0.706]}
+      cross_family_reading:
+        - Q_deficit_is_family_general_and_quantitatively_near_identical
+        - A_mismatch_present_in_both_families_but_opposite_in_sign
+        - G_is_a_consistent_null_in_both_families
+        - high_representation_similarity_coexists_with_causal_mismatch
+      limitation: >
+        CKA was recorded only for R3 and student checkpoints were pruned for disk,
+        so the within-E17 R2-versus-R3 similarity comparison is unavailable.
+      discovery_not_confirmation: true
+      report: E17_CROSS_FAMILY_DISCOVERY_SUMMARY.md
+    execution_policy: >
+      Complete. Candidates 2 and 3 were not revisited after any causal outcome was
+      seen. A negative replication would have stood as a real result.

@@ -430,3 +430,62 @@ locked, unmaterialized, and was not accessed. See
 `E13_RESPONSE_SPECIFICITY_RESULTS.md`,
 `E13_RESPONSE_OBJECTIVE_REVISION_RESULTS.md`, and
 `E13_METHOD_REVISION_DISCOVERY_SUMMARY.md`.
+
+## E13 diagnostic confirmation and E17 cross-family replication
+
+The E13 diagnostic claim is **confirmed**, and the phenomenon **replicates
+outside Qwen**.
+
+E13 confirmation accessed `e13_confirmation_v1` exactly once
+(2026-08-29T18:36:21Z, access count 1, 200 directed rows / 100 pairs, split
+digest `8b7e21c7`) under a protocol frozen and pushed beforehand at commit
+`6daa148`. Classification: **strong**. Both logit KD and hidden-state KD passed
+behavioral non-inferiority against the frozen `delta_B = 0.03` — in fact both
+exceeded the teacher in 3/3 seeds — and both showed systematic componentwise
+mismatch against the frozen `delta_C = 0.10` SESOI: `Q` at `-0.167`/`-0.173`
+(Holm `0.0003`) and `A` at `+0.421`/`+0.508` (Holm `0.0004`/`0.0003`). `G` was
+**not** mismatched in either regime (Holm `1.0`) and is reported as a genuine
+null. `D_native` was `1.000000` for all eight evaluated models, so the mismatch is
+not a decodability deficit. COD carried no part of the claim, having been demoted
+in the protocol on the strength of the method-revision negative result.
+
+The preregistered representation-similarity secondary did **not** favour R3 and
+the claim was narrowed as the protocol required: at B-matched checkpoints R3's
+mean CKA (`0.704`) sits below R2's (`0.770`) and below the untrained student's
+(`0.745`). The supported statement is that hidden-state KD neither reproduced
+causal organization nor clearly improved representation similarity at the
+behavior-matched operating point.
+
+E17 then tested cross-family generality. Candidates were screened on engineering,
+`B` and `D` only, with `Q`/`A`/`G`, COD, steering and any intervened forward pass
+forbidden during screening. SmolLM2 was rejected on teacher behavior
+(`B = 0.687`), Llama-3.2 was excluded as a gated repository, and OLMo-2
+7B -> 1B was selected and locked. That pair differs from Qwen3 in family, depth
+ratio, width, tokenizer and absolute site (teacher layer 19, student layer 9
+under the frozen relative-depth rule `r = 0.60`).
+
+The phenomenon replicated in all three trained regimes. `D = 1.000` throughout,
+students exceeded the teacher behaviorally in 3/3 seeds, and the componentwise
+structure separated cleanly into a family-general and a family-specific part:
+
+- `ΔQz` is `-0.167`/`-0.173` in Qwen3 and `-0.164`/`-0.165` in OLMo-2 — four
+  independent estimates from two families agreeing within `0.01` standardized
+  units, same direction, 3/3 seeds each. Both teachers convert the scalar
+  coordinate at nearly identical strength (`Qz` `0.164` and `0.175`) and every
+  distilled student collapses it to approximately zero.
+- `ΔAz` is large in both families but **opposite in sign**: `+0.42`/`+0.51` in
+  Qwen3 versus `-0.30`/`-0.35` in OLMo-2. The deficit is universal; the
+  compensation is idiosyncratic.
+- `ΔGz` is a null in both families, inside the SESOI in every seed of every
+  regime.
+
+Hidden-state KD does not rescue this. In OLMo-2, R3 reaches high teacher/student
+CKA (`0.885` mean) while carrying the largest `A` mismatch of any regime. General
+quality held everywhere (WikiText-2 `18.78`-`19.19` against R0's `18.79`,
+HellaSwag `0.694`-`0.706` against `0.700`).
+
+The project is **paper-ready**. See `E13_DIAGNOSTIC_CONFIRMATION_SUMMARY.md`,
+`E17_CROSS_FAMILY_DISCOVERY_SUMMARY.md`,
+`CAUSAL_ORGANIZATION_CROSS_FAMILY_SYNTHESIS.md`, and
+`docs/PAPER_NARRATIVE_CAUSAL_ORGANIZATION.md`. The E13 holdout is consumed and
+may never be reused; the conversion-response method branch remains closed.

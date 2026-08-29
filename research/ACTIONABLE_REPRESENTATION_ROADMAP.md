@@ -263,7 +263,8 @@ Current recommended ordering:
 | 2 | E01B-2 | complete: establishes contextual sensitivity in discovery |
 | 3 | E01B-3 | strong confirmation complete; mechanism frozen |
 | 4 | E14 | strong confirmation complete; mixed actionability/general degradation |
-| 5 | E13 | discovery complete; method revision failed its frozen gate; retain as diagnostic, do not confirm |
+| 5 | E13 | diagnostic claim CONFIRMED (strong); holdout consumed; method branch stays closed |
+| 5b | E17 | cross-family replication COMPLETE; phenomenon replicated in OLMo-2 |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
 | 7 | E15 | highest long-horizon conceptual upside; not authorized |
 

@@ -456,13 +456,18 @@ def run_e17_job(regime: str, seed: int) -> Path:
                         + 1e-8
                     )
                     with torch.no_grad():
+                        projector.eval()
+                        dtype = next(projector.parameters()).dtype
                         tensor = torch.from_numpy(student_matrix).to(
                             adapter.device, torch.float32
                         )
                         normalized = tensor / torch.sqrt(
                             torch.mean(tensor**2, dim=1, keepdim=True) + 1e-8
                         )
-                        projected = projector(normalized).float().cpu().numpy()
+                        projected = (
+                            projector(normalized.to(dtype)).float().cpu().numpy()
+                        )
+                        projector.train()
                     diagnostics[split] = representation_similarity(
                         student_matrix,
                         teacher_normalized,
