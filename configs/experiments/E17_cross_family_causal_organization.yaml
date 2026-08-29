@@ -1,0 +1,37 @@
+experiment:
+  id: E17
+  name: cross_family_causal_organization
+  mode: discovery
+
+dataset:
+  type: synthetic_relations
+  n_samples: 4800
+  split: discovery
+
+representation:
+  sites: [resid_post]
+  # Primary site is resolved in code from the frozen relative depth r=0.60:
+  #   layer = round(0.60 * (num_layers - 1)), per model.
+  layers: all
+  token_selectors: [last_prompt]
+
+probe:
+  type: logistic_regression
+  standardize: true
+  C_grid: [0.01, 0.1, 1.0, 10.0]
+  class_weight: balanced
+
+controls:
+  random_labels: true
+  random_label_seeds: [0, 1, 2]
+  text_baseline: tfidf_logreg
+  random_features: false
+
+behavior:
+  candidates_primary: [" Yes", " No"]
+  candidates_secondary: [" yes", " no"]
+  free_generation_diagnostic_n: 0
+
+outputs:
+  save_coefficients: true
+  layerwise_metrics: true

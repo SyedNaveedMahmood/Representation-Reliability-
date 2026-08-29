@@ -1,0 +1,16 @@
+model:
+  id: allenai/OLMo-2-0425-1B-Instruct
+  revision: null
+  family: olmo2
+  backend: hf
+  dtype: bfloat16
+  device_map: cuda
+  trust_remote_code: false
+  generation:
+    do_sample: false
+    max_new_tokens: 256
+
+representation:
+  sites: [resid_post]
+  layers: all
+  token_selector: last_prompt

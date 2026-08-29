@@ -1,0 +1,16 @@
+model:
+  id: HuggingFaceTB/SmolLM2-360M-Instruct
+  revision: null
+  family: llama
+  backend: hf
+  dtype: bfloat16
+  device_map: cuda
+  trust_remote_code: false
+  generation:
+    do_sample: false
+    max_new_tokens: 256
+
+representation:
+  sites: [resid_post]
+  layers: all
+  token_selector: last_prompt
