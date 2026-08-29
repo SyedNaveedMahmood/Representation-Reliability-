@@ -37,6 +37,7 @@ from .e13 import (
     MAX_STEPS,
     MICROBATCH,
     SELECTOR,
+    HiddenStateProjector,
     _evaluate_checkpoint,
     _reference_from_model,
     _train_regime,
@@ -473,6 +474,12 @@ def run_e17_job(regime: str, seed: int) -> Path:
             adapter.model.train()
             return metrics, rows
 
+        projector = None
+        if regime == "R3":
+            projector = HiddenStateProjector(
+                int(student.hidden_size), int(reference_summary["teacher_width"])
+            ).to(device=student.device, dtype=student.torch_dtype)
+
         status.update(message=f"training E17 {regime} seed {seed}")
         losses, metrics = _train_regime(
             regime,
@@ -487,6 +494,7 @@ def run_e17_job(regime: str, seed: int) -> Path:
             training_seed=int(seed),
             run_identity=identity,
             resume_checkpoint=resume_checkpoint,
+            projector=projector,
             layer=student_layer,
             teacher_layer=teacher_layer,
             teacher_batch_lookup=lookup,

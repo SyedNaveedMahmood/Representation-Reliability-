@@ -627,9 +627,11 @@ def _train_regime(
     model.config.use_cache = False
     parameters = list(model.parameters())
     if regime == "R3":
-        if teacher is None:
-            raise ValueError("R3 requires the frozen teacher")
         if projector is None:
+            # A caller supplying a cached teacher passes the projector directly,
+            # because the teacher width is then known without loading the model.
+            if teacher is None:
+                raise ValueError("R3 requires the frozen teacher or an explicit projector")
             projector = HiddenStateProjector(student.hidden_size, teacher.hidden_size).to(
                 device=student.device, dtype=student.torch_dtype
             )
