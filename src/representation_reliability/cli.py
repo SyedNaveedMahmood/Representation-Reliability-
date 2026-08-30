@@ -748,5 +748,15 @@ def e18() -> None:
     typer.echo(f"E18 localisation complete: {run_dir}")
 
 
+@app.command("e19")
+def e19() -> None:
+    """Run the frozen E19 temporal causal-organization sweep."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e19 import run_e19
+
+    run_dir = run_e19()
+    typer.echo(f"E19 complete: {run_dir}")
+
+
 if __name__ == "__main__":
     app()

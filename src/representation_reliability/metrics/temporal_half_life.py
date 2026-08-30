@@ -276,3 +276,106 @@ def shuffled_decision_null(
         "n_permutations": int(n_permutations),
         "exceeds_null": bool((exceed + 1) / (int(n_permutations) + 1) < 0.05),
     }
+
+
+def curve_cluster_bootstrap(
+    frame: pd.DataFrame,
+    *,
+    cluster_col: str,
+    horizon_col: str,
+    value_col: str,
+    n_bootstraps: int,
+    confidence_level: float,
+    seed: int,
+) -> dict[str, Any]:
+    """Resample whole horizon curves as units.
+
+    A base episode is rendered at every horizon, so the episode - not the row -
+    is the independent unit and its entire trajectory must be resampled
+    together. Returns the per-horizon point estimates and CIs plus the raw
+    ``draws`` matrix ``[n_bootstraps, n_horizons]``, so that contrasts between
+    horizons or between components can be computed on the *same* resampling and
+    inherit its dependence structure.
+    """
+    required = {cluster_col, horizon_col, value_col}
+    missing = required - set(frame.columns)
+    if missing:
+        raise ValueError(f"curve bootstrap missing columns: {sorted(missing)}")
+    if frame.empty:
+        raise ValueError("curve bootstrap received no rows")
+    horizons = sorted(int(k) for k in frame[horizon_col].unique())
+    clusters = sorted(map(str, frame[cluster_col].astype(str).unique()))
+    if len(clusters) < 2:
+        raise ValueError("curve bootstrap needs at least two clusters")
+
+    # Per cluster, the per-horizon sum and count, so a resampled curve is an
+    # exact mean over the resampled clusters rather than a mean of means.
+    index = {int(k): position for position, k in enumerate(horizons)}
+    sums = np.zeros((len(clusters), len(horizons)), dtype=np.float64)
+    counts = np.zeros((len(clusters), len(horizons)), dtype=np.float64)
+    cluster_index = {name: position for position, name in enumerate(clusters)}
+    for cluster, horizon, value in zip(
+        frame[cluster_col].astype(str), frame[horizon_col].astype(int),
+        frame[value_col].astype(float),
+    ):
+        row = cluster_index[str(cluster)]
+        column = index[int(horizon)]
+        sums[row, column] += float(value)
+        counts[row, column] += 1.0
+
+    with np.errstate(invalid="ignore", divide="ignore"):
+        point = np.where(
+            counts.sum(axis=0) > 0, sums.sum(axis=0) / counts.sum(axis=0), np.nan
+        )
+
+    rng = np.random.default_rng(int(seed))
+    draws = np.empty((int(n_bootstraps), len(horizons)), dtype=np.float64)
+    n_clusters = len(clusters)
+    for draw in range(int(n_bootstraps)):
+        picked = rng.integers(0, n_clusters, size=n_clusters)
+        numerator = sums[picked].sum(axis=0)
+        denominator = counts[picked].sum(axis=0)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            draws[draw] = np.where(denominator > 0, numerator / denominator, np.nan)
+
+    alpha = (1.0 - float(confidence_level)) / 2.0
+    low = np.nanquantile(draws, alpha, axis=0)
+    high = np.nanquantile(draws, 1.0 - alpha, axis=0)
+    return {
+        "horizons": horizons,
+        "point": [float(v) for v in point],
+        "ci_low": [float(v) for v in low],
+        "ci_high": [float(v) for v in high],
+        "n_clusters": n_clusters,
+        "draws": draws,
+    }
+
+
+def bootstrap_two_sided_p(draws: np.ndarray) -> float:
+    """Two-sided bootstrap p-value for a contrast being different from zero."""
+    values = np.asarray(draws, dtype=np.float64)
+    values = values[np.isfinite(values)]
+    if values.size == 0:
+        return float("nan")
+    below = float(np.mean(values <= 0.0))
+    above = float(np.mean(values >= 0.0))
+    return float(min(1.0, 2.0 * min(below, above)))
+
+
+def holm_adjust(p_values: dict[str, float]) -> dict[str, float]:
+    """Holm step-down adjustment over a named family."""
+    items = [(name, float(p)) for name, p in p_values.items() if np.isfinite(p)]
+    if not items:
+        return {name: float("nan") for name in p_values}
+    items.sort(key=lambda pair: pair[1])
+    total = len(items)
+    adjusted: dict[str, float] = {}
+    running = 0.0
+    for rank, (name, p) in enumerate(items):
+        value = min(1.0, (total - rank) * p)
+        running = max(running, value)
+        adjusted[name] = running
+    for name, p in p_values.items():
+        if not np.isfinite(p):
+            adjusted[name] = float("nan")
+    return adjusted
