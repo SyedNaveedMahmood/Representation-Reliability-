@@ -106,6 +106,7 @@ MIN_BEHAVIOR = 0.70
 MIN_D_NONINFERIORITY = -0.05
 SESOI_RELATIVE = 0.25
 SUFFICIENCY_FLIP = 0.10
+MAGNITUDE_STABILITY_MIN = 0.80
 CONTEXT_EPSILON = 1e-8
 
 COMPONENTS = ("Q", "A", "G")
@@ -605,8 +606,17 @@ def analyze_rows(
     *,
     bootstraps: int,
     confidence: float,
+    enforce_magnitude_gate: bool = False,
+    bootstrap_seed: int = BOOTSTRAP_SEED,
 ) -> dict[str, Any]:
-    """Curves, gates, hypotheses and the frozen outcome label."""
+    """Curves, gates, hypotheses and the frozen outcome label.
+
+    ``enforce_magnitude_gate`` is E20's preregistered G4. When True a curve whose
+    scalar edit shrank below ``MAGNITUDE_STABILITY_MIN`` of its k0 residual
+    fraction is excluded from every hypothesis test and from any half-life, not
+    merely from the outcome label. E19 ran with it False, which is what its
+    recorded results reflect; the control was post-hoc there.
+    """
     out: dict[str, Any] = {"curves": {}, "sufficiency": {}, "hypotheses": {}, "rotation": {}}
     probes = pd.DataFrame(probe_records)
 
@@ -628,7 +638,7 @@ def analyze_rows(
                 cluster_col="episode_index", horizon_col="horizon",
                 value_col="delta_margin_toward_expected",
                 n_bootstraps=bootstraps, confidence_level=confidence,
-                seed=BOOTSTRAP_SEED + 11 * int(horizon),
+                seed=bootstrap_seed + 11 * int(horizon),
             )
             flip = float(patch["counterfactual_flip"].mean())
             effect_excludes = bool(boot["ci_low"][0] > 0.0 or boot["ci_high"][0] < 0.0)
@@ -661,7 +671,7 @@ def analyze_rows(
                     wide, cluster_col="episode_index", horizon_col="horizon",
                     value_col=component, n_bootstraps=bootstraps,
                     confidence_level=confidence,
-                    seed=BOOTSTRAP_SEED + 3 * COMPONENTS.index(component),
+                    seed=bootstrap_seed + 3 * COMPONENTS.index(component),
                 )
                 draws[component] = boot["draws"]
                 # A component whose k0 value is itself indistinguishable from
@@ -695,6 +705,48 @@ def analyze_rows(
             out["curves"][key] = entry
             out.setdefault("_draws", {})[key] = draws
 
+    # --- G4 edit-magnitude stability, computed BEFORE any hypothesis so it can
+    # gate them. The native estimand recomputes its validation setpoint targets
+    # at every horizon, so if the class medians converge the edit shrinks and a
+    # falling Q would be a magnitude artifact rather than pathway loss. The ref
+    # estimand holds the k0 targets and is the magnitude-stable comparator.
+    magnitude = (
+        raw[raw["condition"] == "Y10_scalar"]
+        .groupby(["locus", "estimand", "horizon"])[
+            ["delta_norm", "activation_norm", "delta_over_activation_norm"]
+        ]
+        .mean()
+        .reset_index()
+    )
+    out["edit_magnitude"] = magnitude.to_dict(orient="records")
+    stability: dict[str, Any] = {}
+    for (locus, estimand), block in magnitude.groupby(["locus", "estimand"]):
+        ordered = block.sort_values("horizon")["delta_over_activation_norm"].to_numpy(float)
+        ratio = float(ordered[-1] / ordered[0]) if ordered[0] > 0 else float("nan")
+        stability[f"{locus}/{estimand}"] = {
+            "residual_fraction_k0": float(ordered[0]),
+            "residual_fraction_kstar": float(ordered[-1]),
+            "kstar_over_k0": ratio,
+            "magnitude_stable": bool(
+                np.isfinite(ratio) and ratio >= MAGNITUDE_STABILITY_MIN
+            ),
+        }
+    out["edit_magnitude_stability"] = stability
+    stable_keys = {k for k, v in stability.items() if v["magnitude_stable"]}
+    out["magnitude_stable_curves"] = sorted(stable_keys)
+    out["magnitude_gate_enforced"] = bool(enforce_magnitude_gate)
+
+    def _excluded(curve_key: str) -> bool:
+        return bool(enforce_magnitude_gate and curve_key not in stable_keys)
+
+    # Under G4 an excluded curve may not carry a half-life either.
+    if enforce_magnitude_gate:
+        for curve_key, entry in out["curves"].items():
+            if _excluded(curve_key):
+                for component in COMPONENTS:
+                    entry[component].pop("half_life", None)
+                    entry[component]["excluded_magnitude_unstable"] = True
+
     # --- H19.1 representational persistence.
     persistence = {}
     for locus in sorted(probes["locus"].unique()):
@@ -717,6 +769,9 @@ def analyze_rows(
     k_star = horizons[-1]
     h2: dict[str, Any] = {}
     for key, draws in out.get("_draws", {}).items():
+        if _excluded(key):
+            h2[key] = {"status": "excluded_magnitude_unstable"}
+            continue
         entry = out["curves"][key]
         k_index = entry["Q"]["horizons"].index(k_star)
         raw_p: dict[str, float] = {}
@@ -766,6 +821,9 @@ def analyze_rows(
     # --- H19.3 differential pathway persistence at k*.
     h3: dict[str, Any] = {}
     for key, draws in out.get("_draws", {}).items():
+        if _excluded(key):
+            h3[key] = {"status": "excluded_magnitude_unstable"}
+            continue
         entry = out["curves"][key]
         k_index = entry["Q"]["horizons"].index(k_star)
         pairs: dict[str, Any] = {}
@@ -807,6 +865,9 @@ def analyze_rows(
         decision = out["curves"].get(f"D_decision/{estimand}")
         if not source or not decision:
             continue
+        if _excluded(f"S_source/{estimand}") or _excluded(f"D_decision/{estimand}"):
+            h4[estimand] = {"status": "excluded_magnitude_unstable"}
+            continue
         per_component = {}
         for component in COMPONENTS:
             k_index = source[component]["horizons"].index(k_star)
@@ -833,36 +894,6 @@ def analyze_rows(
         "per_estimand": h4,
     }
 
-    # --- edit magnitude by locus/estimand/horizon.
-    #
-    # This is a REQUIRED control, not a diagnostic afterthought. The native
-    # estimand recomputes its validation setpoint targets at every horizon, so
-    # if the class medians converge with horizon the native edit shrinks and a
-    # falling Q would be a magnitude artifact rather than pathway loss. The ref
-    # estimand holds the k0 targets and is the magnitude-stable comparator.
-    magnitude = (
-        raw[raw["condition"] == "Y10_scalar"]
-        .groupby(["locus", "estimand", "horizon"])[
-            ["delta_norm", "activation_norm", "delta_over_activation_norm"]
-        ]
-        .mean()
-        .reset_index()
-    )
-    out["edit_magnitude"] = magnitude.to_dict(orient="records")
-    stability: dict[str, Any] = {}
-    for (locus, estimand), block in magnitude.groupby(["locus", "estimand"]):
-        ordered = block.sort_values("horizon")["delta_over_activation_norm"].to_numpy(float)
-        ratio = float(ordered[-1] / ordered[0]) if ordered[0] > 0 else float("nan")
-        stability[f"{locus}/{estimand}"] = {
-            "residual_fraction_k0": float(ordered[0]),
-            "residual_fraction_kstar": float(ordered[-1]),
-            "kstar_over_k0": ratio,
-            # A curve whose own edit shrank by more than a fifth cannot be read
-            # as pathway loss without magnitude matching.
-            "magnitude_stable": bool(np.isfinite(ratio) and ratio >= 0.80),
-        }
-    out["edit_magnitude_stability"] = stability
-
     # --- axis rotation.
     for locus in sorted({k[0] for k in axes}):
         base = axes[(locus, K0)]
@@ -877,10 +908,12 @@ def analyze_rows(
         key for key, value in out["sufficiency"].items() if value["passes_G3"]
     ]
     # Only magnitude-stable curves may drive the outcome label.
-    stable_keys = {k for k, v in stability.items() if v["magnitude_stable"]}
-    out["magnitude_stable_curves"] = sorted(stable_keys)
-    h2_any = any(v["any_component_supported"] for k, v in h2.items() if k in stable_keys)
-    h3_any = any(v["any_pair_supported"] for k, v in h3.items() if k in stable_keys)
+    h2_any = any(
+        v.get("any_component_supported") for k, v in h2.items() if k in stable_keys
+    )
+    h3_any = any(
+        v.get("any_pair_supported") for k, v in h3.items() if k in stable_keys
+    )
     if not interpretable_cells:
         outcome = "no_cell_passed_carrier_sufficiency"
     elif not out["hypotheses"]["H19.1"]["supported"]:

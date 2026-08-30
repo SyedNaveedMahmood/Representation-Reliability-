@@ -193,3 +193,100 @@ def test_holm_p_of_exactly_zero_is_the_strongest_result_not_a_falsy_miss():
     # the ordinary case for a strong effect, not an edge case.
     assert _p(np.full(1000, -0.35)) == 0.0
     assert holm_adjust({"A": 0.0, "Q": 0.0, "G": 0.4})["A"] == 0.0
+
+
+# ------------------------------------------------------------------------- E20
+def test_e20_inherits_the_e19_loci_and_extends_only_the_horizon():
+    from representation_reliability.runners import e20
+
+    assert e20.LOCI is LOCI  # the carrier and two-locus design are not re-chosen
+    assert list(e20.CANDIDATE_HORIZONS) == [1, 2, 4, 8, 16, 24, 32]
+    assert e20.K0 == K0
+    assert list(e20.CANDIDATE_HORIZONS)[: len(HORIZONS)] == list(HORIZONS)
+    assert [name for name, _pool in e20.POOLS] == ["short", "long"]
+    assert e20.TIE_BREAK_POOL == "short"
+
+
+def test_e20_phase1_selection_rule_prefers_reach_then_the_short_pool():
+    from representation_reliability.runners.e20 import select_grid
+
+    # greater reach wins
+    assert select_grid({"short": [1, 2, 4], "long": [1, 2, 4, 8, 16]}) == (
+        "long", [1, 2, 4, 8, 16]
+    )
+    # ties go to short, preserving continuity with E15/E18/E19
+    assert select_grid({"short": [1, 2, 4], "long": [1, 2, 4]}) == ("short", [1, 2, 4])
+    # a pool that fails at k0 contributes nothing
+    assert select_grid({"short": [], "long": [1, 2]}) == ("long", [1, 2])
+
+
+def test_e20_admissible_prefix_stops_at_the_first_failing_horizon():
+    from representation_reliability.runners.e20 import _admissible_prefix
+
+    grid = (1, 2, 4, 8, 16, 32)
+    # a later recovery must NOT re-open the grid: the rule takes a prefix.
+    behaviour = {1: 0.85, 2: 0.80, 4: 0.72, 8: 0.61, 16: 0.90, 32: 0.90}
+    assert _admissible_prefix(behaviour, grid) == [1, 2, 4]
+    assert _admissible_prefix({k: 0.9 for k in grid}, grid) == list(grid)
+    assert _admissible_prefix({1: 0.5}, grid) == []
+
+
+def test_e20_magnitude_gate_excludes_a_curve_from_every_hypothesis():
+    """G4 is a formal gate in E20, not the outcome-label filter it was in E19."""
+    from representation_reliability.runners.e19 import MAGNITUDE_STABILITY_MIN
+
+    assert MAGNITUDE_STABILITY_MIN == 0.80
+
+    rows = []
+    for locus, estimand, shrink in (
+        ("S_source", "native", 1.0),   # magnitude stable
+        ("S_source", "ref", 0.40),     # magnitude UNSTABLE -> excluded
+    ):
+        for episode in range(12):
+            for horizon in (1, 8):
+                scale = 1.0 if horizon == 1 else shrink
+                for condition, value in (
+                    ("Y10_scalar", 2.0), ("Y01_context", 1.0), ("Y11_both", 3.5),
+                    ("full_state_patch", 2.0), ("random_norm_matched", 0.0),
+                ):
+                    rows.append({
+                        "locus": locus, "estimand": estimand, "condition": condition,
+                        "episode_index": episode, "horizon": horizon,
+                        "base_sample_id": f"{locus}{estimand}{episode}h{horizon}",
+                        "pair_id": f"p{episode}",
+                        "delta_margin_toward_expected": value * (1.0 if horizon == 1 else 0.5),
+                        "counterfactual_flip": 1.0,
+                        "delta_norm": 10.0 * scale,
+                        "activation_norm": 100.0,
+                        "delta_over_activation_norm": 0.1 * scale,
+                    })
+    probes = [
+        {"locus": "S_source", "horizon": h, "test_auroc": 1.0} for h in (1, 8)
+    ]
+    axes = {("S_source", 1): np.ones(4), ("S_source", 8): np.ones(4)}
+    from representation_reliability.runners.e19 import analyze_rows
+
+    gated = analyze_rows(
+        pd.DataFrame(rows), probes, axes, [1, 8],
+        bootstraps=100, confidence=0.95, enforce_magnitude_gate=True,
+    )
+    assert gated["magnitude_gate_enforced"] is True
+    assert "S_source/native" in gated["magnitude_stable_curves"]
+    assert "S_source/ref" not in gated["magnitude_stable_curves"]
+    assert gated["hypotheses"]["H19.2"]["S_source/ref"] == {
+        "status": "excluded_magnitude_unstable"
+    }
+    assert gated["hypotheses"]["H19.3"]["S_source/ref"] == {
+        "status": "excluded_magnitude_unstable"
+    }
+    # an excluded curve carries no half-life
+    for component in COMPONENTS:
+        assert "half_life" not in gated["curves"]["S_source/ref"][component]
+        assert gated["curves"]["S_source/ref"][component]["excluded_magnitude_unstable"]
+
+    ungated = analyze_rows(
+        pd.DataFrame(rows), probes, axes, [1, 8],
+        bootstraps=100, confidence=0.95, enforce_magnitude_gate=False,
+    )
+    assert ungated["magnitude_gate_enforced"] is False
+    assert "status" not in ungated["hypotheses"]["H19.2"]["S_source/ref"]

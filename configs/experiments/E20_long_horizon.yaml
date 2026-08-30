@@ -1,0 +1,40 @@
+experiment:
+  id: E20
+  name: long_horizon_temporal_causal_organization
+  mode: discovery
+
+dataset:
+  # Frozen E15 stateful console generator, fresh e20 namespace and seeds.
+  # Loci, candidate horizons, pools and seeds are protocol constants in
+  # runners/e20.py; the horizon range is selected in a non-causal Phase 1.
+  type: stateful_console
+  n_samples: 600
+  split: discovery
+
+representation:
+  sites: [resid_post]
+  # Loci are inherited unchanged from E19 (state_word_last @ L8,
+  # decision @ L24), which took them from the E18 map. Nothing is searched.
+  layers: all
+  token_selectors: [last_prompt, target_span_last]
+
+probe:
+  type: logistic_regression
+  standardize: true
+  C_grid: [0.01, 0.1, 1.0, 10.0]
+  class_weight: balanced
+
+controls:
+  random_labels: false
+  random_label_seeds: []
+  text_baseline: null
+  random_features: false
+
+behavior:
+  candidates_primary: [" Yes", " No"]
+  candidates_secondary: [" yes", " no"]
+  free_generation_diagnostic_n: 0
+
+outputs:
+  save_coefficients: false
+  layerwise_metrics: true

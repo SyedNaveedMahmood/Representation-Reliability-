@@ -758,5 +758,15 @@ def e19() -> None:
     typer.echo(f"E19 complete: {run_dir}")
 
 
+@app.command("e20")
+def e20() -> None:
+    """Run the frozen E20 long-horizon extension (Phase 1 then the E19 sweep)."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e20 import run_e20
+
+    run_dir = run_e20()
+    typer.echo(f"E20 complete: {run_dir}")
+
+
 if __name__ == "__main__":
     app()
