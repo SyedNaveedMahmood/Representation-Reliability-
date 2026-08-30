@@ -391,6 +391,93 @@ experiments:
       Prerequisite discovery map. Every declared cell reported pass or fail. Not a
       rescue of E15 and no temporal claim is licensed by it alone.
 
+  - id: E19
+    name: temporal_causal_organization
+    question: >
+      Does a semantic state stay linearly available longer than the causal
+      organization that connects it to future action, and do the scalar,
+      additive-context and interaction pathways follow distinct trajectories?
+    priority: P0
+    status: complete_signature_confirmed_in_discovery
+    depends_on: [E18]
+    dimensions: [D, C, R]
+    refs: [componentwise_causal_organization, age_versus_distance, code_rotation]
+    max_gpu_hours: 4
+    protocol: docs/E19_TEMPORAL_CAUSAL_ORGANIZATION_PROTOCOL.md
+    protocol_commit: 1e69de1
+    protocol_frozen_before_any_measurement_code: true
+    campaign: runs/E19_TEMPORAL_ORG
+    model: Qwen/Qwen3-1.7B
+    corpus_seeds: {train: 20261901, validation: 20261902, discovery_test: 20261903}
+    horizons: [1, 2, 4, 8]
+    loci:
+      S_source: {site: state_word_last, layer: 8, grows: age_and_distance}
+      D_decision: {site: decision, layer: 24, grows: age_only}
+    loci_provenance: taken from the E18 map; no layer searched over in E19
+    result:
+      outcome: componentwise_reorganization
+      gates:
+        G1_numerics: pass
+        G2_behaviour: {1: 0.843, 2: 0.840, 4: 0.793, 8: 0.820}
+        G3_carrier_sufficiency: pass_at_all_8_cells
+        G3_flip_rate_range: [0.600, 0.693]
+      headline: >
+        On a carrier that passes sufficiency at every horizon, D stays at ceiling
+        (1.000) while Q, A and G fall to 0.71, 0.73 and 0.55 of baseline by k=8.
+        This is the signature E15 set out to measure and could not, because its
+        carrier carried nothing.
+      relative_curves_S_source_native:
+        Q: [1.0, 0.994, 0.909, 0.713]
+        A: [1.0, 0.991, 0.852, 0.729]
+        G: [1.0, 0.957, 0.645, 0.551]
+      H19.1_representational_persistence: {supported: true, D_S_source: [1.0, 1.0], D_D_decision: [0.9992, 0.9942]}
+      H19.2_causal_change: {supported: true, all_components_at_S_source: true, holm_p: 0.0}
+      H19.3_differential_rates: {supported_at: [D_decision/ref], not_supported_at: [S_source], note: S_source differences 0.16-0.22 fall below the 0.25 SESOI}
+      H19.4_age_versus_distance:
+        Q: {S_rel: 0.705, D_rel: 1.0, reading: decays_with_propagation_distance_not_age}
+        A: {S_rel: 0.744, D_rel: 0.658, reading: decays_with_state_age}
+        G: not_assessable_at_D_decision
+      code_rotation:
+        S_source_cos: [1.0, 1.0, 1.0, 1.0]
+        D_decision_cos: [1.0, 0.784, 0.660, 0.524]
+        reading: >
+          At the decision token the decodable axis rotates substantially while Q
+          on the frozen k0 axis stays flat at 1.000. The decodable direction
+          rotates away from the causally effective one, which does not move.
+      half_lives: all_right_censored_at_k8_no_component_halved
+      magnitude_control:
+        added_post_hoc: true
+        stable_curves: [S_source/native, S_source/ref, D_decision/ref]
+        discarded_curve: D_decision/native
+        discarded_reason: >
+          Its native setpoint edit shrank to 0.452 of its k0 residual fraction
+          across the grid, so its apparent Q collapse to 0.312 is a magnitude
+          artifact rather than pathway loss. Excluded from the outcome label.
+      integrity:
+        no_op_max_margin_deviation: 0.0
+        max_norm_match_relative_deviation: 3.6e-16
+        max_projection_relative_deviation: 0.040
+        projection_tolerance: 0.05
+        hook_leak_detected: false
+        confirmation_accessed: false
+      limitations:
+        - magnitude_control_was_post_hoc_not_preregistered
+        - D_decision_ref_drifts_mildly_ratio_0.853
+        - four_horizons_all_right_censored_no_half_life_estimable
+        - G_not_assessable_at_D_decision
+        - single_model_single_task_discovery_only
+      report: E19_TEMPORAL_CAUSAL_ORGANIZATION_SUMMARY.md
+    next_recommendation: >
+      Extend the horizon grid rather than adding a model first: no component
+      halves by k=8, so no persistence timescale can be quoted. E15's Stage 3b
+      hinted that step count, not token distance, drives the behavioural
+      collapse, so fewer and longer distractor steps could reach much longer
+      token horizons with B intact. Any such design must preregister the
+      magnitude control this run added post hoc.
+    execution_policy: >
+      Discovery only. Every cell reported. E15 remains closed and E19 inherits
+      none of its claims.
+
   - id: E02
     name: decode_steer_gap
     question: Does decodability predict safe steering efficacy?

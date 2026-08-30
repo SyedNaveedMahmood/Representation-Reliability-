@@ -384,6 +384,48 @@ L0/L4/L8 (0.567/0.563/0.533).
 
 See `E18_CAUSAL_READ_LOCALISATION_SUMMARY.md`.
 
+### F3. E19 temporal causal organization - complete
+
+The flagship, run on the carrier E18 validated. Every cell passes the
+carrier-sufficiency gate E15 lacked (flip 0.60-0.69 against E15's 0.010), so
+every decomposition below decomposes an effect that is actually present.
+
+**The E15 signature is real in this task.** Decodability stays at ceiling across
+the horizon while causal organization decays materially:
+
+```text
+D  = 1.000  1.000  1.000  1.000     (k = 1, 2, 4, 8)
+Q  = 1.000  0.994  0.909  0.713     relative to k0
+A  = 1.000  0.991  0.852  0.729
+G  = 1.000  0.957  0.645  0.551
+```
+
+Every decline exceeds its SESOI with Holm-corrected `p` below 0.05.
+
+**The two-locus design separates why each pathway decays.** Intervening at the
+decision token holds the propagation path fixed while state age grows; at the
+source token both grow. The components come apart:
+
+```text
+Q decays with propagation DISTANCE, not with state age  (S_rel 0.705, D_rel 1.000)
+A decays with state AGE                                 (S_rel 0.744, D_rel 0.658)
+```
+
+**Code rotation is not pathway loss.** At the decision token the decoded axis
+rotates hard (`cos(u_0, u_k)` 1.000 -> 0.524) while `Q` measured on the frozen
+`k0` axis stays flat at 1.000. The decodable direction rotates away from the
+causally effective one, which does not move - a direct caution against reading a
+probe axis as the model's endogenous causal code.
+
+Not everything held. The components do not decay at materially different *rates*
+at the source locus (differences 0.16-0.22, below the 0.25 SESOI), so the strong
+"reorganization rather than decay" claim is unsupported there. All half-lives are
+right-censored: nothing halves by `k=8`. And a magnitude control added after the
+run invalidated one of four curves, whose native setpoint had shrunk to 0.452 of
+its baseline residual fraction.
+
+See `E19_TEMPORAL_CAUSAL_ORGANIZATION_SUMMARY.md`.
+
 ## Confirmation policy
 
 The E01 confirmation split was consumed exactly once after remote
@@ -408,6 +450,7 @@ Current recommended ordering:
 | 7 | E15 | discovery complete; unresolved null — no causal handle at the predeclared carrier |
 | 8 | E01AUDIT | complete: the checkpoint contrast survives residual-fraction and semantic-shift calibration |
 | 9 | E18 | complete: causal read localised to one token at L0-L8; a usable carrier exists |
+| 10 | E19 | complete: D at ceiling while Q/A/G decay; Q decays with distance, A with age |
 
 ## Paper decision points
 

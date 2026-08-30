@@ -176,3 +176,20 @@ def test_twin_map_is_reciprocal_and_complete():
     assert twins == {"a0": "a1", "a1": "a0", "b0": "b1", "b1": "b0"}
     with pytest.raises(RuntimeError, match="incomplete"):
         _twin_map(pd.DataFrame({"sample_id": ["a0"], "pair_id": ["a"]}))
+
+
+def test_holm_p_of_exactly_zero_is_the_strongest_result_not_a_falsy_miss():
+    """Regression: `(p or 1.0) < 0.05` silently discards p == 0.0."""
+    holm_p = 0.0
+    assert not ((holm_p or 1.0) < 0.05)  # the trap
+    significant = holm_p is not None and np.isfinite(holm_p) and holm_p < 0.05
+    assert significant
+
+    from representation_reliability.metrics.temporal_half_life import (
+        bootstrap_two_sided_p as _p,
+    )
+
+    # A contrast entirely on one side of zero yields exactly 0.0, so this is
+    # the ordinary case for a strong effect, not an edge case.
+    assert _p(np.full(1000, -0.35)) == 0.0
+    assert holm_adjust({"A": 0.0, "Q": 0.0, "G": 0.4})["A"] == 0.0

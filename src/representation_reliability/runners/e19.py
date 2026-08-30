@@ -522,6 +522,10 @@ def run_e19() -> Path:
         raw = pd.DataFrame(rows)
         if not np.isfinite(raw["delta_margin_toward_expected"].to_numpy(float)).all():
             raise RuntimeError("non-finite E19 evidence produced")
+        np.savez(
+            run_dir / "probe_axes.npz",
+            **{f"{name}__k{horizon}": axis for (name, horizon), axis in axes.items()},
+        )
         save_table(raw, run_dir / "intervention_rows.parquet")
         save_table(pd.DataFrame(probe_records), run_dir / "probe_metrics.parquet")
         save_table(behaviour, run_dir / "behaviour_by_horizon.parquet")
@@ -739,11 +743,16 @@ def analyze_rows(
         adjusted = holm_adjust(raw_p)
         for component in COMPONENTS:
             if component in detail and "status" not in detail[component]:
-                detail[component]["holm_p"] = adjusted.get(component)
+                holm_p = adjusted.get(component)
+                detail[component]["holm_p"] = holm_p
+                # A Holm-adjusted p of exactly 0.0 is the STRONGEST possible
+                # result, so it must not be short-circuited by falsy-zero truth
+                # testing. Compare explicitly against None.
+                significant = holm_p is not None and np.isfinite(holm_p) and holm_p < 0.05
                 detail[component]["supported"] = bool(
                     detail[component]["exceeds_sesoi"]
                     and detail[component]["ci_excludes_zero"]
-                    and (adjusted.get(component) or 1.0) < 0.05
+                    and significant
                 )
         h2[key] = {
             "k_star": k_star,
@@ -824,6 +833,36 @@ def analyze_rows(
         "per_estimand": h4,
     }
 
+    # --- edit magnitude by locus/estimand/horizon.
+    #
+    # This is a REQUIRED control, not a diagnostic afterthought. The native
+    # estimand recomputes its validation setpoint targets at every horizon, so
+    # if the class medians converge with horizon the native edit shrinks and a
+    # falling Q would be a magnitude artifact rather than pathway loss. The ref
+    # estimand holds the k0 targets and is the magnitude-stable comparator.
+    magnitude = (
+        raw[raw["condition"] == "Y10_scalar"]
+        .groupby(["locus", "estimand", "horizon"])[
+            ["delta_norm", "activation_norm", "delta_over_activation_norm"]
+        ]
+        .mean()
+        .reset_index()
+    )
+    out["edit_magnitude"] = magnitude.to_dict(orient="records")
+    stability: dict[str, Any] = {}
+    for (locus, estimand), block in magnitude.groupby(["locus", "estimand"]):
+        ordered = block.sort_values("horizon")["delta_over_activation_norm"].to_numpy(float)
+        ratio = float(ordered[-1] / ordered[0]) if ordered[0] > 0 else float("nan")
+        stability[f"{locus}/{estimand}"] = {
+            "residual_fraction_k0": float(ordered[0]),
+            "residual_fraction_kstar": float(ordered[-1]),
+            "kstar_over_k0": ratio,
+            # A curve whose own edit shrank by more than a fifth cannot be read
+            # as pathway loss without magnitude matching.
+            "magnitude_stable": bool(np.isfinite(ratio) and ratio >= 0.80),
+        }
+    out["edit_magnitude_stability"] = stability
+
     # --- axis rotation.
     for locus in sorted({k[0] for k in axes}):
         base = axes[(locus, K0)]
@@ -837,8 +876,11 @@ def analyze_rows(
     interpretable_cells = [
         key for key, value in out["sufficiency"].items() if value["passes_G3"]
     ]
-    h2_any = any(v["any_component_supported"] for v in h2.values())
-    h3_any = any(v["any_pair_supported"] for v in h3.values())
+    # Only magnitude-stable curves may drive the outcome label.
+    stable_keys = {k for k, v in stability.items() if v["magnitude_stable"]}
+    out["magnitude_stable_curves"] = sorted(stable_keys)
+    h2_any = any(v["any_component_supported"] for k, v in h2.items() if k in stable_keys)
+    h3_any = any(v["any_pair_supported"] for k, v in h3.items() if k in stable_keys)
     if not interpretable_cells:
         outcome = "no_cell_passed_carrier_sufficiency"
     elif not out["hypotheses"]["H19.1"]["supported"]:
@@ -852,6 +894,31 @@ def analyze_rows(
     out["outcome"] = outcome
     out.pop("_draws", None)
     return out
+
+
+def reanalyze_e19(model_name: str = MODEL) -> Path:
+    """Re-run the analysis from persisted rows, probes and axes. No GPU."""
+    run_dir = campaign_dir() / model_name
+    raw = pd.read_parquet(run_dir / "intervention_rows.parquet")
+    probes = pd.read_parquet(run_dir / "probe_metrics.parquet").to_dict(orient="records")
+    with np.load(run_dir / "probe_axes.npz") as archive:
+        axes = {}
+        for key in archive.files:
+            name, _, horizon = key.partition("__k")
+            axes[(name, int(horizon))] = np.asarray(archive[key], dtype=np.float64)
+    previous = json.loads((run_dir / "e19_summary.json").read_text(encoding="utf-8"))
+    horizons = [int(k) for k in previous["gates"]["G2_interpretable_horizons"]]
+    cfg, _provenance = _config()
+    analysis = analyze_rows(
+        raw, probes, axes, horizons,
+        bootstraps=int(cfg.statistics.bootstrap_samples),
+        confidence=float(cfg.statistics.confidence_level),
+    )
+    summary = {**previous, **analysis}
+    summary["gates"] = {**previous["gates"], **analysis.get("gates", {})}
+    save_json(summary, run_dir / "e19_summary.json")
+    atomic_write_json(campaign_dir() / "E19_TEMPORAL_ORG.json", summary)
+    return run_dir
 
 
 def read_e19() -> dict[str, Any] | None:
