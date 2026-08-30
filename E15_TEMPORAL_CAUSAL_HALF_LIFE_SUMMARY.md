@@ -1,7 +1,8 @@
 # E15 Temporal Causal Half-Life — Discovery Summary
 
 Status: **staged execution complete through Stage 3b. Stage 4 not authorized —
-the frozen Stage 4 gate did not pass.**
+the frozen Stage 4 gate did not pass.** A Gate 1 carrier-sufficiency addendum was
+added on 2026-08-30; see the addendum at the end of this file.
 
 Protocol: `docs/E15_TEMPORAL_CAUSAL_HALF_LIFE_PROTOCOL.md`, frozen, committed and
 pushed at `8b022c8` before any model was loaded and before any causal quantity
@@ -279,3 +280,107 @@ reused unchanged.
 Until then E15 stands as a preserved null: **the temporal causal half-life was
 not measurable at the predeclared carrier, because there was nothing causal there
 to decay.**
+
+---
+
+# Addendum — Gate 1 carrier-sufficiency test (2026-08-30)
+
+Added after `docs/Reproduction_Reliability_Next_Direction_Review.md` was read.
+Section 10.2 of that review requires a carrier to pass a sufficiency gate before
+any `Q/A/G` interpretation, and section 10.10 lists two diagnoses that the Stage 3
+evidence alone cannot separate:
+
+```text
+full patch STRONG, Q/A/G weak -> the causal code is outside the linear
+                                 factorial decomposition
+full patch WEAK               -> the carrier is not causally sufficient;
+                                 redesign rather than interpret
+```
+
+E15's protocol had no full-state-patch arm, so this addendum adds exactly that
+one missing measurement. It is **not a redesign**: same frozen corpus, same
+frozen site (`resid_post` L17), same frozen carrier token, same discovery-test
+episodes, same readout, same pair-cluster inference. No new hypothesis.
+
+Campaign: `runs/E15_TEMPORAL/gate1_qwen3_1.7b/`.
+
+## Arms
+
+```text
+no_op                zero delta                              numerical contract
+setpoint             the frozen E15 treatment                in-run reference
+full_state_patch     h_twin_carrier - h_base_carrier         UPPER BOUND
+full_patch_random    same-norm random direction, 5 seeds     matched control
+```
+
+The full-state patch replaces the carrier with its matched twin's carrier state.
+Twins differ only in the clearance word and Stage 0 verified identical token
+length and identical carrier index, so this is the exact full counterfactual
+displacement at the frozen carrier. It is a large edit:
+`||dh|| / ||h|| = 0.402`, more than twice the frozen setpoint's 0.187.
+
+## Result at `k0 = 1`
+
+| arm | mean effect | 95% CI | `||dh||/||h||` |
+|---|---:|---|---:|
+| `no_op` | 0.00000 | [0.00000, 0.00000] | 0.000 |
+| `setpoint` | +0.00333 | [-0.00708, +0.01375] | 0.187 |
+| `full_patch_random` | +0.00083 | [-0.00625, +0.00800] | 0.402 |
+| **`full_state_patch`** | **+0.00958** | **[-0.00042, +0.01958]** | 0.402 |
+
+Counterfactual flip rate under the full patch: **1.0%**.
+
+Paired contrast, full patch minus same-norm random:
+`+0.00875`, CI `[+0.00116, +0.01600]` — excludes zero.
+
+Descriptive at the other interpretable horizons (full patch): `+0.00458` (k=2),
+`+0.00292` (k=4), `+0.00417` (k=8). No CI excludes zero.
+
+## Gate verdict
+
+| criterion | result |
+|---|---|
+| G1a — full patch effective (mean > 0, CI excludes 0) | **fail** (CI includes 0) |
+| G1b — full patch exceeds same-norm random | pass |
+| G1c — numerics (no-op = 0.0, norm match, no hook leak) | pass |
+| **carrier causally sufficient** | **NO** |
+
+Diagnosis: `carrier_not_causally_sufficient_redesign_required`.
+
+## What this settles
+
+Replacing the *entire* residual state at the frozen carrier with its exact
+counterfactual — a 40%-of-norm edit — flips the delayed decision in 1% of
+episodes and produces a mean margin change that is not distinguishable from zero.
+
+There is a **faint but real** semantic signal there: the full patch does beat a
+same-norm random patch with a CI excluding zero (G1b). So the carrier is not
+causally inert. It is simply about two orders of magnitude too weak to support a
+decay-curve study — the review's requirement is that the full patch "change the
+delayed decision strongly", and 1% is not strong.
+
+This selects the second of the review's two diagnoses. The E15 Stage 3 null is
+**not** evidence that the causal code is nonlinear or lives outside the `Q/A/G`
+decomposition; it is evidence that this carrier is the wrong place to look. The
+flagship temporal experiment is **not buildable on this carrier as frozen**.
+
+Consequently E15's overall verdict is unchanged and if anything better supported:
+`unresolved_no_causal_handle_at_predeclared_carrier`. The temporal dissociation
+remains neither supported nor refuted.
+
+## Consequence for the next design
+
+A carrier-localisation study is now a hard prerequisite, not an option. The
+review's section 10.2 already specifies its shape, and this result adds one
+concrete constraint: a bare state-summary token is not a viable bottleneck in a
+plain long prompt, because the original evidence stays in attention memory and
+later computation reads around it. The next design must therefore either
+
+* predeclare and test several carriers (the state-word tokens themselves, the
+  line-boundary token, the decision token) with a depth sweep rather than a fixed
+  layer; or
+* build a real bottleneck — transplant a designated state token or prefix state
+  into a shared future suffix that contains no textual copy of `z`
+
+and must gate on full-state patch sufficiency at `k0` **before** any component
+decomposition is interpreted.

@@ -24,6 +24,29 @@ The broader thesis to test, not assume, is:
 
 > **Functional utilization is a distinct and potentially more fragile property than representational availability.**
 
+### 1.1 Calibration status of the checkpoint contrast
+
+A frozen residual-fraction audit (`E01_CALIBRATION_AUDIT_SUMMARY.md`, 2026-08-30)
+tested whether the checkpoint contrast is an artifact of unmatched intervention
+units. E01's own operating point turned out to be `r = ||dh||/||h|| = 0.0196` in
+0.6B versus `0.0547` in 1.7B, a 2.79x mismatch, so the raw `0.0144` versus
+`0.7013` ratio is **not** a calibrated quantity and must not be quoted.
+
+The contrast itself survives: at matched residual fraction the 1.7B conversion
+advantage is a stable ~9.5x, and matching on achieved standardized semantic
+displacement raises it to ~27x because at matched `r` the smaller model receives
+the *larger* coordinate push. Ordering is preserved under both rulers, and inside
+the on-manifold region (`r <= 0.10`) all of `Q`, `A` and `G` preserve it.
+
+Binding wording rules from that audit:
+
+```text
+report the calibrated curve, never the single-point ratio
+the magnitude is ruler-dependent; the direction is not
+"scale" remains an interpretation, not a causal conclusion
+every Q/A/G claim is restricted to residual fraction <= 0.10
+```
+
 ## 2. Current evidence chain
 
 The paper spine should preserve this sequence:

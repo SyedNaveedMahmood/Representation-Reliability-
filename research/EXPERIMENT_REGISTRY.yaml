@@ -235,6 +235,69 @@ experiments:
       gate but requires its own preregistration; E13, E15, E16, and E02 remain
       unauthorized.
 
+  - id: E01AUDIT
+    name: cross_checkpoint_intervention_calibration_audit
+    question: >
+      Is the E01 cross-checkpoint conversion contrast an artifact of comparing
+      raw-unit interventions at unmatched operating points?
+    priority: P0
+    status: complete_contrast_survives_calibration
+    depends_on: [E01A, E01B]
+    dimensions: [C]
+    type: validity audit
+    refs: [measurement_confounds_cross_family_audit, residual_fraction_matching]
+    max_gpu_hours: 2
+    trigger: >
+      docs/Reproduction_Reliability_Next_Direction_Review.md section 8, following
+      Wu, Zhao and Chen (2026), which shows raw-unit interventions at a fixed
+      layer and coefficient can manufacture apparent cross-model scaling trends.
+    campaign: runs/E01_CALIBRATION_AUDIT
+    models: [Qwen/Qwen3-0.6B, Qwen/Qwen3-1.7B]
+    site: {name: resid_post, layer: 17, selector: last_prompt, rule: frozen_E01_site_no_search}
+    design: >
+      Re-parameterize the frozen E01 intervention by residual fraction
+      r = ||dh||/||h|| over a predeclared grid, on the frozen discovery-test
+      examples, with the frozen probe recipe, frozen semantic direction and
+      frozen matched-orthogonal context. Nothing retuned; the consumed E01
+      holdout is never loaded.
+    residual_fraction_grid: [0.02, 0.05, 0.10, 0.20, 0.40]
+    n_rows: 48000
+    result:
+      confound_confirmed: true
+      original_operating_point_residual_fraction: {qwen3_0.6b: 0.0196, qwen3_1.7b: 0.0547}
+      original_operating_point_mismatch: 2.79x
+      Q_matched_r: {0.02: {small: 0.0262, large: 0.2433}, 0.05: {small: 0.0642, large: 0.6256}, 0.10: {small: 0.1408, large: 1.3175}, 0.20: {small: 0.2765, large: 2.7856}, 0.40: {small: 0.5900, large: 5.3850}}
+      A_matched_r: {0.02: {small: 0.1604, large: 0.3113}, 0.05: {small: 0.3917, large: 0.8237}, 0.10: {small: 0.7733, large: 1.7721}, 0.20: {small: 1.5402, large: 3.8546}, 0.40: {small: 2.8196, large: 6.7073}}
+      G_matched_r: {0.02: {small: -0.0021, large: 0.0123}, 0.05: {small: -0.0046, large: 0.0848}, 0.10: {small: -0.0098, large: 0.2502}, 0.20: {small: -0.0581, large: -0.3523}, 0.40: {small: -0.3202, large: -3.4319}}
+      Q_ratio_at_matched_r: ~9.5x_stable_across_the_grid
+      Q_ratio_at_matched_delta_q_z: ~27x_stable_across_the_overlap
+      Q_ordering_preserved_matched_r: true
+      Q_ordering_preserved_matched_delta_q_z: true
+      on_manifold_residual_fractions: [0.02, 0.05, 0.10]
+      on_manifold_criterion: knn_distance_ratio_to_validation_cloud_at_most_1.35
+      all_three_estimands_preserve_ordering_on_manifold: true
+      G_sign_reversal_is_off_manifold_artifact: true
+      E01B3_confirmed_G_reproduced_at_comparable_operating_point: true
+      within_model_A_over_Q: {qwen3_0.6b: 6.10, qwen3_1.7b: 1.32}
+      integrity:
+        no_op_max_margin_deviation: 0.0
+        max_residual_fraction_error: 1.7e-16
+        probe_auroc: {qwen3_0.6b: 1.0, qwen3_1.7b: 0.99951}
+        confirmation_accessed: false
+      report: E01_CALIBRATION_AUDIT_SUMMARY.md
+    required_wording_changes:
+      - retire_the_single_point_ratio_0.0144_vs_0.7013_it_is_not_norm_matched
+      - report_the_calibrated_curve_not_a_ratio_the_magnitude_is_ruler_dependent
+      - keep_scale_as_interpretation_two_checkpoints_are_not_a_randomized_manipulation
+      - restrict_all_QAG_claims_to_residual_fraction_at_most_0.10
+    next_recommendation: >
+      The E01 checkpoint contrast is calibrated and survives. Apply the wording
+      changes across the roadmap, novelty program and any paper draft, and keep
+      the residual-fraction ceiling on every future Q/A/G measurement.
+    execution_policy: >
+      Descriptive discovery audit. Makes no confirmatory claim, does not re-open
+      E01, and never loads the consumed confirmation holdout.
+
   - id: E02
     name: decode_steer_gap
     question: Does decodability predict safe steering efficacy?
@@ -793,6 +856,39 @@ experiments:
         explanation of the null.
       report: E15_TEMPORAL_CAUSAL_HALF_LIFE_SUMMARY.md
       confirmation_accessed: false
+      gate1_carrier_sufficiency_addendum:
+        added: 2026-08-30
+        rationale: >
+          Required by docs/Reproduction_Reliability_Next_Direction_Review.md
+          section 10.2. The E15 protocol had no full-state-patch arm, so the
+          Stage 3 null could not distinguish "the causal code is outside the
+          linear factorial decomposition" from "the carrier is not causally
+          sufficient". This addendum adds only that missing measurement on the
+          same frozen corpus, site, carrier and episodes; it is not a redesign.
+        campaign: runs/E15_TEMPORAL/gate1_qwen3_1.7b
+        arms: [no_op, setpoint, full_state_patch, full_patch_random]
+        full_patch_residual_fraction: 0.402
+        full_patch_effect_k0: 0.009583
+        full_patch_ci_k0: [-0.000417, 0.019583]
+        full_patch_ci_excludes_zero: false
+        full_patch_flip_rate_k0: 0.010
+        same_norm_random_effect_k0: 0.000833
+        full_patch_minus_random_k0: 0.00875
+        full_patch_minus_random_ci_k0: [0.001165, 0.016]
+        no_op_max_margin_deviation: 0.0
+        G1a_full_patch_effective: false
+        G1b_exceeds_same_norm_random: true
+        G1c_numerics_passed: true
+        carrier_causally_sufficient: false
+        diagnosis: carrier_not_causally_sufficient_redesign_required
+        reading: >
+          A 40-percent-of-norm full counterfactual replacement of the carrier
+          flips the delayed decision in 1 percent of episodes and its mean effect
+          CI includes zero, although it does beat a same-norm random patch. The
+          carrier carries a faint real semantic signal but is roughly two orders
+          of magnitude too weak to support a decay-curve study. The Stage 3 null
+          is therefore about the carrier, not about nonlinearity, and the
+          flagship temporal experiment is not buildable on this carrier.
     next_recommendation: >
       Do not repair E15 by adding carriers, layers, horizons, arms, tasks or
       models. The defensible next step is a separately frozen carrier-localisation

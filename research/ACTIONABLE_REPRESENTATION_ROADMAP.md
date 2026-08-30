@@ -275,8 +275,67 @@ to `k in {1,2,4,8}` on that non-causal basis before any intervention ran. Second
 a position with `D = 1.000` turned out not to be a causal route to the decision
 it describes — a positional, rather than temporal, D/C dissociation.
 
+A Gate 1 carrier-sufficiency addendum (2026-08-30, required by the direction
+review section 10.2) then settled *why*. Replacing the entire carrier state with
+its exact counterfactual twin - a 40%-of-norm edit, twice the frozen setpoint -
+flips the delayed decision in only 1% of episodes, with a mean-effect CI that
+includes zero, although it does beat a same-norm random patch. The carrier holds
+a faint real semantic signal but is roughly two orders of magnitude too weak to
+support a decay-curve study.
+
+So the Stage 3 null is a statement about the **carrier**, not about nonlinearity:
+the causal code is not hiding outside the `Q/A/G` decomposition at this site, the
+site is simply not where the delayed decision reads the state. The flagship
+temporal experiment is not buildable on this carrier as frozen.
+
 Do not repair E15 by adding carriers, layers, horizons, arms, tasks or models.
 See `E15_TEMPORAL_CAUSAL_HALF_LIFE_SUMMARY.md`.
+
+## Phase F - validity audits
+
+### F1. E01 cross-checkpoint calibration audit - complete
+
+Triggered by `docs/Reproduction_Reliability_Next_Direction_Review.md` section 8:
+raw-unit interventions at a fixed layer and coefficient can manufacture apparent
+cross-model scaling trends, so E01's single-point `Q0` contrast needed
+calibrating before any scale wording could stand.
+
+The audit re-parameterized the frozen E01 intervention by residual fraction
+`r = ||dh||/||h||` on the frozen discovery examples, frozen site, frozen probe
+recipe and frozen context construction. Nothing was retuned and the consumed
+holdout was never loaded.
+
+**The confound is real.** E01's own operating point is `r = 0.0196` in
+Qwen3-0.6B and `r = 0.0547` in Qwen3-1.7B - the larger checkpoint was being
+pushed 2.79x harder in residual-norm terms. The headline `0.0144 versus 0.7013`
+ratio is therefore not a calibrated quantity and must be retired.
+
+**The conclusion survives it.** At matched residual fraction the 1.7B `Q`
+advantage is a stable ~9.5x at every grid point; matching instead on achieved
+standardized semantic displacement makes it ~27x, because at matched `r` the
+smaller model actually receives the *larger* coordinate push. Ordering is
+preserved under both rulers.
+
+On-manifold validity restricts the trustworthy grid to `r <= 0.10` (k-NN
+distance to the validation cloud grows at most 1.35x). Inside that region all
+three estimands - `Q`, `A` and `G` - preserve the checkpoint ordering, and
+E01B-3's confirmed positive `G` for 1.7B is reproduced. The `G` sign reversal
+seen at `r >= 0.20` is an off-manifold artifact, not a model property.
+
+Required wording changes, now in force across this program:
+
+```text
+retire the single-point ratio; report the calibrated curve
+the magnitude of the contrast is ruler-dependent; the direction is not
+"scale" stays an interpretation - two checkpoints are not a randomized manipulation
+restrict every Q/A/G claim to residual fraction <= 0.10
+```
+
+A secondary result worth keeping: within-model reliance on structured orthogonal
+state versus the scalar coordinate differs sharply and robustly - `A/Q` is 6.10
+in 0.6B against 1.32 in 1.7B.
+
+See `E01_CALIBRATION_AUDIT_SUMMARY.md`.
 
 ## Confirmation policy
 
@@ -300,6 +359,7 @@ Current recommended ordering:
 | 5b | E17 | cross-family replication COMPLETE; phenomenon replicated in OLMo-2 |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
 | 7 | E15 | discovery complete; unresolved null — no causal handle at the predeclared carrier |
+| 8 | E01AUDIT | complete: the checkpoint contrast survives residual-fraction and semantic-shift calibration |
 
 ## Paper decision points
 

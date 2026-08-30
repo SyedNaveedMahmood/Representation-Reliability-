@@ -698,5 +698,45 @@ def e15_analyze(
     typer.echo(f"E15 analysis complete: {output}")
 
 
+@app.command("e15-gate1")
+def e15_gate1(
+    model: str = typer.Option("qwen3_1.7b", "--model", help="frozen E15 model config name"),
+) -> None:
+    """Run the E15 carrier-sufficiency arms (full-state patch upper bound)."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e15_gate1 import run_e15_gate1
+
+    run_dir = run_e15_gate1(model)
+    typer.echo(f"E15 Gate 1 complete: {run_dir}")
+
+
+@app.command("e01-calibration-audit")
+def e01_calibration_audit(
+    models: str = typer.Option(
+        "qwen3_0.6b,qwen3_1.7b", "--models", help="comma-separated frozen checkpoints"
+    ),
+) -> None:
+    """Run the frozen E01 residual-fraction calibration audit for both checkpoints."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e01_calibration_audit import run_e01_calibration_audit
+
+    names = tuple(m.strip() for m in models.split(",") if m.strip())
+    output = run_e01_calibration_audit(names)
+    typer.echo(f"E01 calibration audit complete: {output}")
+
+
+@app.command("e01-calibration-analyze")
+def e01_calibration_analyze(
+    models: str = typer.Option("qwen3_0.6b,qwen3_1.7b", "--models"),
+) -> None:
+    """Rebuild the calibrated cross-checkpoint comparison from completed rows."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e01_calibration_audit import analyze_e01_calibration_audit
+
+    names = tuple(m.strip() for m in models.split(",") if m.strip())
+    output = analyze_e01_calibration_audit(names)
+    typer.echo(f"E01 calibration analysis complete: {output}")
+
+
 if __name__ == "__main__":
     app()
