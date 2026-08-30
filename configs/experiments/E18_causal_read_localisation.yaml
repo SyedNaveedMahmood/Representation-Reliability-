@@ -1,0 +1,38 @@
+experiment:
+  id: E18
+  name: causal_read_localisation
+  mode: discovery
+
+dataset:
+  # Frozen E15 stateful console generator, fresh e18 namespace and seeds.
+  # Sites, layers, horizons and seeds are protocol constants in runners/e18.py.
+  type: stateful_console
+  n_samples: 800
+  split: discovery
+
+representation:
+  sites: [resid_post]
+  # A declared eight-layer sweep, every cell reported; not a best-layer search.
+  layers: all
+  token_selectors: [last_prompt, target_span_last]
+
+probe:
+  type: logistic_regression
+  standardize: true
+  C_grid: [0.01, 0.1, 1.0, 10.0]
+  class_weight: balanced
+
+controls:
+  random_labels: false
+  random_label_seeds: []
+  text_baseline: null
+  random_features: false
+
+behavior:
+  candidates_primary: [" Yes", " No"]
+  candidates_secondary: [" yes", " no"]
+  free_generation_diagnostic_n: 0
+
+outputs:
+  save_coefficients: false
+  layerwise_metrics: true

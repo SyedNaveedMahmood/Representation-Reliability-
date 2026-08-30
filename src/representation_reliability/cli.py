@@ -738,5 +738,15 @@ def e01_calibration_analyze(
     typer.echo(f"E01 calibration analysis complete: {output}")
 
 
+@app.command("e18")
+def e18() -> None:
+    """Run the frozen E18 causal-read localisation map."""
+    logging.basicConfig(level=logging.INFO)
+    from .runners.e18 import run_e18
+
+    run_dir = run_e18()
+    typer.echo(f"E18 localisation complete: {run_dir}")
+
+
 if __name__ == "__main__":
     app()

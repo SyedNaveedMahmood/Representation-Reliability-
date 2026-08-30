@@ -493,3 +493,129 @@ def forward_multi_capture(
             name: captured[name].float().cpu().numpy() for name, _l, _i in specs
         },
     }
+
+
+def forward_resid_post_span_edit(
+    adapter: HFAdapter,
+    prompts: Sequence[str],
+    *,
+    edit_layer: int,
+    edit_token_indices: Sequence[Sequence[int]],
+    deltas: Sequence[np.ndarray],
+    readout_token_indices: Sequence[int],
+    output_token_ids: Sequence[int],
+) -> dict[str, Any]:
+    """Additive resid_post edit over a ragged multi-token span per row.
+
+    ``forward_resid_post_edit`` edits exactly one position per row, which cannot
+    express "replace the whole clause". This variant takes, for each row, a list
+    of token positions and a matching ``[n_positions, hidden]`` delta block, so a
+    counterfactual span replacement is a single hook.
+
+    Spans may differ in length across rows; positions are scattered individually
+    rather than assuming a rectangular window. The readout position is separate
+    and may lie outside every edited span.
+
+    Returns the selected readout logits plus the post-edit states at the edited
+    positions, so span fidelity can be checked the same way single-token fidelity
+    is.
+    """
+    if adapter.model is None or adapter.tokenizer is None:
+        raise RuntimeError("adapter.load() must be called before intervention")
+    n = len(prompts)
+    if n == 0:
+        raise ValueError("intervention batch may not be empty")
+    if len(edit_token_indices) != n or len(deltas) != n or len(readout_token_indices) != n:
+        raise ValueError("span edit inputs must all have one entry per prompt")
+    if not output_token_ids:
+        raise ValueError("output_token_ids may not be empty")
+    if not (0 <= int(edit_layer) < adapter.num_layers):
+        raise ValueError(f"edit layer {edit_layer} out of range")
+
+    blocks: list[np.ndarray] = []
+    for row, (positions, block) in enumerate(zip(edit_token_indices, deltas)):
+        array = np.asarray(block, dtype=np.float64)
+        if array.ndim != 2 or array.shape != (len(positions), adapter.hidden_size):
+            raise ValueError(
+                f"row {row} delta block must be [n_positions, hidden]; got {array.shape}"
+            )
+        if not np.isfinite(array).all():
+            raise ValueError("intervention deltas must be finite")
+        if len(set(map(int, positions))) != len(positions):
+            raise ValueError(f"row {row} repeats an edit position")
+        blocks.append(array)
+
+    batch = adapter.tokenize(prompts)
+    input_ids = batch["input_ids"].to(adapter.device)
+    attention_mask = batch["attention_mask"].to(adapter.device)
+    lengths = attention_mask.sum(dim=1).to(dtype=torch.long)
+
+    readout_idx = torch.as_tensor(
+        list(map(int, readout_token_indices)), dtype=torch.long, device=adapter.device
+    )
+    if torch.any(readout_idx < 0) or torch.any(readout_idx >= lengths):
+        raise ValueError("readout_token_indices contains positions outside the prompt")
+
+    # Flatten the ragged spans into (row, position) scatter coordinates.
+    flat_rows: list[int] = []
+    flat_cols: list[int] = []
+    flat_delta: list[np.ndarray] = []
+    row_lengths = lengths.tolist()
+    for row, positions in enumerate(edit_token_indices):
+        for offset, position in enumerate(positions):
+            index = int(position)
+            if index < 0 or index >= int(row_lengths[row]):
+                raise ValueError(
+                    f"row {row} edit position {index} is outside the prompt length"
+                )
+            flat_rows.append(row)
+            flat_cols.append(index)
+            flat_delta.append(blocks[row][offset])
+    if not flat_rows:
+        raise ValueError("span edit received no positions to edit")
+
+    param_dtype = next(adapter.model.parameters()).dtype
+    rows_t = torch.as_tensor(flat_rows, dtype=torch.long, device=adapter.device)
+    cols_t = torch.as_tensor(flat_cols, dtype=torch.long, device=adapter.device)
+    delta_t = torch.as_tensor(
+        np.stack(flat_delta), device=adapter.device, dtype=param_dtype
+    )
+    captured: dict[str, torch.Tensor] = {}
+
+    def edit_hook(_module: Any, _inputs: Any, output: Any) -> Any:
+        hidden = output[0] if isinstance(output, tuple) else output
+        edited = hidden.clone()
+        edited[rows_t, cols_t] = edited[rows_t, cols_t] + delta_t
+        captured["edited"] = edited[rows_t, cols_t].detach()
+        return (edited, *output[1:]) if isinstance(output, tuple) else edited
+
+    handle = adapter._raw_layer(int(edit_layer)).register_forward_hook(edit_hook)
+    try:
+        with torch.inference_mode():
+            outputs = adapter.model(input_ids=input_ids, attention_mask=attention_mask)
+    finally:
+        handle.remove()
+
+    if "edited" not in captured:
+        raise RuntimeError("span edit hook did not fire")
+    logits = outputs.logits[torch.arange(n, device=adapter.device), readout_idx]
+    token_ids = torch.as_tensor(
+        list(map(int, output_token_ids)), dtype=torch.long, device=adapter.device
+    )
+    selected = logits.index_select(-1, token_ids).detach().float().cpu().numpy()
+
+    edited_flat = captured["edited"].float().cpu().numpy()
+    edited_by_row: list[np.ndarray] = []
+    cursor = 0
+    for positions in edit_token_indices:
+        span = len(positions)
+        edited_by_row.append(edited_flat[cursor : cursor + span].copy())
+        cursor += span
+
+    return {
+        "selected_logits": selected,
+        "edited_states": edited_by_row,
+        "edit_token_indices": [list(map(int, p)) for p in edit_token_indices],
+        "readout_token_indices": list(map(int, readout_token_indices)),
+        "output_token_ids": list(map(int, output_token_ids)),
+    }
