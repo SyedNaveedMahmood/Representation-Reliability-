@@ -298,6 +298,99 @@ experiments:
       Descriptive discovery audit. Makes no confirmatory claim, does not re-open
       E01, and never loads the consumed confirmation holdout.
 
+  - id: E18
+    name: causal_read_localisation
+    question: >
+      For a delayed decision that depends on a remembered binary state, at which
+      token sites and layers does a full-state counterfactual replacement change
+      that decision?
+    priority: P0
+    status: complete_single_token_carrier_found
+    depends_on: [E15]
+    dimensions: [D, C]
+    type: prerequisite localisation map
+    refs: [full_state_patch_sufficiency, information_movement, positional_D_C_dissociation]
+    max_gpu_hours: 4
+    protocol: docs/E18_CAUSAL_READ_LOCALISATION_PROTOCOL.md
+    protocol_commit: 75e2de3
+    campaign: runs/E18_LOCALISATION
+    model: Qwen/Qwen3-1.7B
+    corpus_seeds: {train: 20261801, validation: 20261802, discovery_test: 20261803}
+    corpus_note: >
+      Fresh e18 namespace so the map is not conditioned on rows E15 Stage 3 or the
+      Gate 1 addendum already inspected.
+    sites: [state_word_last, carrier, clearance_line_span, request_step_last, decision, prefix_span]
+    layers: [0, 4, 8, 12, 17, 21, 24, 27]
+    horizons: {primary: 1, secondary_conditional: 8}
+    grade_scale: {STRONG: flip_rate_at_least_0.50, PARTIAL: flip_rate_at_least_0.10, both_require: [effect_ci_excludes_zero, beats_same_norm_random]}
+    provenance_note: >
+      The protocol was frozen on disk before the runner, tests or pilot existed
+      and nothing in it changed after any result was seen, but it was committed
+      and pushed while the full sweep was already running rather than strictly
+      before it. Recorded rather than glossed.
+    result:
+      outcome: single_token_carrier_exists
+      flip_rate_k0:
+        state_word_last: {0: 0.603, 4: 0.600, 8: 0.603, 12: 0.267, 17: 0.010, 21: 0.010, 24: 0.017, 27: 0.000}
+        carrier: {0: 0.010, 4: 0.013, 8: 0.010, 12: 0.097, 17: 0.013, 21: 0.000, 24: 0.010, 27: 0.000}
+        clearance_line_span: {0: 0.577, 4: 0.573, 8: 0.577, 12: 0.547, 17: 0.017, 21: 0.010, 24: 0.007, 27: 0.000}
+        prefix_span: {0: 0.580, 4: 0.567, 8: 0.603, 12: 0.580, 17: 0.023, 21: 0.020, 24: 0.010, 27: 0.000}
+        request_step_last: {0: 0.007, 4: 0.013, 8: 0.007, 12: 0.007, 17: 0.010, 21: 0.003, 24: 0.003, 27: 0.000}
+        decision: {0: 0.010, 4: 0.017, 8: 0.007, 12: 0.033, 17: 0.497, 21: 0.590, 24: 0.600, 27: 0.587}
+      flip_rate_k8:
+        state_word_last: {0: 0.567, 4: 0.563, 8: 0.533, 12: 0.260}
+        decision: {17: 0.393, 21: 0.550, 24: 0.557, 27: 0.527}
+      usable_carrier: {site: state_word_last, layers: [0, 4, 8], strong_at_k1_and_k8: true}
+      handoff_between_layers: [12, 17]
+      handoff_reading: >
+        The source token stops being causal exactly where the decision token
+        starts being causal, so the state is copied forward out of its source
+        position during the middle of the network.
+      causal_content_is_localised_to_one_token: >
+        At L0-L8 patching the single state word (0.603) equals patching the whole
+        20-token clearance line (0.577) and the whole 69-token prefix (0.580).
+        Sixty-eight extra tokens add nothing.
+      e15_carrier_weak_at_every_layer: true
+      e15_null_explained: >
+        E15 intervened at a prefix position at L17, the one region of the map
+        where nothing upstream is causal any more. It was one token late
+        (index 49 versus 48) and about ten layers late.
+      decodability:
+        cells_with_D_at_least_0.95: 33
+        of_total_cells: 48
+        of_those_graded_WEAK: 21
+        carrier_D_all_layers: 1.0
+        carrier_max_flip_any_layer: 0.097
+        reading: >
+          Decodability is near-universal across positions and depths while causal
+          efficacy occupies a narrow band. A probe finds the variable almost
+          anywhere it has been copied to; the model only uses it in one place at
+          one depth.
+      integrity:
+        no_op_max_margin_deviation: 0.0
+        max_norm_match_relative_deviation: 5.6e-16
+        hook_leak_detected: false
+        anchor_gate_G2_passed: true
+        all_48_cells_reported: true
+        confirmation_accessed: false
+      limitations:
+        - L0_is_near_trivial_the_depth_profile_is_the_content
+        - flip_ceiling_is_about_0.60_since_a_fifth_of_episodes_start_wrong
+        - single_model_single_task
+        - decision_site_late_is_a_readout_result_not_a_memory_carrier
+      report: E18_CAUSAL_READ_LOCALISATION_SUMMARY.md
+    next_recommendation: >
+      A newly frozen temporal design on the state_word_last carrier at L4-L8,
+      gated on its own full-state-patch sufficiency at every horizon before any
+      Q/A/G decomposition is interpreted. Because the causal locus moves between
+      L12 and L17, that design must separate native-local from
+      transported-reference estimands; measuring at one fixed layer would
+      conflate "the state stopped mattering" with "the state moved". E15 stays
+      closed and its verdict unchanged.
+    execution_policy: >
+      Prerequisite discovery map. Every declared cell reported pass or fail. Not a
+      rescue of E15 and no temporal claim is licensed by it alone.
+
   - id: E02
     name: decode_steer_gap
     question: Does decodability predict safe steering efficacy?

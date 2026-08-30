@@ -291,6 +291,10 @@ temporal experiment is not buildable on this carrier as frozen.
 Do not repair E15 by adding carriers, layers, horizons, arms, tasks or models.
 See `E15_TEMPORAL_CAUSAL_HALF_LIFE_SUMMARY.md`.
 
+E15 stays closed. The prerequisite it exposed was answered separately by E18
+below, which found the causal read one token earlier and about ten layers
+earlier than E15's frozen site.
+
 ## Phase F - validity audits
 
 ### F1. E01 cross-checkpoint calibration audit - complete
@@ -337,6 +341,49 @@ in 0.6B against 1.32 in 1.7B.
 
 See `E01_CALIBRATION_AUDIT_SUMMARY.md`.
 
+### F2. E18 causal-read localisation - complete
+
+E15's Gate 1 showed its carrier was not causally sufficient, and the direction
+review's section 10.2 requires that a weak full patch trigger redesign rather
+than post-hoc analysis. E18 answered the prerequisite first: for a delayed
+decision that provably depends on a remembered binary state, **where** does a
+full-state counterfactual replacement actually change the decision?
+
+A declared 6-site by 8-layer grid, every cell reported, on a fresh corpus
+namespace. The map is sharp:
+
+```text
+state_word_last   STRONG at L0, L4, L8   ->  PARTIAL at L12  ->  WEAK from L17
+decision          WEAK to L12            ->  PARTIAL at L17  ->  STRONG at L21-27
+carrier (E15)     WEAK at all eight layers
+```
+
+Three results follow.
+
+**The causal content of the whole prefix sits in one token.** At L0-L8 patching
+the single state word (flip 0.603) equals patching the entire 20-token clearance
+line (0.577) and the entire 69-token prefix (0.580). Sixty-eight extra tokens add
+nothing.
+
+**There is a hand-off between L12 and L17.** The source token stops being causal
+exactly where the decision token starts being causal - the state is copied
+forward out of its source position mid-network. This explains E15's null
+completely: E15 intervened at a prefix position at L17, the one region where
+nothing upstream is causal any more. It was one token late (index 49 versus 48)
+and about ten layers late.
+
+**The D/C dissociation is now a map.** 33 of 48 cells decode the state at
+`D >= 0.95` and **21 of those are causally WEAK**. The sharpest case is E15's own
+carrier: `D = 1.000` at all eight layers with a flip rate never above 0.097.
+Decodability is near-universal across positions and depths; causal efficacy
+occupies a narrow band. A probe finds the variable almost anywhere it has been
+copied to; the model only uses it in one place at one depth.
+
+The carrier survives horizon: at `k = 8` the source token is still STRONG at
+L0/L4/L8 (0.567/0.563/0.533).
+
+See `E18_CAUSAL_READ_LOCALISATION_SUMMARY.md`.
+
 ## Confirmation policy
 
 The E01 confirmation split was consumed exactly once after remote
@@ -360,6 +407,7 @@ Current recommended ordering:
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
 | 7 | E15 | discovery complete; unresolved null — no causal handle at the predeclared carrier |
 | 8 | E01AUDIT | complete: the checkpoint contrast survives residual-fraction and semantic-shift calibration |
+| 9 | E18 | complete: causal read localised to one token at L0-L8; a usable carrier exists |
 
 ## Paper decision points
 
@@ -417,9 +465,26 @@ If E15 shows `H_C < H_D`:
 
 E15 did not reach this path. The temporal question was not measurable at the
 predeclared carrier because there was no baseline causal effect to decay. The
-prerequisite is a separately frozen carrier-localisation design that first
-establishes *where* a delayed decision causally reads a remembered state, with a
-demonstrated causal handle at `k0` as its entry gate.
+prerequisite was a separately frozen carrier-localisation design establishing
+*where* a delayed decision causally reads a remembered state.
+
+**E18 has now met that prerequisite.** A usable single-token carrier exists -
+`state_word_last` at L4-L8, STRONG at both `k=1` and `k=8` - so the flagship is
+buildable without a transplant bottleneck. Two constraints from the E18 map must
+be built into it:
+
+```text
+the causal locus MOVES between L12 and L17, so a single fixed layer would
+conflate "the state stopped mattering" with "the state moved"
+
+site and depth must be declared jointly; the carrier is a narrow
+(position, depth) region, not a layer
+```
+
+The temporal design must therefore separate native-local organization at each
+horizon from transported-reference organization off a frozen early axis, and gate
+on full-state-patch sufficiency at every horizon before interpreting any `Q/A/G`
+decomposition.
 
 ## Stop rules
 
