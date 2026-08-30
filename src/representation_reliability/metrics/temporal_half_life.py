@@ -121,8 +121,9 @@ def half_life(
         previous, current = float(rel[index - 1]), float(rel[index])
         if current <= thr:
             if previous <= thr:
-                # Already at or below threshold at the earliest crossing point.
-                value = float(ks[index - 1]) if index == 1 else float(ks[index - 1])
+                # Already at or below threshold before this point: the crossing
+                # happened at or before the previous grid horizon.
+                value = float(ks[index - 1])
             else:
                 span = previous - current
                 frac = (previous - thr) / span if span > 1e-12 else 0.0

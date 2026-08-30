@@ -130,7 +130,7 @@ def build_e15_corpus(
     cross = frame.groupby("pair_id")["split"].nunique()
     if int((cross > 1).sum()):
         raise RuntimeError("an E15 pair straddles two splits")
-    statistics["n_samples_total"] = int(len(frame))
+    statistics["n_samples_total"] = len(frame)
     return all_samples, frame, statistics
 
 

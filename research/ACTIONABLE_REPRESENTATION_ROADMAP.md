@@ -231,7 +231,7 @@ Only start after identifying a public checkpoint family with stable architecture
 
 ## Phase E — test temporal persistence
 
-### E1. E15 temporal causal half-life — later conceptual extension
+### E1. E15 temporal causal half-life — discovery complete, unresolved null
 
 Goal: determine whether a represented state remains decodable after its causal influence on future actions has decayed.
 
@@ -243,7 +243,40 @@ H_C < H_D
 
 where `H_C` is causal half-life and `H_D` is representation half-life.
 
-Do not begin with open-ended agents. First freeze one structured stateful task with explicit latent state and auditable future decisions.
+Status: **executed 2026-08-30 through Stage 3b under
+`docs/E15_TEMPORAL_CAUSAL_HALF_LIFE_PROTOCOL.md` (frozen at `8b022c8`); the
+Stage 4 gate did not pass and Stage 4 was not run.**
+
+The frozen task is a deterministic stateful console log with one binary clearance
+flag, a delayed approval decision, matched counterfactual twins, and a second
+uncorrelated flag as the irrelevant-state control. Horizon renderings are pure
+prefix extensions, so only the state-write-to-decision distance varies.
+
+Outcome: `H15.1` is supported — the state stays near-perfectly decodable at the
+decision token across the whole grid (`D` falls only `0.9999 -> 0.9728` from
+`k=1` to `k=32`). But a full source-free counterfactual setpoint at the
+predeclared carrier (`resid_post` L17, the clearance-line-final token), driving
+the decoded coordinate across the entire class boundary at
+`||delta h||/||h|| = 0.187` with near-exact fidelity, produced **no detectable
+change in the delayed decision at any horizon including `k0`**
+(`C(1) = 0.0033`, CI `[-0.0071, 0.0138]`), did not separate from any control, and
+did not exceed its own shuffled-decision null (`p = 0.564`). Propagation to the
+decision token was numerically indistinguishable from a random direction of the
+same norm.
+
+Consequently `H_C` is not estimable, `H_D` is right-censored at `k=8`, and
+`H_C < H_D` is **neither supported nor refuted**. `H15.2` is unresolved, not
+falsified: a decay curve cannot be measured from a null baseline.
+
+Two preserved side results. First, behaviour collapses to exactly chance by
+`k=32` (`B = 0.500`) while `D` is still `0.973` — a decodability-versus-behaviour
+dissociation over horizon; the frozen G1c rule truncated the interpretable grid
+to `k in {1,2,4,8}` on that non-causal basis before any intervention ran. Second,
+a position with `D = 1.000` turned out not to be a causal route to the decision
+it describes — a positional, rather than temporal, D/C dissociation.
+
+Do not repair E15 by adding carriers, layers, horizons, arms, tasks or models.
+See `E15_TEMPORAL_CAUSAL_HALF_LIFE_SUMMARY.md`.
 
 ## Confirmation policy
 
@@ -266,7 +299,7 @@ Current recommended ordering:
 | 5 | E13 | diagnostic claim CONFIRMED (strong); holdout consumed; method branch stays closed |
 | 5b | E17 | cross-family replication COMPLETE; phenomenon replicated in OLMo-2 |
 | 6 | E16 | deepest developmental claim if checkpoints permit; not authorized |
-| 7 | E15 | highest long-horizon conceptual upside; not authorized |
+| 7 | E15 | discovery complete; unresolved null — no causal handle at the predeclared carrier |
 
 ## Paper decision points
 
@@ -321,6 +354,12 @@ If E16 shows `t_D < t_C`:
 If E15 shows `H_C < H_D`:
 
 > Information can remain internally represented after its ability to govern future action has decayed.
+
+E15 did not reach this path. The temporal question was not measurable at the
+predeclared carrier because there was no baseline causal effect to decay. The
+prerequisite is a separately frozen carrier-localisation design that first
+establishes *where* a delayed decision causally reads a remembered state, with a
+demonstrated causal handle at `k0` as its entry gate.
 
 ## Stop rules
 

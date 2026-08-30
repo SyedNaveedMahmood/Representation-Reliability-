@@ -715,7 +715,7 @@ experiments:
       In a long-horizon task, can a state variable remain internally decodable
       after its causal influence on future actions has substantially decayed?
     priority: P1
-    status: authorized_staged_execution
+    status: discovery_complete_unresolved_null
     depends_on: [E01B]
     dimensions: [D, C, R]
     refs: [long_horizon_state, causal_intervention, temporal_persistence]
@@ -746,8 +746,62 @@ experiments:
     hypotheses_executed: [H15.1, H15.2]
     hypotheses_secondary: [H15.3]
     hypotheses_gated: [H15.4]
+    protocol_commit: 8b022c8
+    result:
+      stages_run: [0, 1, 2, 3, 3b]
+      stage4_run: false
+      stage4_gate_passed: false
+      verdict: unresolved_no_causal_handle_at_predeclared_carrier
+      D_carrier: 1.0
+      D_primary_by_horizon: {1: 0.99987, 2: 0.99964, 4: 0.99724, 8: 0.99524, 16: 0.98547, 32: 0.97280}
+      D_carry_by_horizon: {1: 0.882, 2: 0.866, 4: 0.860, 8: 0.811, 16: 0.764, 32: 0.733}
+      B_by_horizon: {1: 0.800, 2: 0.833, 4: 0.817, 8: 0.800, 16: 0.560, 32: 0.500}
+      interpretable_horizons: [1, 2, 4, 8]
+      interpretable_horizons_rule: >
+        G1c truncation on non-causal behaviour only, decided before any
+        intervention ran; k=16 and k=32 are uninterpretable, not dropped.
+      C_raw_by_horizon: {1: 0.00333, 2: -0.00375, 4: 0.00208, 8: 0.00583}
+      C_z_by_horizon: {1: 0.00397, 2: -0.00448, 4: 0.00294, 8: 0.00943}
+      C_k0_ci: [-0.00709, 0.01376]
+      C_k0_ci_excludes_zero: false
+      H_C: not_estimable
+      H_C_reasons: [baseline_ci_includes_zero, curve_not_sufficiently_monotone]
+      H_D: right_censored_at_k8
+      H_D_final_relative: 0.9908
+      intervention_magnitude: {delta_over_activation_norm: 0.187, projection_relative_deviation: 0.00024, orthogonal_relative_deviation: 0.00136}
+      no_op_max_margin_deviation: 0.0
+      shuffled_decision_null_p_at_k0: 0.564
+      treatment_minus_control_at_k0_all_include_zero: true
+      propagation_setpoint_matches_random_norm_matched: true
+      hypotheses:
+        H15.1: supported
+        H15.2: unresolved_no_baseline_causal_effect
+        H15.3: uninformative_given_null_C
+        H15.4: not_run
+      side_observation: >
+        D_primary stays at 0.973 at k=32 while forced-choice behaviour is exactly
+        at chance (0.500). This is a decodability-versus-behaviour dissociation
+        over horizon, not the decodability-versus-causality claim E15 targets.
+      failed_control: >
+        The Stage 3b sparse/dense contrast did not achieve its intended token
+        distance match (162 versus 250 tokens), so it confounds step count with
+        token distance and supports no claim.
+      limitation: >
+        Single carrier, single layer, single model, single task. Editing one
+        position at one layer leaves the state-word tokens and all layers below
+        17 untouched, so bypass routes are not excluded. This is the most likely
+        explanation of the null.
+      report: E15_TEMPORAL_CAUSAL_HALF_LIFE_SUMMARY.md
+      confirmation_accessed: false
+    next_recommendation: >
+      Do not repair E15 by adding carriers, layers, horizons, arms, tasks or
+      models. The defensible next step is a separately frozen carrier-localisation
+      design asking where the delayed decision's causal read of a remembered state
+      actually lives, with a demonstrated causal handle at k0 as its entry gate.
+      Only then does the temporal question become measurable, at which point the
+      E15 corpus, arms, controls and half-life machinery can be reused unchanged.
     execution_policy: >
-      Authorized 2026-08-29 for staged execution under the frozen protocol. The
+      Authorized 2026-08-29 and executed 2026-08-30 under the frozen protocol. The
       staged plan is the authorization structure: stage 4 runs only if the frozen
       stage 4 gate passes. No confirmation split is created and none of the
       consumed E01/E13/E14 holdouts are touched. A failed gate stands as the
