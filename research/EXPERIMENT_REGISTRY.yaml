@@ -478,6 +478,88 @@ experiments:
       Discovery only. Every cell reported. E15 remains closed and E19 inherits
       none of its claims.
 
+  - id: E20
+    name: long_horizon_temporal_causal_organization
+    question: >
+      Can the horizon be extended far enough for a causal persistence timescale
+      to become legitimately estimable, while D stays high?
+    priority: P1
+    status: complete_null_horizon_not_extendable
+    depends_on: [E19]
+    dimensions: [D, C, R]
+    refs: [horizon_extension, non_causal_range_selection, magnitude_stability_gate]
+    max_gpu_hours: 4
+    protocol: docs/E20_LONG_HORIZON_PROTOCOL.md
+    protocol_commit: 6ed6e31
+    protocol_frozen_before_any_measurement_code: true
+    campaign: runs/E20_LONG_HORIZON
+    model: Qwen/Qwen3-1.7B
+    corpus_seeds: {train: 20262001, validation: 20262002, discovery_test: 20262003}
+    candidate_horizons: [1, 2, 4, 8, 16, 24, 32]
+    inherited_unchanged_from_E19: [loci, components, estimands, arms, inference, claim_boundary]
+    result:
+      outcome: stopped_after_phase1_no_longer_interpretable_horizon
+      stop_rule_fired: true
+      reach_by_pool: {short: [1, 2, 4, 8], long: [1, 2, 4, 8]}
+      selected_pool: short
+      selected_grid: [1, 2, 4, 8]
+      interventions_run: false
+      causal_quantities_inspected_during_selection: false
+      half_life_estimable: false
+      half_life_status: right_censored_at_k8_unchanged_from_E19
+      phase1_behaviour:
+        short: {1: 0.807, 2: 0.823, 4: 0.807, 8: 0.793, 16: 0.540, 24: 0.537, 32: 0.500}
+        long: {1: 0.837, 2: 0.857, 4: 0.837, 8: 0.737, 16: 0.550, 24: 0.523, 32: 0.500}
+      phase1_decodability_source_carrier:
+        all_horizons_both_pools: 1.0
+      phase1_decodability_decision_token:
+        short: {1: 0.9998, 32: 0.9598}
+        long: {1: 0.9993, 32: 0.9512}
+      phase1_token_distance:
+        short: {8: 143.0, 16: 250.8, 32: 466.8}
+        long: {8: 206.1, 16: 377.0, 32: 718.8}
+      step_count_not_token_distance:
+        settled: true
+        evidence: >
+          At matched step count k=16 the pools differ by 50 percent in tokens
+          (251 versus 377) and by 0.010 in B. At similar token distance, 8 long
+          steps (206 tokens, B=0.737) beats 16 short steps (251 tokens, B=0.540)
+          by 0.197. The collapse tracks discrete state-tracking steps, not
+          context length.
+        supersedes: >
+          E15 Stage 3b hinted at this but its own contrast was confounded (162
+          versus 250 tokens) and is recorded there as a failed control. E20's
+          Phase 1 is the properly matched test.
+      dissociation_widened: >
+        D at the source carrier is 1.0000 at every horizon in both pools out to
+        k=32 and 719 tokens, where forced-choice behaviour is exactly at chance
+        (0.500). Margin AUROC retains partial signal (0.923 to 0.769) where the
+        thresholded decision does not.
+      gates_exercised: {G0: pass, G2: applied_on_non_causal_data}
+      gates_not_exercised: [G1, G3, G4]
+      G4_status: >
+        Preregistered, implemented and unit-tested, including that it excludes a
+        failing curve from H19.2, H19.3, H19.4 and from any half-life rather than
+        only from the outcome label. Phase 2 never ran, so G4 has not yet fired
+        on real data. E19's recorded results are unchanged because the gate is an
+        opt-in flag defaulting to off.
+      limitations:
+        - primary_objective_not_achieved_no_half_life_became_estimable
+        - G4_preregistered_but_unexercised
+        - B_per_cell_carries_about_plus_minus_0.06_and_long_at_k8_is_0.737
+        - single_model_single_task
+      report: E20_LONG_HORIZON_SUMMARY.md
+    next_recommendation: >
+      The binding constraint is now identified: this environment tops out at about
+      eight discrete state-tracking steps and lengthening steps does not help,
+      because the cost is per step. Accept the censoring and report E19's curve
+      rather than a timescale. Reducing the per-step tracking load, or moving to a
+      stronger checkpoint, would each need a separately frozen design and a fresh
+      E18-style carrier map; neither may be started as a repair of E20.
+    execution_policy: >
+      Discovery only. The stop rule fired and was obeyed: no pool, arm, locus,
+      layer or model was added to reach further.
+
   - id: E02
     name: decode_steer_gap
     question: Does decodability predict safe steering efficacy?

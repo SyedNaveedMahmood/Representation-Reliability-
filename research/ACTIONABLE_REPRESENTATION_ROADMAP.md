@@ -426,6 +426,41 @@ its baseline residual fraction.
 
 See `E19_TEMPORAL_CAUSAL_ORGANIZATION_SUMMARY.md`.
 
+### F4. E20 long-horizon extension - complete, null on its primary objective
+
+E19 left every half-life right-censored, so E20 tried to extend the horizon far
+enough for a persistence timescale to become estimable. It changed exactly one
+thing - how far the horizon reaches - and inherited the carrier, loci, components,
+estimands, arms and inference unchanged.
+
+**It did not work, and the stop rule was obeyed.** A non-causal Phase 1 measured
+both distractor pools across `k in {1,2,4,8,16,24,32}` on behaviour and
+decodability only, with every intervention forbidden. Both pools reach exactly
+`[1,2,4,8]` at `B >= 0.70` - the grid E19 already had - so E20 ran no
+interventions and **every half-life remains right-censored at k=8**. No
+persistence timescale is quoted and the frozen half-life rule was not relaxed to
+manufacture one.
+
+Two things were learned anyway, both non-causal.
+
+**Step count, not token distance, drives the behavioural collapse.** At matched
+`k=16` the two pools differ by 50% in tokens (251 versus 377) and by 0.010 in
+`B`; at similar token distance, 8 long steps (206 tokens, `B`=0.737) beats 16
+short steps (251 tokens, `B`=0.540) by 0.197. This settles what E15's Stage 3b
+only hinted at with a confounded contrast, and explains why the long pool bought
+nothing: it lengthens each step without reducing how many there are.
+
+**The decodability-versus-behaviour dissociation widens.** `D` at the source
+carrier is `1.0000` at every horizon in both pools out to `k=32` and 719 tokens,
+where forced-choice behaviour sits at exactly chance (0.500).
+
+E20 also promotes E19's post-hoc magnitude control to the preregistered gate G4,
+which excludes a magnitude-unstable curve from every hypothesis and from any
+half-life. It is implemented and unit-tested but, since Phase 2 never ran, has
+not yet fired on real data.
+
+See `E20_LONG_HORIZON_SUMMARY.md`.
+
 ## Confirmation policy
 
 The E01 confirmation split was consumed exactly once after remote
@@ -451,6 +486,7 @@ Current recommended ordering:
 | 8 | E01AUDIT | complete: the checkpoint contrast survives residual-fraction and semantic-shift calibration |
 | 9 | E18 | complete: causal read localised to one token at L0-L8; a usable carrier exists |
 | 10 | E19 | complete: D at ceiling while Q/A/G decay; Q decays with distance, A with age |
+| 11 | E20 | complete: null - the horizon is not extendable past 8 steps, so no half-life is estimable |
 
 ## Paper decision points
 
